@@ -490,3 +490,43 @@ test("keeps background model downloads lazy until the user starts removal", asyn
   await expect(page.locator("#remove-background")).toBeDisabled();
   expect(externalRequests).toHaveLength(0);
 });
+
+
+test("applies a mocked local background-removal result and can restore the original", async ({ page }) => {
+  const externalRequests: string[] = [];
+  page.on("request", request => {
+    if (/^https?:/i.test(request.url())) externalRequests.push(request.url());
+  });
+  await page.goto("/convert/");
+  await page.locator("#image-file").setInputFiles({
+    name: "portrait-test.png",
+    mimeType: "image/png",
+    buffer: pixel
+  });
+  await expect(page.locator("#remove-background")).toBeEnabled();
+  await page.evaluate(() => {
+    window.loadLocalBackgroundPipeline = async () => async () => [{
+      toBlob: async () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 2;
+        canvas.height = 2;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Canvas context unavailable");
+        context.fillStyle = "#ff0000";
+        context.fillRect(0, 0, 1, 1);
+        return await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Could not create mock cutout")), "image/png");
+        });
+      }
+    }];
+  });
+  externalRequests.length = 0;
+  await page.locator("#remove-background").click();
+  await expect(page.locator("#background-status")).toContainText("اكتملت إزالة الخلفية", { timeout: 10_000 });
+  await expect(page.locator("#restore-original")).toBeVisible();
+  await expect(page.locator("#format")).toHaveValue("image/png");
+  expect(externalRequests, "The selected image must not be uploaded during local background processing").toHaveLength(0);
+  await page.locator("#restore-original").click();
+  await expect(page.locator("#restore-original")).toBeHidden();
+  await expect(page.locator("#background-status")).toContainText("تمت استعادة الصورة الأصلية");
+});
