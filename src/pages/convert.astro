@@ -200,6 +200,7 @@ const updateCropDefaults = () => {
   cropInfo.textContent = "أبعاد الصورة الأصلية: " + sourceDimensions.width + " × " + sourceDimensions.height + " بكسل.";
   useCropButton.disabled = false;
   resetCropButton.disabled = false;
+  refreshCropPreview();
 };
 const getCropRect = () => {
   const x = Number(cropX.value), y = Number(cropY.value);
@@ -225,7 +226,14 @@ const refreshCropPreview = () => {
     cropPreviewWrap.hidden = false;
   } catch { cropPreviewWrap.hidden = true; }
 };
-[cropX, cropY, cropWidth, cropHeight].forEach(input => input.addEventListener("input", refreshCropPreview));
+[cropX, cropY, cropWidth, cropHeight].forEach(input => input.addEventListener("input", () => {
+  refreshCropPreview();
+  if (cropEnabled) {
+    cropEnabled = false;
+    useCropButton.textContent = "تفعيل الاقتصاص";
+    cropInfo.textContent = "تغيرت قيم الاقتصاص؛ فعّل الاقتصاص مجددًا لتطبيق المساحة الجديدة.";
+  }
+}));
 const updateRatioDimension = (changed) => {
   if (!keepRatio.checked || !sourceDimensions.width || !sourceDimensions.height) return;
   let ratio = sourceDimensions.width / sourceDimensions.height;
