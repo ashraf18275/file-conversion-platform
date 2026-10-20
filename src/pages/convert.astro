@@ -85,6 +85,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <div id="result" class="result" hidden><h2>النتيجة</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التعديل" /><p id="result-info"></p><div id="target-warning" class="warn" hidden></div><a id="download" class="button" download>تنزيل الصورة</a></div>
 </section>
 <script>
+// @ts-nocheck -- this legacy DOM script is plain JavaScript; Playwright covers its runtime behavior.
 const editorTabs = Array.from(document.querySelectorAll("[data-editor-tab]"));
 const editorPanels = Array.from(document.querySelectorAll("[data-editor-panel]"));
 const detailPanels = Array.from(document.querySelectorAll("details.tool-panel"));
@@ -299,6 +300,7 @@ const getBackgroundPipeline = async () => {
 removeBackgroundButton.addEventListener("click", async () => {
   if (!selectedFile || !sourceUrl || backgroundRemovalBusy) return;
   backgroundRemovalBusy = true;
+  fileInput.disabled = true;
   removeBackgroundButton.disabled = true;
   restoreOriginalButton.disabled = true;
   convertButton.disabled = true;
@@ -337,6 +339,7 @@ removeBackgroundButton.addEventListener("click", async () => {
     backgroundStatus.textContent = "تعذرت إزالة الخلفية: " + (error instanceof Error ? error.message : "خطأ غير معروف") + ". يمكنك متابعة تحويل الصورة الأصلية.";
   } finally {
     backgroundRemovalBusy = false;
+    fileInput.disabled = false;
     removeBackgroundButton.disabled = !selectedFile;
     restoreOriginalButton.disabled = false;
     convertButton.disabled = !selectedFile || !allowedInputTypes.has(selectedFile.type);
