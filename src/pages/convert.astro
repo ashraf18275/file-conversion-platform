@@ -275,7 +275,7 @@ convertButton.addEventListener("click", async () => {
       const kb = Number(targetKb.value);
       if (!Number.isFinite(kb) || kb < 1 || kb > 100000) throw new Error("أدخل حجمًا مستهدفًا بين 1 و100000 كيلوبايت.");
       encoded = await encodeWithTarget(canvas, mime, Number(qualityInput.value), Math.floor(kb * 1024));
-    } else encoded = { blob: await canvasToBlob(canvas, mime, Number(qualityInput.value)), quality: Number(qualityInput.value), metTarget: true };
+    } else encoded = { blob: await canvasToBlob(canvas, mime, Number(qualityInput.value)), quality: mime === "image/png" ? null : Number(qualityInput.value), metTarget: true };
     const blob = encoded.blob;
     if (blob.type !== mime) throw new Error("هذا المتصفح لا ينتج التنسيق المطلوب. اختر تنسيقًا آخر.");
     revoke(resultUrl);
@@ -290,7 +290,7 @@ convertButton.addEventListener("click", async () => {
       targetWarning.textContent = mime === "image/png" ? "لم يُطبّق حد الحجم المستهدف؛ صيغة PNG لا تدعم التحكم في الجودة عبر هذا المحرر. جرّب WebP أو JPEG أو أبعادًا أصغر." : "تعذر الوصول إلى الحجم المستهدف حتى عند أقل جودة متاحة. جرّب أبعادًا أصغر أو تنسيقًا آخر.";
       targetWarning.hidden = false;
     } else if (targetEnabled.checked) {
-      targetWarning.textContent = "تم بلوغ الحجم المستهدف باستخدام أعلى جودة عُثر عليها ضمن محاولات الضبط.";
+      targetWarning.textContent = mime === "image/png" ? "حجم الملف ضمن الهدف المحدد، لكن PNG لا يدعم التحكم في الجودة عبر هذا المحرر." : "تم بلوغ الحجم المستهدف باستخدام أعلى جودة عُثر عليها ضمن محاولات الضبط.";
       targetWarning.hidden = false;
     }
     result.hidden = false;
