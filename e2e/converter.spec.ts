@@ -56,3 +56,15 @@ test("shows a clear error for a corrupt image without sending file contents", as
   await expect(page.locator("#status")).not.toHaveText("اكتمل التحويل. راجع المعاينة قبل التنزيل.");
   expect(outbound.filter(url => /^https?:/i.test(url))).toHaveLength(0);
 });
+
+
+test("rejects SVG input to keep the source allowlist raster-only", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.locator("#image-file").setInputFiles({
+    name: "vector.svg",
+    mimeType: "image/svg+xml",
+    buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>')
+  });
+  await expect(page.locator("#convert")).toBeDisabled();
+  await expect(page.locator("#source-info")).toContainText("نوع الصورة غير مدعوم");
+});
