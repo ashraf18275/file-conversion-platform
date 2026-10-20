@@ -314,7 +314,7 @@ test("uses the selected output format even when the source filename extension is
   const downloadPromise = page.waitForEvent("download");
   await page.locator("#download").click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toMatch(/\\.webp$/);
-  expect(download.suggestedFilename()).not.toMatch(/\\.jpg$/);
+  expect(download.suggestedFilename().endsWith(".webp")).toBeTruthy();
+  expect(download.suggestedFilename().endsWith(".jpg")).toBeFalsy();
 });
 
