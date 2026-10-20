@@ -103,3 +103,32 @@ test("fills transparent pixels white when converting to JPEG", async ({ page }) 
   expect(rgba[1]).toBeGreaterThanOrEqual(240);
   expect(rgba[2]).toBeGreaterThanOrEqual(240);
 });
+
+
+test("converts a 6-megapixel image and preserves its dimensions", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const source = document.createElement("canvas");
+    source.width = 3000;
+    source.height = 2000;
+    const context = source.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#d3d3d3";
+    context.fillRect(0, 0, source.width, source.height);
+    context.fillStyle = "#2468ac";
+    context.fillRect(0, 0, 1500, 1000);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create large test PNG")), "image/png");
+    });
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input was not found");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "six-megapixel.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.locator("#format").selectOption("image/webp");
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator("#result-info")).toContainText("3000 × 2000");
+});
