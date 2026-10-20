@@ -318,3 +318,111 @@ test("uses the selected output format even when the source filename extension is
   expect(download.suggestedFilename().endsWith(".jpg")).toBeFalsy();
 });
 
+
+
+test("resizes into exact dimensions without cropping the source", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const source = document.createElement("canvas");
+    source.width = 2; source.height = 1;
+    const context = source.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#ff0000"; context.fillRect(0, 0, 1, 1);
+    context.fillStyle = "#0000ff"; context.fillRect(1, 0, 1, 1);
+    const blob = await new Promise<Blob>((resolve, reject) => source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create test image")), "image/png"));
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input was not found");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "two-colors.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.locator("#width").fill("100");
+  await page.locator("#height").fill("100");
+  await page.locator("#keep-ratio").uncheck();
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible();
+  const details = await page.locator("#result-preview").evaluate(async image => {
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.drawImage(image, 0, 0);
+    return { width: canvas.width, height: canvas.height, left: Array.from(context.getImageData(0, 50, 1, 1).data), center: Array.from(context.getImageData(50, 50, 1, 1).data) };
+  });
+  expect(details.width).toBe(100);
+  expect(details.height).toBe(100);
+  expect(details.left[0]).toBeGreaterThan(200);
+  expect(details.center[2]).toBeGreaterThan(100);
+});
+
+test("crop controls apply the requested source rectangle", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const source = document.createElement("canvas");
+    source.width = 2; source.height = 1;
+    const context = source.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#ff0000"; context.fillRect(0, 0, 1, 1);
+    context.fillStyle = "#0000ff"; context.fillRect(1, 0, 1, 1);
+    const blob = await new Promise<Blob>((resolve, reject) => source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create test image")), "image/png"));
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input was not found");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "two-colors.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.locator("#crop-x").fill("1");
+  await page.locator("#crop-y").fill("0");
+  await page.locator("#crop-width").fill("1");
+  await page.locator("#crop-height").fill("1");
+  await page.locator("#use-crop").click();
+  await page.locator("#fit-mode").selectOption("actual");
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible();
+  await expect(page.locator("#result-info")).toContainText("الأبعاد النهائية: 1 × 1");
+  const pixelColor = await page.locator("#result-preview").evaluate(async image => {
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.drawImage(image, 0, 0);
+    return Array.from(context.getImageData(0, 0, 1, 1).data);
+  });
+  expect(pixelColor[2]).toBeGreaterThan(150);
+});
+
+test("target-size compression reports the achieved output size", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.locator("#image-file").setInputFiles({ name: "pixel.png", mimeType: "image/png", buffer: pixel });
+  await page.locator("#format").selectOption("image/webp");
+  await page.locator("#target-enabled").check();
+  await page.locator("#target-kb").fill("200");
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible();
+  await expect(page.locator("#target-warning")).toBeVisible();
+  await expect(page.locator("#result-info")).toContainText("الجودة المستخدمة");
+});
+
+test("rotate controls swap output dimensions when keeping original pixel size", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const source = document.createElement("canvas");
+    source.width = 2; source.height = 1;
+    const blob = await new Promise<Blob>((resolve, reject) => source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create test image")), "image/png"));
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input was not found");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "landscape.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.locator("#fit-mode").selectOption("actual");
+  await page.locator("#rotate-right").click();
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible();
+  await expect(page.locator("#result-info")).toContainText("الأبعاد النهائية: 1 × 2");
+});
