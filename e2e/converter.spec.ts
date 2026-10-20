@@ -532,7 +532,7 @@ test("applies a mocked local background-removal result and can restore the origi
   await expect(page.locator("#remove-background")).toBeEnabled();
   await page.evaluate(() => {
     Object.assign(window, {
-      loadLocalBackgroundPipeline: async () => async (_task, _model, _options) => async () => [{
+      loadLocalBackgroundPipeline: async () => async (_task: string, _model: string, _options: Record<string, unknown>) => async () => [{
         toBlob: async () => {
           const canvas = document.createElement("canvas");
           canvas.width = 2;
