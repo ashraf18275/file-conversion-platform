@@ -230,38 +230,35 @@ convertButton.addEventListener("click", async () => {
     await image.decode();
     let crop = { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight };
     if (cropEnabled) crop = getCropRect();
-    let targetWidth = image.naturalWidth, targetHeight = image.naturalHeight;
+    const swap = rotation % 180 !== 0;
+    const transformed = document.createElement("canvas");
+    transformed.width = swap ? crop.height : crop.width;
+    transformed.height = swap ? crop.width : crop.height;
+    const transformContext = transformed.getContext("2d");
+    if (!transformContext) throw new Error("المتصفح لا يدعم مساحة الرسم المطلوبة.");
+    transformContext.translate(transformed.width / 2, transformed.height / 2);
+    transformContext.rotate(rotation * Math.PI / 180);
+    transformContext.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+    transformContext.drawImage(image, crop.x, crop.y, crop.width, crop.height, -crop.width / 2, -crop.height / 2, crop.width, crop.height);
+
+    let targetWidth = transformed.width, targetHeight = transformed.height;
     if (fitMode.value === "contain") {
       if (!validDimension(widthInput.value) || !validDimension(heightInput.value)) throw new Error("أدخل عرضًا وارتفاعًا صحيحين بين 1 و12000 بكسل.");
       targetWidth = Number(widthInput.value); targetHeight = Number(heightInput.value);
     }
-    const swap = rotation % 180 !== 0;
     canvas = document.createElement("canvas");
     canvas.width = targetWidth; canvas.height = targetHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("المتصفح لا يدعم مساحة الرسم المطلوبة.");
     ctx.fillStyle = formatInput.value === "image/jpeg" ? "#ffffff" : backgroundInput.value;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const sourceRatio = crop.width / crop.height;
+    const sourceRatio = transformed.width / transformed.height;
     const targetRatio = targetWidth / targetHeight;
     let drawWidth = targetWidth, drawHeight = targetHeight;
     if (sourceRatio > targetRatio) drawHeight = targetWidth / sourceRatio;
     else drawWidth = targetHeight * sourceRatio;
-    if (fitMode.value === "actual") { drawWidth = crop.width; drawHeight = crop.height; canvas.width = swap ? crop.height : crop.width; canvas.height = swap ? crop.width : crop.height; }
-    const centerX = canvas.width / 2, centerY = canvas.height / 2;
-    ctx.fillStyle = formatInput.value === "image/jpeg" ? "#ffffff" : backgroundInput.value;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(rotation * Math.PI / 180);
-    ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
-    if (fitMode.value === "actual") {
-      ctx.drawImage(image, crop.x, crop.y, crop.width, crop.height, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-    } else {
-      if (swap) { const temp = drawWidth; drawWidth = drawHeight; drawHeight = temp; }
-      ctx.drawImage(image, crop.x, crop.y, crop.width, crop.height, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-    }
-    ctx.restore();
+    ctx.drawImage(transformed, (targetWidth - drawWidth) / 2, (targetHeight - drawHeight) / 2, drawWidth, drawHeight);
+    transformed.width = 0; transformed.height = 0;
     const mime = formatInput.value;
     let encoded;
     if (targetEnabled.checked) {
