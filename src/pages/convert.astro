@@ -81,7 +81,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <script>
 const editorTabs = Array.from(document.querySelectorAll("[data-editor-tab]"));
 const editorPanels = Array.from(document.querySelectorAll("[data-editor-panel]"));
-const detailPanels = Array.from(document.querySelectorAll(".tool-panel"));
+const detailPanels = Array.from(document.querySelectorAll("details.tool-panel"));
 const tabAssignment = ["size", "size", "export", "transform"];
 detailPanels.forEach((panel, index) => {
   const target = document.querySelector('[data-editor-panel="' + (tabAssignment[index] || "export") + '"]');
