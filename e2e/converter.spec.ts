@@ -556,7 +556,16 @@ test("applies a mocked local background-removal result and can restore the origi
   await expect(page.locator("#background-status")).toContainText("اكتملت إزالة الخلفية", { timeout: 10_000 });
   await expect(page.locator("#restore-original")).toBeVisible();
   await expect(page.locator("#format")).toHaveValue("image/png");
+  await expect(page.locator("#matte-strength")).toBeEnabled();
+  await expect(page.locator("#preview")).toHaveCSS("background-image", /linear-gradient/);
   expect(externalRequests, "The selected image must not be uploaded during local background processing").toHaveLength(0);
+  await page.locator("#matte-strength").evaluate(element => {
+    const slider = element as HTMLInputElement;
+    slider.value = "1.10";
+    slider.dispatchEvent(new Event("input", { bubbles: true }));
+    slider.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await expect(page.locator("#background-status")).toContainText("تم تحديث الحواف", { timeout: 10_000 });
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
   const outputAlpha = await page.locator("#result-preview").evaluate(async element => {
