@@ -33,7 +33,8 @@ for (const format of [
     await page.locator("#download").click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(new RegExp(format.extension.replace(".", "\\.") + "$"));
-    expect(networkRequests, "Converting and downloading a selected image must not trigger network requests").toHaveLength(0);
+    const actualNetworkRequests = networkRequests.filter(request => /^https?:/i.test(request.url));
+    expect(actualNetworkRequests, "Image conversion should not make HTTP(S) requests; blob: URLs are local browser resources").toHaveLength(0);
   });
 }
 
