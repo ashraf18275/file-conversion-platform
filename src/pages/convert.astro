@@ -84,8 +84,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <p id="status" role="status" aria-live="polite" class="muted"></p>
 <div id="result" class="result" hidden><h2>النتيجة</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التعديل" /><p id="result-info"></p><div id="target-warning" class="warn" hidden></div><a id="download" class="button" download>تنزيل الصورة</a></div>
 </section>
-<script>
-// @ts-nocheck -- this legacy DOM script is plain JavaScript; Playwright covers its runtime behavior.
+<script is:inline>
 const editorTabs = Array.from(document.querySelectorAll("[data-editor-tab]"));
 const editorPanels = Array.from(document.querySelectorAll("[data-editor-panel]"));
 const detailPanels = Array.from(document.querySelectorAll("details.tool-panel"));
@@ -280,7 +279,7 @@ fileInput.addEventListener("change", async () => {
 const getBackgroundPipeline = async () => {
   if (!backgroundPipelinePromise) {
     backgroundPipelinePromise = (async () => {
-      const { pipeline } = await import("@huggingface/transformers");
+      const pipeline = await window.loadLocalBackgroundPipeline();
       if ("gpu" in navigator) {
         try {
           backgroundStatus.textContent = "يجري تحميل نموذج إزالة الخلفية مع محاولة استخدام تسريع الجهاز…";
@@ -475,4 +474,5 @@ window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl)
 .editor-tab-panel[hidden]{display:none}
 @media(max-width:560px){.editor-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-tab{font-size:.92rem;padding:10px 6px}}
 </style>
+<script src="../scripts/background-removal.js"></script>
 </BaseLayout>
