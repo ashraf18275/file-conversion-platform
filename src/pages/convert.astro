@@ -132,7 +132,14 @@ const getCropRect = () => {
 };
 const updateRatioDimension = (changed) => {
   if (!keepRatio.checked || !sourceDimensions.width || !sourceDimensions.height) return;
-  const ratio = sourceDimensions.width / sourceDimensions.height;
+  let ratio = sourceDimensions.width / sourceDimensions.height;
+  if (cropEnabled) {
+    try {
+      const crop = getCropRect();
+      ratio = crop.width / crop.height;
+    } catch { /* Invalid crop values are reported when the user applies the crop. */ }
+  }
+  if (rotation % 180 !== 0) ratio = 1 / ratio;
   if (changed === "width" && validDimension(widthInput.value)) heightInput.value = String(Math.max(1, Math.round(Number(widthInput.value) / ratio)));
   if (changed === "height" && validDimension(heightInput.value)) widthInput.value = String(Math.max(1, Math.round(Number(heightInput.value) * ratio)));
 };
@@ -201,7 +208,10 @@ fileInput.addEventListener("change", async () => {
 });
 const canvasToBlob = (canvas, mime, quality) => new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("لم يتمكن المتصفح من إنشاء ملف الإخراج.")), mime, quality));
 const encodeWithTarget = async (canvas, mime, requestedQuality, targetBytes) => {
-  if (mime === "image/png") return { blob: await canvasToBlob(canvas, mime), quality: null, metTarget: false };
+  if (mime === "image/png") {
+    const blob = await canvasToBlob(canvas, mime);
+    return { blob, quality: null, metTarget: blob.size <= targetBytes };
+  }
   let low = 0.1, high = requestedQuality, best = null;
   const first = await canvasToBlob(canvas, mime, high);
   if (first.size <= targetBytes) return { blob: first, quality: high, metTarget: true };
