@@ -342,7 +342,8 @@ test("resizes into exact dimensions without cropping the source", async ({ page 
   await page.locator("#keep-ratio").uncheck();
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
-  const details = await page.locator("#result-preview").evaluate(async image => {
+  const details = await page.locator("#result-preview").evaluate(async element => {
+    const image = element as HTMLImageElement;
     await image.decode();
     const canvas = document.createElement("canvas");
     canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
@@ -383,7 +384,8 @@ test("crop controls apply the requested source rectangle", async ({ page }) => {
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
   await expect(page.locator("#result-info")).toContainText("الأبعاد النهائية: 1 × 1");
-  const pixelColor = await page.locator("#result-preview").evaluate(async image => {
+  const pixelColor = await page.locator("#result-preview").evaluate(async element => {
+    const image = element as HTMLImageElement;
     await image.decode();
     const canvas = document.createElement("canvas");
     canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
