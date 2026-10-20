@@ -21,8 +21,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <section class="tool-panel">
       <h2>إزالة الخلفية</h2>
       <p class="muted">ستُنفّذ إزالة الخلفية على جهازك داخل المتصفح. لا نرسل الصورة إلى خادم. يجري تجهيز نموذج محلي واختبار حجمه وأدائه وجودة الحواف قبل تفعيله للاستخدام.</p>
-      <div class="notice">حالة الميزة: قيد التقييم — لن نعرض زرًا يوحي بأن الإزالة تعمل قبل دمج النموذج واختباره على صور حقيقية وأجهزة الهاتف.</div>
-      <p class="muted hint">قد يحتاج النموذج إلى تنزيل أولي كبير نسبيًا، ثم يُعاد استخدامه من ذاكرة المتصفح. سنوضح حجم التنزيل ونختبر الأداء قبل اعتماد الطريقة.</p>
+      <p class="muted">هذه النسخة التجريبية مخصصة أساسًا لصور الأشخاص؛ قد لا تعطي أفضل نتيجة للأشياء غير البشرية أو التفاصيل الدقيقة.</p>
+      <div class="notice">تعمل المعالجة على جهازك. في أول استخدام سيُنزل المتصفح نموذجًا مفتوح المصدر من Hugging Face (وقد يكون التنزيل كبيرًا)، ثم يمكن للمتصفح تخزينه مؤقتًا. لا تُرفع الصورة نفسها.</div>
+      <div class="button-row">
+        <button id="remove-background" class="button" type="button" disabled>إزالة الخلفية محليًا</button>
+        <button id="restore-original" class="button secondary" type="button" hidden>استعادة الصورة الأصلية</button>
+      </div>
+      <p id="background-status" class="muted hint" role="status" aria-live="polite">اختر صورة لبدء إزالة الخلفية.</p>
+      <p class="muted hint">تحتاج الميزة إلى اتصال بالإنترنت في أول تشغيل لتنزيل مكتبة المعالجة والنموذج. بعد التنزيل يعتمد توفر الاستخدام المتكرر على ذاكرة التخزين المؤقت بالمتصفح.</p>
     </section>
   </div>
   <div id="panel-export" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-export" data-editor-panel="export" hidden></div>
@@ -140,8 +146,14 @@ const rotateLeft = document.querySelector("#rotate-left");
 const rotateRight = document.querySelector("#rotate-right");
 const flipHorizontal = document.querySelector("#flip-horizontal");
 const flipVertical = document.querySelector("#flip-vertical");
+const removeBackgroundButton = document.querySelector("#remove-background");
+const restoreOriginalButton = document.querySelector("#restore-original");
+const backgroundStatus = document.querySelector("#background-status");
 let sourceUrl = null;
+let originalSourceUrl = null;
 let resultUrl = null;
+let backgroundPipelinePromise = null;
+let backgroundRemovalBusy = false;
 let selectedFile = null;
 let cropEnabled = false;
 let rotation = 0;
@@ -231,11 +243,17 @@ fileInput.addEventListener("change", async () => {
   targetWarning.hidden = true;
   revoke(resultUrl); resultUrl = null;
   revoke(sourceUrl); sourceUrl = null;
+  revoke(originalSourceUrl); originalSourceUrl = null;
+  restoreOriginalButton.hidden = true;
+  removeBackgroundButton.disabled = true;
+  backgroundStatus.textContent = "اختر صورة لبدء إزالة الخلفية.";
+  backgroundRemovalBusy = false;
   rotation = 0; flipX = false; flipY = false;
   [rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(button => { button.disabled = !selectedFile; button.setAttribute("aria-pressed", "false"); });
   if (!selectedFile) { convertButton.disabled = true; sourceInfo.textContent = "لم يتم اختيار صورة."; previewWrap.hidden = true; return; }
   if (!allowedInputTypes.has(selectedFile.type)) { convertButton.disabled = true; sourceInfo.textContent = "نوع الصورة غير مدعوم. اختر PNG أو JPEG أو WebP أو GIF أو BMP أو AVIF."; previewWrap.hidden = true; return; }
   sourceUrl = URL.createObjectURL(selectedFile);
+  originalSourceUrl = sourceUrl;
   preview.src = sourceUrl;
   previewWrap.hidden = false;
   sourceInfo.textContent = selectedFile.name + " — " + fmtBytes(selectedFile.size) + " — " + (selectedFile.type || "نوع غير معروف");
@@ -247,6 +265,7 @@ fileInput.addEventListener("change", async () => {
     heightInput.value = String(sourceDimensions.height);
     updateCropDefaults();
     convertButton.disabled = false;
+    removeBackgroundButton.disabled = false;
     useCropButton.disabled = false;
     resetCropButton.disabled = false;
     [rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(button => button.disabled = false);
@@ -256,6 +275,90 @@ fileInput.addEventListener("change", async () => {
     previewWrap.hidden = true;
   }
 });
+
+const getBackgroundPipeline = async () => {
+  if (!backgroundPipelinePromise) {
+    backgroundPipelinePromise = (async () => {
+      const { pipeline } = await import("@huggingface/transformers");
+      if ("gpu" in navigator) {
+        try {
+          backgroundStatus.textContent = "يجري تحميل نموذج إزالة الخلفية مع محاولة استخدام تسريع الجهاز…";
+          return await pipeline("background-removal", "Xenova/modnet", { device: "webgpu" });
+        } catch (gpuError) {
+          backgroundStatus.textContent = "تعذر بدء التسريع الرسومي؛ يجري تجربة المعالجة المتوافقة مع المعالج…";
+        }
+      }
+      return await pipeline("background-removal", "Xenova/modnet", { device: "wasm" });
+    })().catch(error => {
+      backgroundPipelinePromise = null;
+      throw error;
+    });
+  }
+  return backgroundPipelinePromise;
+};
+removeBackgroundButton.addEventListener("click", async () => {
+  if (!selectedFile || !sourceUrl || backgroundRemovalBusy) return;
+  backgroundRemovalBusy = true;
+  removeBackgroundButton.disabled = true;
+  restoreOriginalButton.disabled = true;
+  convertButton.disabled = true;
+  const startedAt = performance.now();
+  backgroundStatus.textContent = "يجري تجهيز المعالجة المحلية. قد يستغرق التنزيل الأول وقتًا أطول…";
+  try {
+    const segmenter = await getBackgroundPipeline();
+    backgroundStatus.textContent = "يجري تحليل الصورة داخل المتصفح…";
+    const output = await segmenter(sourceUrl);
+    const cutout = output?.[0];
+    if (!cutout || typeof cutout.toBlob !== "function") {
+      throw new Error("لم يُرجع النموذج صورة شفافة قابلة للتصدير.");
+    }
+    const blob = await cutout.toBlob();
+    if (!(blob instanceof Blob) || !blob.type.startsWith("image/")) {
+      throw new Error("تعذر إنشاء صورة شفافة من نتيجة النموذج.");
+    }
+    const nextUrl = URL.createObjectURL(blob);
+    if (sourceUrl !== originalSourceUrl) revoke(sourceUrl);
+    sourceUrl = nextUrl;
+    preview.src = sourceUrl;
+    await preview.decode();
+    sourceDimensions = { width: preview.naturalWidth, height: preview.naturalHeight };
+    widthInput.value = String(sourceDimensions.width);
+    heightInput.value = String(sourceDimensions.height);
+    updateCropDefaults();
+    cropEnabled = false;
+    useCropButton.textContent = "تفعيل الاقتصاص";
+    restoreOriginalButton.hidden = false;
+    sourceInfo.textContent = selectedFile.name + " — تمت إزالة الخلفية محليًا — " + fmtBytes(blob.size);
+    backgroundStatus.textContent = "اكتملت إزالة الخلفية داخل المتصفح خلال " + ((performance.now() - startedAt) / 1000).toFixed(1) + " ثانية. صدّر بصيغة PNG أو WebP للاحتفاظ بالشفافية.";
+    formatInput.value = "image/png";
+    qualityInput.disabled = true;
+    result.hidden = true;
+  } catch (error) {
+    backgroundStatus.textContent = "تعذرت إزالة الخلفية: " + (error instanceof Error ? error.message : "خطأ غير معروف") + ". يمكنك متابعة تحويل الصورة الأصلية.";
+  } finally {
+    backgroundRemovalBusy = false;
+    removeBackgroundButton.disabled = !selectedFile;
+    restoreOriginalButton.disabled = false;
+    convertButton.disabled = !selectedFile || !allowedInputTypes.has(selectedFile.type);
+  }
+});
+restoreOriginalButton.addEventListener("click", async () => {
+  if (!originalSourceUrl || backgroundRemovalBusy) return;
+  if (sourceUrl !== originalSourceUrl) revoke(sourceUrl);
+  sourceUrl = originalSourceUrl;
+  preview.src = sourceUrl;
+  await preview.decode();
+  sourceDimensions = { width: preview.naturalWidth, height: preview.naturalHeight };
+  widthInput.value = String(sourceDimensions.width);
+  heightInput.value = String(sourceDimensions.height);
+  updateCropDefaults();
+  cropEnabled = false;
+  useCropButton.textContent = "تفعيل الاقتصاص";
+  restoreOriginalButton.hidden = true;
+  sourceInfo.textContent = selectedFile.name + " — " + fmtBytes(selectedFile.size) + " — " + (selectedFile.type || "نوع غير معروف");
+  backgroundStatus.textContent = "تمت استعادة الصورة الأصلية.";
+});
+
 const canvasToBlob = (canvas, mime, quality) => new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("لم يتمكن المتصفح من إنشاء ملف الإخراج.")), mime, quality));
 const encodeWithTarget = async (canvas, mime, requestedQuality, targetBytes) => {
   if (mime === "image/png") {
@@ -358,7 +461,7 @@ convertButton.addEventListener("click", async () => {
     useCropButton.textContent = cropEnabled ? "إلغاء تفعيل الاقتصاص" : "تفعيل الاقتصاص";
   }
 });
-window.addEventListener("pagehide", () => { revoke(sourceUrl); revoke(resultUrl); });
+window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl) revoke(sourceUrl); revoke(originalSourceUrl); revoke(resultUrl); });
 </script>
 
 <style>
