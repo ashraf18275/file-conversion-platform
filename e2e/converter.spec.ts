@@ -6,9 +6,9 @@ const pixel = Buffer.from(
 );
 
 for (const format of [
-  { value: "image/png", extension: ".png", label: "PNG" },
-  { value: "image/jpeg", extension: ".jpg", label: "JPEG" },
-  { value: "image/webp", extension: ".webp", label: "WebP" }
+  { value: "image/png", extension: ".png", label: "PNG", signature: [137, 80, 78, 71, 13, 10, 26, 10] },
+  { value: "image/jpeg", extension: ".jpg", label: "JPEG", signature: [255, 216, 255] },
+  { value: "image/webp", extension: ".webp", label: "WebP", signature: [82, 73, 70, 70] }
 ]) {
   test(`converts a local image to ${format.label} and downloads it`, async ({ page }) => {
     const networkRequests: Array<{ url: string; method: string; postData?: string | null }> = [];
@@ -29,6 +29,17 @@ for (const format of [
     await page.locator("#convert").click();
     await expect(page.locator("#result")).toBeVisible();
     await expect(page.locator("#result-info")).toContainText(`التنسيق: ${format.label}`);
+    const actualOutput = await page.locator("#download").evaluate(async (link: HTMLAnchorElement) => {
+      const response = await fetch(link.href);
+      const blob = await response.blob();
+      const bytes = Array.from(new Uint8Array(await blob.slice(0, 12).arrayBuffer()));
+      return { mime: blob.type, bytes };
+    });
+    expect(actualOutput.mime).toBe(format.value);
+    expect(actualOutput.bytes.slice(0, format.signature.length)).toEqual(format.signature);
+    if (format.value === "image/webp") {
+      expect(actualOutput.bytes.slice(8, 12)).toEqual([87, 69, 66, 80]);
+    }
     const downloadPromise = page.waitForEvent("download");
     await page.locator("#download").click();
     const download = await downloadPromise;
