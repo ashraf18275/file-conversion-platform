@@ -18,6 +18,7 @@ for (const format of [
       postData: request.postData()
     }));
     await page.goto("/convert/");
+    networkRequests.length = 0; // Ignore normal page assets; observe only actions after the user chooses a file.
     await page.locator("#image-file").setInputFiles({
       name: "pixel.png",
       mimeType: "image/png",
@@ -32,11 +33,7 @@ for (const format of [
     await page.locator("#download").click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(new RegExp(format.extension.replace(".", "\\.") + "$"));
-    expect(networkRequests.every(request =>
-      request.url.startsWith("http://127.0.0.1:4321/") &&
-      ["GET", "HEAD"].includes(request.method) &&
-      !request.postData
-    )).toBeTruthy();
+    expect(networkRequests, "Converting and downloading a selected image must not trigger network requests").toHaveLength(0);
   });
 }
 
