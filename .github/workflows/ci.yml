@@ -26,7 +26,8 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm test
       - run: npm run check
-      - run: npm run build
+      # E2E tests navigate from the site root; override the GitHub Pages subpath for this test build only.
+      - run: npm run build -- --base /
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
