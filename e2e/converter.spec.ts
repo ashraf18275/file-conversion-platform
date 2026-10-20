@@ -446,6 +446,7 @@ test("rotate controls swap output dimensions when keeping original pixel size", 
   await page.getByRole("tab", { name: "التدوير والقلب" }).click();
   await expect(page.locator("#panel-transform #rotate-left")).toBeVisible();
   await page.locator("#rotate-right").click();
+  await expect(page.locator("#preview")).toHaveCSS("transform", "matrix(0, 1, -1, 0, 0, 0)");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
   await expect(page.locator("#result-info")).toContainText("الأبعاد النهائية: 1 × 2");
