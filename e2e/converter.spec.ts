@@ -161,3 +161,39 @@ test("converts a 12-megapixel image in Chromium", async ({ page }) => {
   await expect(page.locator("#result")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("#result-info")).toContainText("4000 × 3000");
 });
+
+
+test("converts a large PNG file without uploading it", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const source = document.createElement("canvas");
+    source.width = 2048;
+    source.height = 2048;
+    const context = source.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    const pixels = context.createImageData(source.width, source.height);
+    let seed = 123456789;
+    for (let i = 0; i < pixels.data.length; i += 4) {
+      seed = (1664525 * seed + 1013904223) >>> 0;
+      pixels.data[i] = seed & 255;
+      pixels.data[i + 1] = (seed >>> 8) & 255;
+      pixels.data[i + 2] = (seed >>> 16) & 255;
+      pixels.data[i + 3] = 255;
+    }
+    context.putImageData(pixels, 0, 0);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create large test PNG")), "image/png");
+    });
+    if (blob.size < 8 * 1024 * 1024) throw new Error("Test image was not large enough to exercise file-size handling");
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input was not found");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "large-noise.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.locator("#format").selectOption("image/webp");
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator("#result-info")).toContainText("2048 × 2048");
+});
