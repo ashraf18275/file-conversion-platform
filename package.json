@@ -14,7 +14,8 @@
   "dependencies": {
     "@astrojs/check": "^0.9.4",
     "astro": "^5.14.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "@huggingface/transformers": "^3.7.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
