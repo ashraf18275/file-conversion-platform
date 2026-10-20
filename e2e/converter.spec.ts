@@ -87,9 +87,9 @@ test("shows a clear error for a corrupt image without sending file contents", as
     mimeType: "image/png",
     buffer: Buffer.from("not an image")
   });
-  await page.locator("#convert").click();
-  await expect(page.locator("#status")).not.toHaveText("جارٍ تحويل الصورة داخل المتصفح…");
-  await expect(page.locator("#status")).not.toHaveText("اكتمل التحويل. راجع المعاينة قبل التنزيل.");
+  await expect(page.locator("#convert")).toBeDisabled();
+  await expect(page.locator("#source-info")).toContainText("تعذرت قراءة الصورة");
+  await expect(page.locator("#result")).toBeHidden();
   expect(outbound.filter(url => /^https?:/i.test(url))).toHaveLength(0);
 });
 
@@ -302,9 +302,9 @@ test("handles an empty image file without creating a result", async ({ page }) =
     mimeType: "image/png",
     buffer: Buffer.alloc(0)
   });
-  await page.locator("#convert").click();
+  await expect(page.locator("#convert")).toBeDisabled();
   await expect(page.locator("#result")).toBeHidden();
-  await expect(page.locator("#status")).not.toHaveText("اكتمل التحويل. راجع المعاينة قبل التنزيل.");
+  await expect(page.locator("#source-info")).toContainText("تعذرت قراءة الصورة");
 });
 
 test("uses the selected output format even when the source filename extension is misleading", async ({ page }) => {
@@ -386,6 +386,7 @@ test("crop controls apply the requested source rectangle", async ({ page }) => {
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
+  await page.locator("#panel-size details").nth(1).locator("summary").click();
   await page.locator("#crop-x").fill("1");
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#crop-y").fill("0");
@@ -444,6 +445,7 @@ test("rotate controls swap output dimensions when keeping original pixel size", 
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#fit-mode").selectOption("actual");
   await page.getByRole("tab", { name: "التدوير والقلب" }).click();
+  await page.locator("#panel-transform details").locator("summary").click();
   await page.locator("#rotate-right").click();
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
@@ -496,6 +498,7 @@ test("organizes tools into accessible tabs without resetting editor values", asy
   await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await expect(page.locator("#panel-export #format")).toBeVisible();
   await page.getByRole("tab", { name: "التدوير والقلب" }).click();
+  await page.locator("#panel-transform details").locator("summary").click();
   await expect(page.locator("#panel-transform #rotate-left")).toBeVisible();
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await expect(page.locator("#panel-size #width")).toHaveValue("900");
@@ -529,7 +532,7 @@ test("applies a mocked local background-removal result and can restore the origi
   await expect(page.locator("#remove-background")).toBeEnabled();
   await page.evaluate(() => {
     Object.assign(window, {
-      loadLocalBackgroundPipeline: async () => async () => [{
+      loadLocalBackgroundPipeline: async () => async (_task, _model, _options) => async () => [{
         toBlob: async () => {
           const canvas = document.createElement("canvas");
           canvas.width = 2;
