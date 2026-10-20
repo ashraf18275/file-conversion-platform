@@ -288,3 +288,33 @@ test("converts a 24-megapixel image in Chromium", async ({ page }) => {
   await expect(page.locator("#result")).toBeVisible({ timeout: 45_000 });
   await expect(page.locator("#result-info")).toContainText("6000 × 4000");
 });
+
+test("handles an empty image file without creating a result", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.locator("#image-file").setInputFiles({
+    name: "empty.png",
+    mimeType: "image/png",
+    buffer: Buffer.alloc(0)
+  });
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeHidden();
+  await expect(page.locator("#status")).not.toHaveText("اكتمل التحويل. راجع المعاينة قبل التنزيل.");
+});
+
+test("uses the selected output format even when the source filename extension is misleading", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.locator("#image-file").setInputFiles({
+    name: "misleading.jpg",
+    mimeType: "image/png",
+    buffer: pixel
+  });
+  await page.locator("#format").selectOption("image/webp");
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await page.locator("#download").click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/\\.webp$/);
+  expect(download.suggestedFilename()).not.toMatch(/\\.jpg$/);
+});
+
