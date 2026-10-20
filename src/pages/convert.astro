@@ -52,8 +52,11 @@ fileInput.addEventListener("change", () => {
   convertButton.disabled = false;
 });
 convertButton.addEventListener("click", async () => {
-  if (!selectedFile) return;
+  if (!selectedFile || convertButton.disabled) return;
   convertButton.disabled = true;
+  fileInput.disabled = true;
+  formatInput.disabled = true;
+  qualityInput.disabled = true;
   status.textContent = "جارٍ تحويل الصورة داخل المتصفح…";
   result.hidden = true;
   try {
@@ -85,7 +88,12 @@ convertButton.addEventListener("click", async () => {
     canvas.width = 0; canvas.height = 0;
   } catch (error) {
     status.textContent = error instanceof Error ? error.message : "حدث خطأ غير متوقع أثناء التحويل.";
-  } finally { convertButton.disabled = !selectedFile; }
+  } finally {
+    fileInput.disabled = false;
+    formatInput.disabled = false;
+    qualityInput.disabled = false;
+    convertButton.disabled = !selectedFile || !allowedInputTypes.has(selectedFile.type);
+  }
 });
 window.addEventListener("pagehide", () => { revoke(sourceUrl); revoke(resultUrl); });
 </script>
