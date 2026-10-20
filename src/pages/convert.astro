@@ -258,6 +258,9 @@ fileInput.addEventListener("change", async () => {
   restoreOriginalButton.hidden = true;
   removeBackgroundButton.disabled = true;
   backgroundStatus.textContent = "اختر صورة لبدء إزالة الخلفية.";
+  backgroundCutoutBlob = null;
+  matteStrengthInput.disabled = true;
+  matteStrengthInput.value = "0.85"; matteStrengthValue.value = "0.85";
   backgroundRemovalBusy = false;
   rotation = 0; flipX = false; flipY = false;
   [rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(button => { button.disabled = !selectedFile; button.setAttribute("aria-pressed", "false"); });
