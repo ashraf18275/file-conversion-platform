@@ -32,6 +32,7 @@ let resultUrl = null;
 let selectedFile = null;
 const labels = { "image/png": "PNG", "image/jpeg": "JPEG", "image/webp": "WebP" };
 const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+const allowedInputTypes = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "image/bmp", "image/avif"]);
 const fmtBytes = (bytes) => bytes < 1024 ? bytes + " بايت" : bytes < 1048576 ? (bytes / 1024).toFixed(1) + " كيلوبايت" : (bytes / 1048576).toFixed(2) + " ميجابايت";
 const safeBase = (name) => name.replace(/\.[^.]+$/, "").replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "image";
 const revoke = (url) => { if (url) URL.revokeObjectURL(url); };
@@ -43,7 +44,7 @@ fileInput.addEventListener("change", () => {
   revoke(resultUrl); resultUrl = null;
   revoke(sourceUrl); sourceUrl = null;
   if (!selectedFile) { convertButton.disabled = true; sourceInfo.textContent = "لم يتم اختيار صورة."; previewWrap.hidden = true; return; }
-  if (!selectedFile.type.startsWith("image/")) { convertButton.disabled = true; sourceInfo.textContent = "الملف المحدد ليس صورة معروفة النوع."; previewWrap.hidden = true; return; }
+  if (!allowedInputTypes.has(selectedFile.type)) { convertButton.disabled = true; sourceInfo.textContent = "نوع الصورة غير مدعوم. اختر PNG أو JPEG أو WebP أو GIF أو BMP أو AVIF."; previewWrap.hidden = true; return; }
   sourceUrl = URL.createObjectURL(selectedFile);
   preview.src = sourceUrl;
   previewWrap.hidden = false;
