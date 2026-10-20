@@ -20,7 +20,7 @@ export default defineConfig({
     command: "npm run dev -- --host 127.0.0.1 --port 4321 --strictPort",
     url: "http://127.0.0.1:4321/convert/",
     reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
+    timeout: 120_000,
     env: {
       PLAYWRIGHT_TEST: "1"
     }
