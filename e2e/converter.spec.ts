@@ -505,20 +505,22 @@ test("applies a mocked local background-removal result and can restore the origi
   });
   await expect(page.locator("#remove-background")).toBeEnabled();
   await page.evaluate(() => {
-    window.loadLocalBackgroundPipeline = async () => async () => [{
-      toBlob: async () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = 2;
-        canvas.height = 2;
-        const context = canvas.getContext("2d");
-        if (!context) throw new Error("Canvas context unavailable");
-        context.fillStyle = "#ff0000";
-        context.fillRect(0, 0, 1, 1);
-        return await new Promise<Blob>((resolve, reject) => {
-          canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Could not create mock cutout")), "image/png");
-        });
-      }
-    }];
+    Object.assign(window, {
+      loadLocalBackgroundPipeline: async () => async () => [{
+        toBlob: async () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 2;
+          canvas.height = 2;
+          const context = canvas.getContext("2d");
+          if (!context) throw new Error("Canvas context unavailable");
+          context.fillStyle = "#ff0000";
+          context.fillRect(0, 0, 1, 1);
+          return await new Promise<Blob>((resolve, reject) => {
+            canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Could not create mock cutout")), "image/png");
+          });
+        }
+      }]
+    });
   });
   externalRequests.length = 0;
   await page.locator("#remove-background").click();
