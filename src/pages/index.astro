@@ -1,10 +1,11 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+const base = import.meta.env.BASE_URL;
 ---
 <BaseLayout title="الصفحة الرئيسية" description="أدوات تحويل ملفات عملية باللغة العربية، مع أولوية لمعالجة الملفات داخل جهازك.">
 <section class="hero"><span class="eyebrow">أدوات بسيطة • خصوصية أولًا</span><h1>حوّل ملفاتك، واحتفظ بها على جهازك</h1>
 <p class="lead">نبدأ بأداة تحويل الصور إلى PNG وJPEG وWebP. تتم عملية التحويل داخل المتصفح في هذه النسخة التجريبية، ولا نحتاج إلى رفع صورتك إلى خادم.</p>
-<p><a class="button" href="/convert/">جرّب تحويل الصور</a> <a class="button secondary" href="/guide/">اقرأ دليل الاستخدام</a></p></section>
+<p><a class="button" href={`${base}convert/`}>جرّب تحويل الصور</a> <a class="button secondary" href={`${base}guide/`}>اقرأ دليل الاستخدام</a></p></section>
 <section class="grid" aria-label="مميزات الموقع">
 <article class="card"><h2>معالجة محلية</h2><p>يعالج المتصفح الصورة باستخدام إمكاناته المدمجة؛ لا تُرسل بيانات الصورة إلى خادم التحويل.</p></article>
 <article class="card"><h2>ثلاثة تنسيقات</h2><p>اختر PNG أو JPEG أو WebP، ثم عاين النتيجة ونزّلها.</p></article>
