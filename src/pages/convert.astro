@@ -64,6 +64,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 </div>
 <div class="button-row"><button id="use-crop" class="button secondary" type="button" disabled>تفعيل الاقتصاص</button><button id="reset-crop" class="button secondary" type="button" disabled>إلغاء الاقتصاص</button></div>
 <p id="crop-info" class="muted hint" aria-live="polite">اختر صورة لتحديد مساحة الاقتصاص.</p>
+<div id="crop-preview-wrap" hidden><p class="muted">معاينة الجزء المحدد بالضبط:</p><canvas id="crop-preview" width="240" height="160" aria-label="معاينة الجزء المحدد للاقتصاص"></canvas></div>
 </details>
 
 <details class="tool-panel" open>
@@ -145,10 +146,18 @@ const cropHeight = document.querySelector("#crop-height");
 const useCropButton = document.querySelector("#use-crop");
 const resetCropButton = document.querySelector("#reset-crop");
 const cropInfo = document.querySelector("#crop-info");
+const cropPreviewWrap = document.querySelector("#crop-preview-wrap");
+const cropPreview = document.querySelector("#crop-preview");
 const targetEnabled = document.querySelector("#target-enabled");
 const targetKb = document.querySelector("#target-kb");
 const rotateLeft = document.querySelector("#rotate-left");
 const updatePreviewTransform = () => { preview.style.transform = "rotate(" + rotation + "deg) scale(" + (flipX ? "-1" : "1") + ", " + (flipY ? "-1" : "1") + ")"; preview.style.transformOrigin = "center"; };
+const swapOutputDimensionsForRotation = () => {
+  if (!keepRatio.checked) return;
+  const oldWidth = widthInput.value;
+  widthInput.value = heightInput.value;
+  heightInput.value = oldWidth;
+};
 const rotateRight = document.querySelector("#rotate-right");
 const flipHorizontal = document.querySelector("#flip-horizontal");
 const flipVertical = document.querySelector("#flip-vertical");
@@ -201,6 +210,22 @@ const getCropRect = () => {
   }
   return { x, y, width, height };
 };
+const refreshCropPreview = () => {
+  if (!sourceDimensions.width || !sourceDimensions.height || previewWrap.hidden) { cropPreviewWrap.hidden = true; return; }
+  try {
+    const crop = getCropRect();
+    const scale = Math.min(240 / crop.width, 160 / crop.height);
+    const width = Math.max(1, Math.round(crop.width * scale));
+    const height = Math.max(1, Math.round(crop.height * scale));
+    cropPreview.width = width; cropPreview.height = height;
+    const context = cropPreview.getContext("2d");
+    if (!context) throw new Error("تعذر عرض معاينة الاقتصاص.");
+    context.clearRect(0, 0, width, height);
+    context.drawImage(preview, crop.x, crop.y, crop.width, crop.height, 0, 0, width, height);
+    cropPreviewWrap.hidden = false;
+  } catch { cropPreviewWrap.hidden = true; }
+};
+[cropX, cropY, cropWidth, cropHeight].forEach(input => input.addEventListener("input", refreshCropPreview));
 const updateRatioDimension = (changed) => {
   if (!keepRatio.checked || !sourceDimensions.width || !sourceDimensions.height) return;
   let ratio = sourceDimensions.width / sourceDimensions.height;
@@ -228,6 +253,7 @@ useCropButton.addEventListener("click", () => {
     cropEnabled = !cropEnabled;
     useCropButton.textContent = cropEnabled ? "إلغاء تفعيل الاقتصاص" : "تفعيل الاقتصاص";
     cropInfo.textContent = cropEnabled ? "سيُستخدم الجزء المحدد: " + crop.width + " × " + crop.height + " بكسل." : "الاقتصاص غير مفعل؛ ستُستخدم الصورة كاملة.";
+    refreshCropPreview();
     if (cropEnabled && keepRatio.checked) {
       widthInput.value = String(crop.width);
       heightInput.value = String(crop.height);
@@ -240,9 +266,10 @@ resetCropButton.addEventListener("click", () => {
   cropWidth.value = String(sourceDimensions.width); cropHeight.value = String(sourceDimensions.height);
   cropEnabled = false; useCropButton.textContent = "تفعيل الاقتصاص";
   cropInfo.textContent = "أُلغي الاقتصاص؛ ستُستخدم الصورة كاملة.";
+  refreshCropPreview();
 });
-rotateLeft.addEventListener("click", () => { rotation = (rotation + 270) % 360; updatePreviewTransform(); status.textContent = "تم تدوير المعاينة 90° لليسار. سيُحفظ التدوير عند تطبيق التعديلات."; });
-rotateRight.addEventListener("click", () => { rotation = (rotation + 90) % 360; updatePreviewTransform(); status.textContent = "تم تدوير المعاينة 90° لليمين. سيُحفظ التدوير عند تطبيق التعديلات."; });
+rotateLeft.addEventListener("click", () => { rotation = (rotation + 270) % 360; swapOutputDimensionsForRotation(); updatePreviewTransform(); status.textContent = "تم تدوير المعاينة 90° لليسار. سيُحفظ التدوير عند تطبيق التعديلات."; });
+rotateRight.addEventListener("click", () => { rotation = (rotation + 90) % 360; swapOutputDimensionsForRotation(); updatePreviewTransform(); status.textContent = "تم تدوير المعاينة 90° لليمين. سيُحفظ التدوير عند تطبيق التعديلات."; });
 flipHorizontal.addEventListener("click", () => { flipX = !flipX; flipHorizontal.setAttribute("aria-pressed", String(flipX)); updatePreviewTransform(); status.textContent = flipX ? "تم قلب المعاينة أفقيًا." : "أُلغي القلب الأفقي."; });
 flipVertical.addEventListener("click", () => { flipY = !flipY; flipVertical.setAttribute("aria-pressed", String(flipY)); updatePreviewTransform(); status.textContent = flipY ? "تم قلب المعاينة رأسيًا." : "أُلغي القلب الرأسي."; });
 fileInput.addEventListener("change", async () => {
@@ -533,6 +560,7 @@ window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl)
 .editor-tab-panel[hidden]{display:none}
 #preview-wrap,#result-preview{background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}
 #preview{max-width:100%;height:auto;transition:transform .15s ease}
+#crop-preview{display:block;max-width:100%;height:auto;border:1px solid #cbd5e1;border-radius:8px;background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}
 @media(max-width:560px){.editor-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-tab{font-size:.92rem;padding:10px 6px}}
 </style>
 <script src="../scripts/background-removal.js"></script>
