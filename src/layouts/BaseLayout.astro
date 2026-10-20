@@ -10,6 +10,8 @@ const { title = "محوّل الملفات", description = "حوّل صورك د
 <style>
 :root{font-family:Tahoma,Arial,sans-serif;color:#18212f;background:#f5f7fb;font-synthesis:none;text-rendering:optimizeLegibility}
 *{box-sizing:border-box}body{margin:0;line-height:1.8}a{color:#135fc2;text-decoration:none}a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f59e0b;outline-offset:3px}
+.skip-link{position:absolute;top:-100px;right:1rem;padding:10px 14px;background:#fff;color:#13243a;border:2px solid #135fc2;border-radius:8px;z-index:20}.skip-link:focus{top:1rem}
 .wrap{width:min(1080px,92%);margin:auto}.top{background:white;border-bottom:1px solid #e2e8f0}.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;flex-wrap:wrap}.brand{font-weight:800;color:#13243a;font-size:1.15rem}.links{display:flex;gap:18px;flex-wrap:wrap}
 main{padding:34px 0 56px;min-height:70vh}.hero{padding:30px 0 18px}.eyebrow{color:#135fc2;font-weight:700}.hero h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.25;margin:.35em 0}.lead{font-size:1.12rem;color:#526176;max-width:720px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}.card{background:#fff;border:1px solid #e1e8f0;border-radius:18px;padding:22px;box-shadow:0 8px 25px #16233a08}.button{display:inline-block;border:0;border-radius:12px;padding:11px 18px;background:#135fc2;color:white;font:inherit;font-weight:700;cursor:pointer}.button.secondary{background:#eaf1fb;color:#174b8e}.muted{color:#65748a}.notice{background:#edf8f1;border:1px solid #c7ead2;padding:14px 16px;border-radius:12px}.warn{background:#fff7e8;border:1px solid #f4d69d;padding:14px 16px;border-radius:12px}
@@ -17,6 +19,7 @@ footer{background:#fff;border-top:1px solid #e2e8f0;padding:22px 0;color:#65748a
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">انتقل إلى المحتوى</a>
 <header class="top"><div class="wrap nav"><a class="brand" href="/">محوّل الملفات</a><nav class="links" aria-label="التنقل الرئيسي"><a href="/convert/">تحويل الصور</a><a href="/guide/">دليل الاستخدام</a><a href="/privacy/">الخصوصية</a></nav></div></header>
-<main><div class="wrap"><slot /></div></main><footer><div class="wrap">نسخة تجريبية قيد الاختبار — نعمل على أدوات عملية تحترم خصوصية ملفاتك.</div></footer>
+<main id="main-content"><div class="wrap"><slot /></div></main><footer><div class="wrap">نسخة تجريبية قيد الاختبار — نعمل على أدوات عملية تحترم خصوصية ملفاتك.</div></footer>
 </body></html>
