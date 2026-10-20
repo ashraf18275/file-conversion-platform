@@ -25,6 +25,7 @@ for (const format of [
       buffer: pixel
     });
     await expect(page.locator("#convert")).toBeEnabled();
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
     await page.locator("#format").selectOption(format.value);
     await page.locator("#convert").click();
     await expect(page.locator("#result")).toBeVisible();
@@ -121,6 +122,7 @@ test("fills transparent pixels white when converting to JPEG", async ({ page }) 
     input.files = transfer.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await page.locator("#format").selectOption("image/jpeg");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
@@ -162,6 +164,7 @@ test("converts a 6-megapixel image and preserves its dimensions", async ({ page 
     input.files = transfer.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await page.locator("#format").selectOption("image/webp");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible({ timeout: 20_000 });
@@ -191,6 +194,7 @@ test("converts a 12-megapixel image in Chromium", async ({ page }) => {
     input.files = transfer.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await page.locator("#format").selectOption("image/jpeg");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible({ timeout: 20_000 });
@@ -227,6 +231,7 @@ test("converts a large PNG file without uploading it", async ({ page }) => {
     input.files = transfer.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await page.locator("#format").selectOption("image/webp");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible({ timeout: 20_000 });
@@ -283,6 +288,7 @@ test("converts a 24-megapixel image in Chromium", async ({ page }) => {
     input.files = transfer.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await page.locator("#format").selectOption("image/webp");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible({ timeout: 45_000 });
@@ -308,6 +314,7 @@ test("uses the selected output format even when the source filename extension is
     mimeType: "image/png",
     buffer: pixel
   });
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await page.locator("#format").selectOption("image/webp");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
@@ -337,8 +344,11 @@ test("resizes into exact dimensions without cropping the source", async ({ page 
     input.files = transfer.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#keep-ratio").uncheck();
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#width").fill("100");
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#height").fill("100");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
@@ -375,11 +385,17 @@ test("crop controls apply the requested source rectangle", async ({ page }) => {
     input.files = transfer.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#crop-x").fill("1");
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#crop-y").fill("0");
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#crop-width").fill("1");
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#crop-height").fill("1");
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#use-crop").click();
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#fit-mode").selectOption("actual");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
@@ -400,8 +416,11 @@ test("crop controls apply the requested source rectangle", async ({ page }) => {
 test("target-size compression reports the achieved output size", async ({ page }) => {
   await page.goto("/convert/");
   await page.locator("#image-file").setInputFiles({ name: "pixel.png", mimeType: "image/png", buffer: pixel });
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await page.locator("#format").selectOption("image/webp");
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await page.locator("#target-enabled").check();
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await page.locator("#target-kb").fill("200");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
@@ -422,7 +441,9 @@ test("rotate controls swap output dimensions when keeping original pixel size", 
     input.files = transfer.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#fit-mode").selectOption("actual");
+  await page.getByRole("tab", { name: "التدوير والقلب" }).click();
   await page.locator("#rotate-right").click();
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
@@ -443,7 +464,9 @@ test("preserves transparency in PNG output by default", async ({ page }) => {
     input.files = transfer.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await page.locator("#format").selectOption("image/png");
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#fit-mode").selectOption("actual");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
@@ -523,11 +546,13 @@ test("applies a mocked local background-removal result and can restore the origi
     });
   });
   externalRequests.length = 0;
+  await page.getByRole("tab", { name: "الخلفية" }).click();
   await page.locator("#remove-background").click();
   await expect(page.locator("#background-status")).toContainText("اكتملت إزالة الخلفية", { timeout: 10_000 });
   await expect(page.locator("#restore-original")).toBeVisible();
   await expect(page.locator("#format")).toHaveValue("image/png");
   expect(externalRequests, "The selected image must not be uploaded during local background processing").toHaveLength(0);
+  await page.getByRole("tab", { name: "الخلفية" }).click();
   await page.locator("#restore-original").click();
   await expect(page.locator("#restore-original")).toBeHidden();
   await expect(page.locator("#background-status")).toContainText("تمت استعادة الصورة الأصلية");
