@@ -26,7 +26,9 @@
 - تشغيل نشر المعاينة: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39474652175
 - النتيجة: اكتمل النشر بنجاح.
 - رابط المعاينة: https://ashraf18275.github.io/file-conversion-platform/
-- آخر commit: `3ebeddcc7d8f376717fd28e7ff61eaaf920c8388`.
+- commit الكود الذي اجتاز اختبارات Chromium: `3ebeddcc7d8f376717fd28e7ff61eaaf920c8388`.
+- آخر commit على الفرع (تحديث الوثائق): `8ec2da662334552051f3b402affa0500a3fded49`.
+- نشر آخر نسخة من الفرع بعد تحديث الوثائق: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39475055678 — ناجح.
 
 ## ما لم يُنجز أو لم يُتحقق منه
 - اختبار يدوي على أجهزة ومتصفحات حقيقية، خصوصًا Android.
