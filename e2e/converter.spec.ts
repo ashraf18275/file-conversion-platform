@@ -132,3 +132,32 @@ test("converts a 6-megapixel image and preserves its dimensions", async ({ page 
   await expect(page.locator("#result")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("#result-info")).toContainText("3000 × 2000");
 });
+
+
+test("converts a 12-megapixel image in Chromium", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const source = document.createElement("canvas");
+    source.width = 4000;
+    source.height = 3000;
+    const context = source.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#e2e8f0";
+    context.fillRect(0, 0, source.width, source.height);
+    context.fillStyle = "#2563eb";
+    context.fillRect(0, 0, 2000, 1500);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create 12-megapixel test PNG")), "image/png");
+    });
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input was not found");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "twelve-megapixel.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.locator("#format").selectOption("image/jpeg");
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator("#result-info")).toContainText("4000 × 3000");
+});
