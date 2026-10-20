@@ -1,0 +1,22 @@
+---
+const { title = "محوّل الملفات", description = "حوّل صورك داخل متصفحك دون رفعها إلى خادم." } = Astro.props;
+---
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content={description} /><meta name="color-scheme" content="light" />
+<title>{title} | محوّل الملفات</title>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#18212f;background:#f5f7fb;font-synthesis:none;text-rendering:optimizeLegibility}
+*{box-sizing:border-box}body{margin:0;line-height:1.8}a{color:#135fc2;text-decoration:none}a:hover{text-decoration:underline}
+.wrap{width:min(1080px,92%);margin:auto}.top{background:white;border-bottom:1px solid #e2e8f0}.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;flex-wrap:wrap}.brand{font-weight:800;color:#13243a;font-size:1.15rem}.links{display:flex;gap:18px;flex-wrap:wrap}
+main{padding:34px 0 56px;min-height:70vh}.hero{padding:30px 0 18px}.eyebrow{color:#135fc2;font-weight:700}.hero h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.25;margin:.35em 0}.lead{font-size:1.12rem;color:#526176;max-width:720px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}.card{background:#fff;border:1px solid #e1e8f0;border-radius:18px;padding:22px;box-shadow:0 8px 25px #16233a08}.button{display:inline-block;border:0;border-radius:12px;padding:11px 18px;background:#135fc2;color:white;font:inherit;font-weight:700;cursor:pointer}.button.secondary{background:#eaf1fb;color:#174b8e}.muted{color:#65748a}.notice{background:#edf8f1;border:1px solid #c7ead2;padding:14px 16px;border-radius:12px}.warn{background:#fff7e8;border:1px solid #f4d69d;padding:14px 16px;border-radius:12px}
+footer{background:#fff;border-top:1px solid #e2e8f0;padding:22px 0;color:#65748a}.field{display:grid;gap:7px;margin:14px 0}input,select{font:inherit;padding:11px;border:1px solid #cbd5e1;border-radius:10px;background:white;width:100%}button:disabled{opacity:.55;cursor:not-allowed}.preview{max-width:100%;max-height:320px;object-fit:contain;border-radius:10px}.result{overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap nav"><a class="brand" href="/">محوّل الملفات</a><nav class="links" aria-label="التنقل الرئيسي"><a href="/convert/">تحويل الصور</a><a href="/guide/">دليل الاستخدام</a><a href="/privacy/">الخصوصية</a></nav></div></header>
+<main><div class="wrap"><slot /></div></main><footer><div class="wrap">نسخة تجريبية قيد الاختبار — نعمل على أدوات عملية تحترم خصوصية ملفاتك.</div></footer>
+</body></html>
