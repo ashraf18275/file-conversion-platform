@@ -9,6 +9,26 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <div id="source-info" class="muted" aria-live="polite">لم يتم اختيار صورة بعد.</div>
 <div id="preview-wrap" hidden style="margin:16px 0"><img id="preview" class="preview" alt="معاينة الصورة الأصلية" /></div>
 
+<div class="editor-tabs" role="tablist" aria-label="أدوات تحرير الصورة">
+  <button class="editor-tab active" type="button" role="tab" id="tab-size" aria-selected="true" aria-controls="panel-size" data-editor-tab="size">الأبعاد والاقتصاص</button>
+  <button class="editor-tab" type="button" role="tab" id="tab-background" aria-selected="false" aria-controls="panel-background" data-editor-tab="background">الخلفية</button>
+  <button class="editor-tab" type="button" role="tab" id="tab-export" aria-selected="false" aria-controls="panel-export" data-editor-tab="export">الضغط والتصدير</button>
+  <button class="editor-tab" type="button" role="tab" id="tab-transform" aria-selected="false" aria-controls="panel-transform" data-editor-tab="transform">التدوير والقلب</button>
+</div>
+<div class="editor-tab-panels">
+  <div id="panel-size" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-size" data-editor-panel="size"></div>
+  <div id="panel-background" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-background" data-editor-panel="background" hidden>
+    <section class="tool-panel">
+      <h2>إزالة الخلفية</h2>
+      <p class="muted">ستُنفّذ إزالة الخلفية على جهازك داخل المتصفح. لا نرسل الصورة إلى خادم. يجري تجهيز نموذج محلي واختبار حجمه وأدائه وجودة الحواف قبل تفعيله للاستخدام.</p>
+      <div class="notice">حالة الميزة: قيد التقييم — لن نعرض زرًا يوحي بأن الإزالة تعمل قبل دمج النموذج واختباره على صور حقيقية وأجهزة الهاتف.</div>
+      <p class="muted hint">قد يحتاج النموذج إلى تنزيل أولي كبير نسبيًا، ثم يُعاد استخدامه من ذاكرة المتصفح. سنوضح حجم التنزيل ونختبر الأداء قبل اعتماد الطريقة.</p>
+    </section>
+  </div>
+  <div id="panel-export" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-export" data-editor-panel="export" hidden></div>
+  <div id="panel-transform" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-transform" data-editor-panel="transform" hidden></div>
+</div>
+
 <details class="tool-panel" open>
 <summary>1. الأبعاد والحجم</summary>
 <div class="grid fields-grid">
@@ -58,7 +78,35 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <p id="status" role="status" aria-live="polite" class="muted"></p>
 <div id="result" class="result" hidden><h2>النتيجة</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التعديل" /><p id="result-info"></p><div id="target-warning" class="warn" hidden></div><a id="download" class="button" download>تنزيل الصورة</a></div>
 </section>
-<script is:inline>
+<script>
+const editorTabs = Array.from(document.querySelectorAll("[data-editor-tab]"));
+const editorPanels = Array.from(document.querySelectorAll("[data-editor-panel]"));
+const detailPanels = Array.from(document.querySelectorAll(".tool-panel"));
+const tabAssignment = ["size", "size", "export", "transform"];
+detailPanels.forEach((panel, index) => {
+  const target = document.querySelector('[data-editor-panel="' + (tabAssignment[index] || "export") + '"]');
+  if (target) target.appendChild(panel);
+});
+const activateEditorTab = (name) => {
+  editorTabs.forEach(tab => {
+    const active = tab.dataset.editorTab === name;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+  });
+  editorPanels.forEach(panel => { panel.hidden = panel.dataset.editorPanel !== name; });
+};
+editorTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => activateEditorTab(tab.dataset.editorTab));
+  tab.addEventListener("keydown", event => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    const next = (index + (event.key === "ArrowLeft" ? 1 : -1) + editorTabs.length) % editorTabs.length;
+    editorTabs[next].focus();
+    activateEditorTab(editorTabs[next].dataset.editorTab);
+  });
+});
+activateEditorTab("size");
 const fileInput = document.querySelector("#image-file");
 const formatInput = document.querySelector("#format");
 const qualityInput = document.querySelector("#quality");
@@ -312,4 +360,13 @@ convertButton.addEventListener("click", async () => {
 });
 window.addEventListener("pagehide", () => { revoke(sourceUrl); revoke(resultUrl); });
 </script>
+
+<style>
+.editor-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:22px 0 12px}
+.editor-tab{font:inherit;font-weight:700;line-height:1.45;padding:12px 8px;border:1px solid #cbd5e1;border-radius:12px;background:#f8fafc;color:#334155;cursor:pointer}
+.editor-tab.active{background:#135fc2;border-color:#135fc2;color:#fff}
+.editor-tab:focus-visible{outline:3px solid #f59e0b;outline-offset:3px}
+.editor-tab-panel[hidden]{display:none}
+@media(max-width:560px){.editor-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-tab{font-size:.92rem;padding:10px 6px}}
+</style>
 </BaseLayout>
