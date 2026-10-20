@@ -502,6 +502,7 @@ test("organizes tools into accessible tabs without resetting editor values", asy
   await expect(page.locator("#panel-transform #rotate-left")).toBeVisible();
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await expect(page.locator("#panel-size #width")).toHaveValue("900");
+  await page.locator("#panel-size details").filter({ has: page.getByText("2. اقتصاص الصورة") }).locator("summary").click();
   await expect(page.locator("#panel-size #crop-width")).toBeVisible();
 });
 
