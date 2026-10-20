@@ -386,7 +386,6 @@ test("crop controls apply the requested source rectangle", async ({ page }) => {
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
-  await page.locator("#panel-size details").nth(1).locator("summary").click();
   await page.locator("#crop-x").fill("1");
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#crop-y").fill("0");
@@ -445,7 +444,7 @@ test("rotate controls swap output dimensions when keeping original pixel size", 
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#fit-mode").selectOption("actual");
   await page.getByRole("tab", { name: "التدوير والقلب" }).click();
-  await page.locator("#panel-transform details").locator("summary").click();
+  await expect(page.locator("#panel-transform #rotate-left")).toBeVisible();
   await page.locator("#rotate-right").click();
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
@@ -498,7 +497,6 @@ test("organizes tools into accessible tabs without resetting editor values", asy
   await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
   await expect(page.locator("#panel-export #format")).toBeVisible();
   await page.getByRole("tab", { name: "التدوير والقلب" }).click();
-  await page.locator("#panel-transform details").locator("summary").click();
   await expect(page.locator("#panel-transform #rotate-left")).toBeVisible();
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await expect(page.locator("#panel-size #width")).toHaveValue("900");
@@ -556,6 +554,21 @@ test("applies a mocked local background-removal result and can restore the origi
   await expect(page.locator("#restore-original")).toBeVisible();
   await expect(page.locator("#format")).toHaveValue("image/png");
   expect(externalRequests, "The selected image must not be uploaded during local background processing").toHaveLength(0);
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible();
+  const outputAlpha = await page.locator("#result-preview").evaluate(async element => {
+    const image = element as HTMLImageElement;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, 2, 2).data;
+    return { subjectAlpha: pixels[3], transparentAlpha: pixels[7] };
+  });
+  expect(outputAlpha.subjectAlpha).toBeGreaterThan(0);
+  expect(outputAlpha.transparentAlpha).toBe(0);
   await page.getByRole("tab", { name: "الخلفية" }).click();
   await page.locator("#restore-original").click();
   await expect(page.locator("#restore-original")).toBeHidden();
