@@ -1,5 +1,6 @@
 ---
 const { title = "محوّل الملفات", description = "حوّل صورك داخل متصفحك دون رفعها إلى خادم." } = Astro.props;
+const base = import.meta.env.BASE_URL;
 ---
 <!doctype html>
 <html lang="ar" dir="rtl">
@@ -20,6 +21,6 @@ footer{background:#fff;border-top:1px solid #e2e8f0;padding:22px 0;color:#65748a
 </head>
 <body>
 <a class="skip-link" href="#main-content">انتقل إلى المحتوى</a>
-<header class="top"><div class="wrap nav"><a class="brand" href="/">محوّل الملفات</a><nav class="links" aria-label="التنقل الرئيسي"><a href="/convert/">تحويل الصور</a><a href="/guide/">دليل الاستخدام</a><a href="/privacy/">الخصوصية</a></nav></div></header>
+<header class="top"><div class="wrap nav"><a class="brand" href={base}>محوّل الملفات</a><nav class="links" aria-label="التنقل الرئيسي"><a href={`${base}convert/`}>تحويل الصور</a><a href={`${base}guide/`}>دليل الاستخدام</a><a href={`${base}privacy/`}>الخصوصية</a></nav></div></header>
 <main id="main-content"><div class="wrap"><slot /></div></main><footer><div class="wrap">نسخة تجريبية قيد الاختبار — نعمل على أدوات عملية تحترم خصوصية ملفاتك.</div></footer>
 </body></html>
