@@ -197,3 +197,29 @@ test("converts a large PNG file without uploading it", async ({ page }) => {
   await expect(page.locator("#result")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("#result-info")).toContainText("2048 × 2048");
 });
+
+
+for (const route of ["/", "/guide/", "/privacy/"]) {
+  test(`loads ${route} with Arabic RTL document semantics`, async ({ page }) => {
+    await page.goto(route);
+    await expect(page.locator("html")).toHaveAttribute("lang", "ar");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await expect(page.locator("main h1")).toBeVisible();
+  });
+}
+
+test("mobile conversion page has no horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/convert/");
+  await expect(page.locator("h1")).toBeVisible();
+  const hasNoOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+  expect(hasNoOverflow).toBeTruthy();
+});
+
+test("keyboard users can skip directly to the main content", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".skip-link")).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#main-content")).toBeInViewport();
+});
