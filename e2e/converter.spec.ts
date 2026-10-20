@@ -459,3 +459,21 @@ test("preserves transparency in PNG output by default", async ({ page }) => {
   });
   expect(alpha).toBe(0);
 });
+
+
+test("organizes tools into accessible tabs without resetting editor values", async ({ page }) => {
+  await page.goto("/convert/");
+  await expect(page.getByRole("tab", { name: "الأبعاد والاقتصاص" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#panel-size #width")).toBeVisible();
+  await page.locator("#panel-size #width").fill("900");
+  await page.getByRole("tab", { name: "الخلفية" }).click();
+  await expect(page.locator("#panel-background")).toBeVisible();
+  await expect(page.locator("#panel-background")).toContainText("قيد التقييم");
+  await page.getByRole("tab", { name: "الضغط والتصدير" }).click();
+  await expect(page.locator("#panel-export #format")).toBeVisible();
+  await page.getByRole("tab", { name: "التدوير والقلب" }).click();
+  await expect(page.locator("#panel-transform #rotate-left")).toBeVisible();
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
+  await expect(page.locator("#panel-size #width")).toHaveValue("900");
+  await expect(page.locator("#panel-size #crop-width")).toBeVisible();
+});
