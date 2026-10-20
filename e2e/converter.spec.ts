@@ -11,7 +11,6 @@ for (const format of [
   { value: "image/webp", extension: ".webp", label: "WebP" }
 ]) {
   test(`converts a local image to ${format.label} and downloads it`, async ({ page }) => {
-    const requestsBefore: string[] = [];
     const requestsAfter: string[] = [];
     await page.goto("/convert/");
     await page.locator("#image-file").setInputFiles({
