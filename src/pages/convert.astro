@@ -13,7 +13,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <button id="convert" class="button" disabled>حوّل الصورة</button><p id="status" role="status" aria-live="polite" class="muted"></p>
 <div id="result" class="result" hidden><h2>نتيجة التحويل</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التحويل" /><p id="result-info"></p><a id="download" class="button" download>تنزيل الصورة</a></div>
 </section>
-<script>
+<script is:inline>
 const fileInput = document.querySelector("#image-file");
 const formatInput = document.querySelector("#format");
 const qualityInput = document.querySelector("#quality");
