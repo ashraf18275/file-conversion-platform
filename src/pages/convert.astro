@@ -17,7 +17,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 </div>
 <label class="check-row"><input id="keep-ratio" type="checkbox" checked /> تحديث البعد الآخر تلقائيًا عند تغيير أحد البعدين</label>
 <div class="field"><label for="fit-mode">طريقة ملاءمة الصورة</label><select id="fit-mode"><option value="contain">احتواء الصورة كاملة دون اقتطاع (قد تظهر مساحة فارغة)</option><option value="actual">الحفاظ على الأبعاد الأصلية وعدم تغيير الحجم</option></select></div>
-<div class="field"><label for="background">لون المساحة الفارغة</label><div class="color-row"><input id="background" type="color" value="#ffffff" /><span class="muted">يُستخدم عند احتواء الصورة داخل أبعاد مختلفة النسبة.</span></div></div>
+<div class="field"><label for="background-mode">خلفية المساحة الفارغة</label><select id="background-mode"><option value="transparent">شفافة في PNG وWebP (موصى به)</option><option value="color">استخدام لون محدد</option></select></div>
+<div class="field"><label for="background">لون الخلفية</label><div class="color-row"><input id="background" type="color" value="#ffffff" /><span class="muted">JPEG يستخدم خلفية بيضاء لأن الصيغة لا تدعم الشفافية.</span></div></div>
 <p class="muted hint">لن تُقص الصورة عند تغيير الأبعاد. عند اختيار أبعاد مختلفة النسبة، ستظهر الصورة كاملة داخل المساحة المحددة.</p>
 </details>
 
@@ -77,6 +78,7 @@ const heightInput = document.querySelector("#height");
 const keepRatio = document.querySelector("#keep-ratio");
 const fitMode = document.querySelector("#fit-mode");
 const backgroundInput = document.querySelector("#background");
+const backgroundMode = document.querySelector("#background-mode");
 const cropX = document.querySelector("#crop-x");
 const cropY = document.querySelector("#crop-y");
 const cropWidth = document.querySelector("#crop-width");
@@ -228,7 +230,7 @@ const encodeWithTarget = async (canvas, mime, requestedQuality, targetBytes) => 
 convertButton.addEventListener("click", async () => {
   if (!selectedFile || convertButton.disabled) return;
   convertButton.disabled = true;
-  [fileInput, formatInput, qualityInput, widthInput, heightInput, keepRatio, fitMode, backgroundInput, targetEnabled, targetKb, useCropButton, resetCropButton, cropX, cropY, cropWidth, cropHeight, rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(el => el.disabled = true);
+  [fileInput, formatInput, qualityInput, widthInput, heightInput, keepRatio, fitMode, backgroundInput, backgroundMode, targetEnabled, targetKb, useCropButton, resetCropButton, cropX, cropY, cropWidth, cropHeight, rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(el => el.disabled = true);
   status.textContent = "جارٍ تطبيق التعديلات داخل المتصفح…";
   result.hidden = true;
   targetWarning.hidden = true;
@@ -260,8 +262,10 @@ convertButton.addEventListener("click", async () => {
     canvas.width = targetWidth; canvas.height = targetHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("المتصفح لا يدعم مساحة الرسم المطلوبة.");
-    ctx.fillStyle = formatInput.value === "image/jpeg" ? "#ffffff" : backgroundInput.value;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (formatInput.value === "image/jpeg" || backgroundMode.value === "color") {
+      ctx.fillStyle = formatInput.value === "image/jpeg" ? "#ffffff" : backgroundInput.value;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
     const sourceRatio = transformed.width / transformed.height;
     const targetRatio = targetWidth / targetHeight;
     let drawWidth = targetWidth, drawHeight = targetHeight;
@@ -299,7 +303,7 @@ convertButton.addEventListener("click", async () => {
     status.textContent = error instanceof Error ? error.message : "حدث خطأ غير متوقع أثناء تعديل الصورة.";
   } finally {
     if (canvas) { canvas.width = 0; canvas.height = 0; }
-    [fileInput, formatInput, qualityInput, widthInput, heightInput, keepRatio, fitMode, backgroundInput, targetEnabled, targetKb, useCropButton, resetCropButton, cropX, cropY, cropWidth, cropHeight, rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(el => el.disabled = false);
+    [fileInput, formatInput, qualityInput, widthInput, heightInput, keepRatio, fitMode, backgroundInput, backgroundMode, targetEnabled, targetKb, useCropButton, resetCropButton, cropX, cropY, cropWidth, cropHeight, rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(el => el.disabled = false);
     qualityInput.disabled = formatInput.value === "image/png";
     targetKb.disabled = !targetEnabled.checked;
     convertButton.disabled = !selectedFile || !allowedInputTypes.has(selectedFile.type);
