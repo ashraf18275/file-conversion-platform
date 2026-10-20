@@ -17,12 +17,9 @@ export default defineConfig({
     screenshot: "only-on-failure"
   },
   webServer: {
-    command: "npm run dev -- --host 127.0.0.1 --port 4321 --strictPort",
+    command: "npm run preview -- --host 127.0.0.1 --port 4321 --strictPort",
     url: "http://127.0.0.1:4321/convert/",
     reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
-    env: {
-      PLAYWRIGHT_TEST: "1"
-    }
+    timeout: 30_000
   }
 });
