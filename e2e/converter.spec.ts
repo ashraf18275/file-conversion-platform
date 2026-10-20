@@ -38,6 +38,30 @@ for (const format of [
   });
 }
 
+test("locks file and conversion options while a conversion is in progress", async ({ page }) => {
+  await page.addInitScript(() => {
+    const originalDecode = HTMLImageElement.prototype.decode;
+    HTMLImageElement.prototype.decode = async function () {
+      await new Promise(resolve => setTimeout(resolve, 350));
+      return originalDecode.call(this);
+    };
+  });
+  await page.goto("/convert/");
+  await page.locator("#image-file").setInputFiles({
+    name: "pixel.png",
+    mimeType: "image/png",
+    buffer: pixel
+  });
+  await page.locator("#convert").click();
+  await expect(page.locator("#image-file")).toBeDisabled();
+  await expect(page.locator("#format")).toBeDisabled();
+  await expect(page.locator("#quality")).toBeDisabled();
+  await expect(page.locator("#status")).toContainText("اكتمل التحويل", { timeout: 10_000 });
+  await expect(page.locator("#image-file")).toBeEnabled();
+  await expect(page.locator("#format")).toBeEnabled();
+  await expect(page.locator("#quality")).toBeEnabled();
+});
+
 test("shows a clear error for a corrupt image without sending file contents", async ({ page }) => {
   const outbound: string[] = [];
   await page.route("**/*", route => {
