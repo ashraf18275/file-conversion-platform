@@ -1,17 +1,61 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
-<BaseLayout title="تحويل الصور" description="حوّل صور PNG وJPEG وWebP محليًا داخل المتصفح.">
-<section class="hero"><span class="eyebrow">الأداة الأولى</span><h1>تحويل الصور</h1><p class="lead">اختر صورة من جهازك، وحدد التنسيق المطلوب، ثم حوّلها ونزّل النتيجة.</p></section>
+<BaseLayout title="محرر الصور" description="حوّل صور PNG وJPEG وWebP، وغيّر أبعادها واقتصصها واضغطها محليًا داخل المتصفح.">
+<section class="hero"><span class="eyebrow">محرر الصور — المرحلة الأولى</span><h1>تحويل وتعديل الصور</h1><p class="lead">غيّر الأبعاد، واقتصص الجزء المطلوب، واضغط الصورة، ثم نزّل النتيجة. تتم المعالجة داخل متصفحك.</p></section>
 <section class="card">
-<div class="notice">الملف المختار يُقرأ داخل المتصفح. لا يوجد في هذه الأداة كود لرفع الصورة إلى خادم.</div>
+<div class="notice">الخصوصية أولًا: تُقرأ الصورة وتُعالج محليًا داخل المتصفح، ولا يتضمن المحرر كودًا لرفع الصورة إلى خادم.</div>
 <div class="field"><label for="image-file">اختر صورة</label><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" /></div>
 <div id="source-info" class="muted" aria-live="polite">لم يتم اختيار صورة بعد.</div>
-<div id="preview-wrap" hidden style="margin:16px 0"><img id="preview" class="preview" alt="معاينة الصورة المختارة" /></div>
-<div class="field"><label for="format">تنسيق الإخراج</label><select id="format"><option value="image/webp">WebP</option><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option></select></div>
-<div class="field"><label for="quality">جودة JPEG وWebP: <output id="quality-value">0.85</output></label><input id="quality" type="range" min="0.4" max="1" step="0.05" value="0.85" /><small class="muted">لا يؤثر هذا الخيار في PNG.</small></div>
-<button id="convert" class="button" disabled>حوّل الصورة</button><p id="status" role="status" aria-live="polite" class="muted"></p>
-<div id="result" class="result" hidden><h2>نتيجة التحويل</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التحويل" /><p id="result-info"></p><a id="download" class="button" download>تنزيل الصورة</a></div>
+<div id="preview-wrap" hidden style="margin:16px 0"><img id="preview" class="preview" alt="معاينة الصورة الأصلية" /></div>
+
+<details class="tool-panel" open>
+<summary>1. الأبعاد والحجم</summary>
+<div class="grid fields-grid">
+<div class="field"><label for="width">العرض النهائي (بكسل)</label><input id="width" type="number" min="1" max="12000" inputmode="numeric" value="1200" /></div>
+<div class="field"><label for="height">الارتفاع النهائي (بكسل)</label><input id="height" type="number" min="1" max="12000" inputmode="numeric" value="1200" /></div>
+</div>
+<label class="check-row"><input id="keep-ratio" type="checkbox" checked /> تحديث البعد الآخر تلقائيًا عند تغيير أحد البعدين</label>
+<div class="field"><label for="fit-mode">طريقة ملاءمة الصورة</label><select id="fit-mode"><option value="contain">احتواء الصورة كاملة دون اقتطاع (قد تظهر مساحة فارغة)</option><option value="actual">الحفاظ على الأبعاد الأصلية وعدم تغيير الحجم</option></select></div>
+<div class="field"><label for="background">لون المساحة الفارغة</label><div class="color-row"><input id="background" type="color" value="#ffffff" /><span class="muted">يُستخدم عند احتواء الصورة داخل أبعاد مختلفة النسبة.</span></div></div>
+<p class="muted hint">لن تُقص الصورة عند تغيير الأبعاد. عند اختيار أبعاد مختلفة النسبة، ستظهر الصورة كاملة داخل المساحة المحددة.</p>
+</details>
+
+<details class="tool-panel">
+<summary>2. اقتصاص الصورة</summary>
+<p class="muted">أدخل مستطيل الجزء الذي تريد الاحتفاظ به. الإحداثيات تبدأ من أعلى يسار الصورة الأصلية.</p>
+<div class="grid fields-grid">
+<div class="field"><label for="crop-x">بداية الاقتصاص أفقيًا (X)</label><input id="crop-x" type="number" min="0" step="1" value="0" inputmode="numeric" /></div>
+<div class="field"><label for="crop-y">بداية الاقتصاص رأسيًا (Y)</label><input id="crop-y" type="number" min="0" step="1" value="0" inputmode="numeric" /></div>
+<div class="field"><label for="crop-width">عرض الجزء (بكسل)</label><input id="crop-width" type="number" min="1" step="1" value="1" inputmode="numeric" /></div>
+<div class="field"><label for="crop-height">ارتفاع الجزء (بكسل)</label><input id="crop-height" type="number" min="1" step="1" value="1" inputmode="numeric" /></div>
+</div>
+<div class="button-row"><button id="use-crop" class="button secondary" type="button" disabled>تفعيل الاقتصاص</button><button id="reset-crop" class="button secondary" type="button" disabled>إلغاء الاقتصاص</button></div>
+<p id="crop-info" class="muted hint" aria-live="polite">اختر صورة لتحديد مساحة الاقتصاص.</p>
+</details>
+
+<details class="tool-panel" open>
+<summary>3. التنسيق والضغط</summary>
+<div class="field"><label for="format">تنسيق الإخراج</label><select id="format"><option value="image/webp">WebP — حجم أصغر غالبًا</option><option value="image/jpeg">JPEG</option><option value="image/png">PNG — دون فقد جودة بسبب الضغط</option></select></div>
+<div class="field"><label for="quality">جودة JPEG وWebP: <output id="quality-value">0.85</output></label><input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.85" /><small class="muted">الجودة الأقل تعطي عادةً ملفًا أصغر. هذا الخيار لا يؤثر في PNG.</small></div>
+<label class="check-row"><input id="target-enabled" type="checkbox" /> استهداف حجم ملف محدد</label>
+<div class="field"><label for="target-kb">الحجم المستهدف (كيلوبايت)</label><input id="target-kb" type="number" min="1" max="100000" step="1" value="200" inputmode="numeric" disabled /><small class="muted">سيبحث المحرر عن أعلى جودة ممكنة ضمن الحجم المستهدف. قد يتعذر بلوغ الحجم المطلوب مع بعض الصور أو عند استخدام PNG.</small></div>
+</details>
+
+<details class="tool-panel">
+<summary>4. التدوير والقلب</summary>
+<div class="button-row">
+<button id="rotate-left" class="button secondary" type="button" disabled>تدوير 90° لليسار</button>
+<button id="rotate-right" class="button secondary" type="button" disabled>تدوير 90° لليمين</button>
+<button id="flip-horizontal" class="button secondary" type="button" disabled>قلب أفقي</button>
+<button id="flip-vertical" class="button secondary" type="button" disabled>قلب رأسي</button>
+</div>
+<p class="muted hint">يمكنك تجربة التدوير والقلب قبل إنشاء الملف النهائي. تبقى الصورة الأصلية محفوظة.</p>
+</details>
+
+<button id="convert" class="button" disabled>تطبيق التعديلات وإنشاء الصورة</button>
+<p id="status" role="status" aria-live="polite" class="muted"></p>
+<div id="result" class="result" hidden><h2>النتيجة</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التعديل" /><p id="result-info"></p><div id="target-warning" class="warn" hidden></div><a id="download" class="button" download>تنزيل الصورة</a></div>
 </section>
 <script is:inline>
 const fileInput = document.querySelector("#image-file");
@@ -26,73 +70,233 @@ const preview = document.querySelector("#preview");
 const result = document.querySelector("#result");
 const resultPreview = document.querySelector("#result-preview");
 const resultInfo = document.querySelector("#result-info");
+const targetWarning = document.querySelector("#target-warning");
 const download = document.querySelector("#download");
+const widthInput = document.querySelector("#width");
+const heightInput = document.querySelector("#height");
+const keepRatio = document.querySelector("#keep-ratio");
+const fitMode = document.querySelector("#fit-mode");
+const backgroundInput = document.querySelector("#background");
+const cropX = document.querySelector("#crop-x");
+const cropY = document.querySelector("#crop-y");
+const cropWidth = document.querySelector("#crop-width");
+const cropHeight = document.querySelector("#crop-height");
+const useCropButton = document.querySelector("#use-crop");
+const resetCropButton = document.querySelector("#reset-crop");
+const cropInfo = document.querySelector("#crop-info");
+const targetEnabled = document.querySelector("#target-enabled");
+const targetKb = document.querySelector("#target-kb");
+const rotateLeft = document.querySelector("#rotate-left");
+const rotateRight = document.querySelector("#rotate-right");
+const flipHorizontal = document.querySelector("#flip-horizontal");
+const flipVertical = document.querySelector("#flip-vertical");
 let sourceUrl = null;
 let resultUrl = null;
 let selectedFile = null;
+let cropEnabled = false;
+let rotation = 0;
+let flipX = false;
+let flipY = false;
+let sourceDimensions = { width: 0, height: 0 };
 const labels = { "image/png": "PNG", "image/jpeg": "JPEG", "image/webp": "WebP" };
 const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
 const allowedInputTypes = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "image/bmp", "image/avif"]);
 const fmtBytes = (bytes) => bytes < 1024 ? bytes + " بايت" : bytes < 1048576 ? (bytes / 1024).toFixed(1) + " كيلوبايت" : (bytes / 1048576).toFixed(2) + " ميجابايت";
 const safeBase = (name) => name.replace(/\.[^.]+$/, "").replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "image";
 const revoke = (url) => { if (url) URL.revokeObjectURL(url); };
+const validDimension = (value) => Number.isInteger(Number(value)) && Number(value) >= 1 && Number(value) <= 12000;
+const updateCropDefaults = () => {
+  if (!sourceDimensions.width || !sourceDimensions.height) return;
+  cropX.max = String(sourceDimensions.width - 1);
+  cropY.max = String(sourceDimensions.height - 1);
+  cropWidth.max = String(sourceDimensions.width);
+  cropHeight.max = String(sourceDimensions.height);
+  cropWidth.value = String(sourceDimensions.width);
+  cropHeight.value = String(sourceDimensions.height);
+  cropX.value = "0";
+  cropY.value = "0";
+  cropEnabled = false;
+  useCropButton.textContent = "تفعيل الاقتصاص";
+  cropInfo.textContent = "أبعاد الصورة الأصلية: " + sourceDimensions.width + " × " + sourceDimensions.height + " بكسل.";
+  useCropButton.disabled = false;
+  resetCropButton.disabled = false;
+};
+const getCropRect = () => {
+  const x = Number(cropX.value), y = Number(cropY.value);
+  const width = Number(cropWidth.value), height = Number(cropHeight.value);
+  if (![x,y,width,height].every(Number.isInteger) || x < 0 || y < 0 || width < 1 || height < 1 ||
+      x + width > sourceDimensions.width || y + height > sourceDimensions.height) {
+    throw new Error("تحقق من إحداثيات الاقتصاص؛ يجب أن تبقى المساحة كاملة داخل الصورة الأصلية.");
+  }
+  return { x, y, width, height };
+};
+const updateRatioDimension = (changed) => {
+  if (!keepRatio.checked || !sourceDimensions.width || !sourceDimensions.height) return;
+  const ratio = sourceDimensions.width / sourceDimensions.height;
+  if (changed === "width" && validDimension(widthInput.value)) heightInput.value = String(Math.max(1, Math.round(Number(widthInput.value) / ratio)));
+  if (changed === "height" && validDimension(heightInput.value)) widthInput.value = String(Math.max(1, Math.round(Number(heightInput.value) * ratio)));
+};
 qualityInput.addEventListener("input", () => qualityValue.value = Number(qualityInput.value).toFixed(2));
-fileInput.addEventListener("change", () => {
+widthInput.addEventListener("input", () => updateRatioDimension("width"));
+heightInput.addEventListener("input", () => updateRatioDimension("height"));
+targetEnabled.addEventListener("change", () => { targetKb.disabled = !targetEnabled.checked; });
+formatInput.addEventListener("change", () => {
+  qualityInput.disabled = formatInput.value === "image/png";
+  targetKb.disabled = !targetEnabled.checked;
+});
+useCropButton.addEventListener("click", () => {
+  try {
+    const crop = getCropRect();
+    cropEnabled = !cropEnabled;
+    useCropButton.textContent = cropEnabled ? "إلغاء تفعيل الاقتصاص" : "تفعيل الاقتصاص";
+    cropInfo.textContent = cropEnabled ? "سيُستخدم الجزء المحدد: " + crop.width + " × " + crop.height + " بكسل." : "الاقتصاص غير مفعل؛ ستُستخدم الصورة كاملة.";
+    if (cropEnabled && keepRatio.checked) {
+      widthInput.value = String(crop.width);
+      heightInput.value = String(crop.height);
+    }
+  } catch (error) { cropInfo.textContent = error.message; cropEnabled = false; }
+});
+resetCropButton.addEventListener("click", () => {
+  if (!sourceDimensions.width) return;
+  cropX.value = "0"; cropY.value = "0";
+  cropWidth.value = String(sourceDimensions.width); cropHeight.value = String(sourceDimensions.height);
+  cropEnabled = false; useCropButton.textContent = "تفعيل الاقتصاص";
+  cropInfo.textContent = "أُلغي الاقتصاص؛ ستُستخدم الصورة كاملة.";
+});
+rotateLeft.addEventListener("click", () => { rotation = (rotation + 270) % 360; status.textContent = "تم ضبط التدوير. اضغط تطبيق التعديلات لمعاينة النتيجة."; });
+rotateRight.addEventListener("click", () => { rotation = (rotation + 90) % 360; status.textContent = "تم ضبط التدوير. اضغط تطبيق التعديلات لمعاينة النتيجة."; });
+flipHorizontal.addEventListener("click", () => { flipX = !flipX; flipHorizontal.setAttribute("aria-pressed", String(flipX)); });
+flipVertical.addEventListener("click", () => { flipY = !flipY; flipVertical.setAttribute("aria-pressed", String(flipY)); });
+fileInput.addEventListener("change", async () => {
   selectedFile = fileInput.files?.[0] || null;
   status.textContent = "";
   result.hidden = true;
+  targetWarning.hidden = true;
   revoke(resultUrl); resultUrl = null;
   revoke(sourceUrl); sourceUrl = null;
+  rotation = 0; flipX = false; flipY = false;
+  [rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(button => { button.disabled = !selectedFile; button.setAttribute("aria-pressed", "false"); });
   if (!selectedFile) { convertButton.disabled = true; sourceInfo.textContent = "لم يتم اختيار صورة."; previewWrap.hidden = true; return; }
   if (!allowedInputTypes.has(selectedFile.type)) { convertButton.disabled = true; sourceInfo.textContent = "نوع الصورة غير مدعوم. اختر PNG أو JPEG أو WebP أو GIF أو BMP أو AVIF."; previewWrap.hidden = true; return; }
   sourceUrl = URL.createObjectURL(selectedFile);
   preview.src = sourceUrl;
   previewWrap.hidden = false;
   sourceInfo.textContent = selectedFile.name + " — " + fmtBytes(selectedFile.size) + " — " + (selectedFile.type || "نوع غير معروف");
-  convertButton.disabled = false;
+  try {
+    await preview.decode();
+    sourceDimensions = { width: preview.naturalWidth, height: preview.naturalHeight };
+    if (!sourceDimensions.width || !sourceDimensions.height) throw new Error("أبعاد الصورة غير صالحة.");
+    widthInput.value = String(sourceDimensions.width);
+    heightInput.value = String(sourceDimensions.height);
+    updateCropDefaults();
+    convertButton.disabled = false;
+    useCropButton.disabled = false;
+    resetCropButton.disabled = false;
+    [rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(button => button.disabled = false);
+  } catch {
+    convertButton.disabled = true;
+    sourceInfo.textContent = "تعذرت قراءة الصورة. جرّب ملف صورة آخر.";
+    previewWrap.hidden = true;
+  }
 });
+const canvasToBlob = (canvas, mime, quality) => new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("لم يتمكن المتصفح من إنشاء ملف الإخراج.")), mime, quality));
+const encodeWithTarget = async (canvas, mime, requestedQuality, targetBytes) => {
+  if (mime === "image/png") return { blob: await canvasToBlob(canvas, mime), quality: null, metTarget: false };
+  let low = 0.1, high = requestedQuality, best = null;
+  const first = await canvasToBlob(canvas, mime, high);
+  if (first.size <= targetBytes) return { blob: first, quality: high, metTarget: true };
+  const lowest = await canvasToBlob(canvas, mime, low);
+  if (lowest.size > targetBytes) return { blob: lowest, quality: low, metTarget: false };
+  best = lowest;
+  for (let i = 0; i < 8; i++) {
+    const mid = (low + high) / 2;
+    const blob = await canvasToBlob(canvas, mime, mid);
+    if (blob.size <= targetBytes) { best = blob; low = mid; } else high = mid;
+  }
+  return { blob: best, quality: low, metTarget: true };
+};
 convertButton.addEventListener("click", async () => {
   if (!selectedFile || convertButton.disabled) return;
   convertButton.disabled = true;
-  fileInput.disabled = true;
-  formatInput.disabled = true;
-  qualityInput.disabled = true;
-  status.textContent = "جارٍ تحويل الصورة داخل المتصفح…";
+  [fileInput, formatInput, qualityInput, widthInput, heightInput, keepRatio, fitMode, backgroundInput, targetEnabled, targetKb, useCropButton, resetCropButton, cropX, cropY, cropWidth, cropHeight, rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(el => el.disabled = true);
+  status.textContent = "جارٍ تطبيق التعديلات داخل المتصفح…";
   result.hidden = true;
+  targetWarning.hidden = true;
+  let canvas;
   try {
     const image = new Image();
     image.decoding = "async";
     image.src = sourceUrl;
     await image.decode();
-    if (!image.naturalWidth || !image.naturalHeight) throw new Error("تعذرت قراءة أبعاد الصورة.");
-    const canvas = document.createElement("canvas");
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
+    let crop = { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight };
+    if (cropEnabled) crop = getCropRect();
+    let targetWidth = image.naturalWidth, targetHeight = image.naturalHeight;
+    if (fitMode.value === "contain") {
+      if (!validDimension(widthInput.value) || !validDimension(heightInput.value)) throw new Error("أدخل عرضًا وارتفاعًا صحيحين بين 1 و12000 بكسل.");
+      targetWidth = Number(widthInput.value); targetHeight = Number(heightInput.value);
+    }
+    const swap = rotation % 180 !== 0;
+    canvas = document.createElement("canvas");
+    canvas.width = targetWidth; canvas.height = targetHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("المتصفح لا يدعم مساحة الرسم المطلوبة.");
+    ctx.fillStyle = formatInput.value === "image/jpeg" ? "#ffffff" : backgroundInput.value;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const sourceRatio = crop.width / crop.height;
+    const targetRatio = targetWidth / targetHeight;
+    let drawWidth = targetWidth, drawHeight = targetHeight;
+    if (sourceRatio > targetRatio) drawHeight = targetWidth / sourceRatio;
+    else drawWidth = targetHeight * sourceRatio;
+    if (fitMode.value === "actual") { drawWidth = crop.width; drawHeight = crop.height; canvas.width = swap ? crop.height : crop.width; canvas.height = swap ? crop.width : crop.height; }
+    const centerX = canvas.width / 2, centerY = canvas.height / 2;
+    ctx.fillStyle = formatInput.value === "image/jpeg" ? "#ffffff" : backgroundInput.value;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(rotation * Math.PI / 180);
+    ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+    if (fitMode.value === "actual") {
+      ctx.drawImage(image, crop.x, crop.y, crop.width, crop.height, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+    } else {
+      if (swap) { const temp = drawWidth; drawWidth = drawHeight; drawHeight = temp; }
+      ctx.drawImage(image, crop.x, crop.y, crop.width, crop.height, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+    }
+    ctx.restore();
     const mime = formatInput.value;
-    if (mime === "image/jpeg") { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-    ctx.drawImage(image, 0, 0);
-    const blob = await new Promise((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error("لم يتمكن المتصفح من إنشاء ملف الإخراج.")), mime, Number(qualityInput.value)));
+    let encoded;
+    if (targetEnabled.checked) {
+      const kb = Number(targetKb.value);
+      if (!Number.isFinite(kb) || kb < 1 || kb > 100000) throw new Error("أدخل حجمًا مستهدفًا بين 1 و100000 كيلوبايت.");
+      encoded = await encodeWithTarget(canvas, mime, Number(qualityInput.value), Math.floor(kb * 1024));
+    } else encoded = { blob: await canvasToBlob(canvas, mime, Number(qualityInput.value)), quality: Number(qualityInput.value), metTarget: true };
+    const blob = encoded.blob;
     if (blob.type !== mime) throw new Error("هذا المتصفح لا ينتج التنسيق المطلوب. اختر تنسيقًا آخر.");
     revoke(resultUrl);
     resultUrl = URL.createObjectURL(blob);
     resultPreview.src = resultUrl;
     const delta = blob.size - selectedFile.size;
     const deltaText = delta < 0 ? "أصغر بمقدار " + fmtBytes(-delta) : delta > 0 ? "أكبر بمقدار " + fmtBytes(delta) : "بالحجم نفسه تقريبًا";
-    resultInfo.textContent = "التنسيق: " + labels[blob.type] + " — الحجم: " + fmtBytes(blob.size) + " — " + deltaText + ". الأبعاد: " + canvas.width + " × " + canvas.height + " بكسل.";
+    resultInfo.textContent = "التنسيق: " + labels[blob.type] + " — الحجم: " + fmtBytes(blob.size) + " — " + deltaText + ". الأبعاد النهائية: " + canvas.width + " × " + canvas.height + " بكسل." + (encoded.quality ? " الجودة المستخدمة: " + encoded.quality.toFixed(2) + "." : "");
     download.href = resultUrl;
     download.download = safeBase(selectedFile.name) + "." + ext[blob.type];
+    if (targetEnabled.checked && !encoded.metTarget) {
+      targetWarning.textContent = mime === "image/png" ? "لم يُطبّق حد الحجم المستهدف؛ صيغة PNG لا تدعم التحكم في الجودة عبر هذا المحرر. جرّب WebP أو JPEG أو أبعادًا أصغر." : "تعذر الوصول إلى الحجم المستهدف حتى عند أقل جودة متاحة. جرّب أبعادًا أصغر أو تنسيقًا آخر.";
+      targetWarning.hidden = false;
+    } else if (targetEnabled.checked) {
+      targetWarning.textContent = "تم بلوغ الحجم المستهدف باستخدام أعلى جودة عُثر عليها ضمن محاولات الضبط.";
+      targetWarning.hidden = false;
+    }
     result.hidden = false;
-    status.textContent = "اكتمل التحويل. راجع المعاينة قبل التنزيل.";
-    canvas.width = 0; canvas.height = 0;
+    status.textContent = "اكتمل التعديل. راجع المعاينة قبل التنزيل.";
   } catch (error) {
-    status.textContent = error instanceof Error ? error.message : "حدث خطأ غير متوقع أثناء التحويل.";
+    status.textContent = error instanceof Error ? error.message : "حدث خطأ غير متوقع أثناء تعديل الصورة.";
   } finally {
-    fileInput.disabled = false;
-    formatInput.disabled = false;
-    qualityInput.disabled = false;
+    if (canvas) { canvas.width = 0; canvas.height = 0; }
+    [fileInput, formatInput, qualityInput, widthInput, heightInput, keepRatio, fitMode, backgroundInput, targetEnabled, targetKb, useCropButton, resetCropButton, cropX, cropY, cropWidth, cropHeight, rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(el => el.disabled = false);
+    qualityInput.disabled = formatInput.value === "image/png";
+    targetKb.disabled = !targetEnabled.checked;
     convertButton.disabled = !selectedFile || !allowedInputTypes.has(selectedFile.type);
+    useCropButton.textContent = cropEnabled ? "إلغاء تفعيل الاقتصاص" : "تفعيل الاقتصاص";
   }
 });
 window.addEventListener("pagehide", () => { revoke(sourceUrl); revoke(resultUrl); });
