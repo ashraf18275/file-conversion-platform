@@ -337,9 +337,9 @@ test("resizes into exact dimensions without cropping the source", async ({ page 
     input.files = transfer.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.locator("#keep-ratio").uncheck();
   await page.locator("#width").fill("100");
   await page.locator("#height").fill("100");
-  await page.locator("#keep-ratio").uncheck();
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
   const details = await page.locator("#result-preview").evaluate(async element => {
