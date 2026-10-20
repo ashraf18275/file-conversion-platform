@@ -48,7 +48,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <p class="muted hint">لن تُقص الصورة عند تغيير الأبعاد. عند اختيار أبعاد مختلفة النسبة، ستظهر الصورة كاملة داخل المساحة المحددة.</p>
 </details>
 
-<details class="tool-panel">
+<details class="tool-panel" open>
 <summary>2. اقتصاص الصورة</summary>
 <p class="muted">أدخل مستطيل الجزء الذي تريد الاحتفاظ به. الإحداثيات تبدأ من أعلى يسار الصورة الأصلية.</p>
 <div class="grid fields-grid">
@@ -69,7 +69,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <div class="field"><label for="target-kb">الحجم المستهدف (كيلوبايت)</label><input id="target-kb" type="number" min="1" max="100000" step="1" value="200" inputmode="numeric" disabled /><small class="muted">سيبحث المحرر عن أعلى جودة ممكنة ضمن الحجم المستهدف. قد يتعذر بلوغ الحجم المطلوب مع بعض الصور أو عند استخدام PNG.</small></div>
 </details>
 
-<details class="tool-panel">
+<details class="tool-panel" open>
 <summary>4. التدوير والقلب</summary>
 <div class="button-row">
 <button id="rotate-left" class="button secondary" type="button" disabled>تدوير 90° لليسار</button>
@@ -143,6 +143,7 @@ const cropInfo = document.querySelector("#crop-info");
 const targetEnabled = document.querySelector("#target-enabled");
 const targetKb = document.querySelector("#target-kb");
 const rotateLeft = document.querySelector("#rotate-left");
+const updatePreviewTransform = () => { preview.style.transform = "rotate(" + rotation + "deg) scale(" + (flipX ? "-1" : "1") + ", " + (flipY ? "-1" : "1") + ")"; preview.style.transformOrigin = "center"; };
 const rotateRight = document.querySelector("#rotate-right");
 const flipHorizontal = document.querySelector("#flip-horizontal");
 const flipVertical = document.querySelector("#flip-vertical");
@@ -232,12 +233,14 @@ resetCropButton.addEventListener("click", () => {
   cropEnabled = false; useCropButton.textContent = "تفعيل الاقتصاص";
   cropInfo.textContent = "أُلغي الاقتصاص؛ ستُستخدم الصورة كاملة.";
 });
-rotateLeft.addEventListener("click", () => { rotation = (rotation + 270) % 360; status.textContent = "تم ضبط التدوير. اضغط تطبيق التعديلات لمعاينة النتيجة."; });
-rotateRight.addEventListener("click", () => { rotation = (rotation + 90) % 360; status.textContent = "تم ضبط التدوير. اضغط تطبيق التعديلات لمعاينة النتيجة."; });
-flipHorizontal.addEventListener("click", () => { flipX = !flipX; flipHorizontal.setAttribute("aria-pressed", String(flipX)); });
-flipVertical.addEventListener("click", () => { flipY = !flipY; flipVertical.setAttribute("aria-pressed", String(flipY)); });
+rotateLeft.addEventListener("click", () => { rotation = (rotation + 270) % 360; updatePreviewTransform(); status.textContent = "تم تدوير المعاينة 90° لليسار. سيُحفظ التدوير عند تطبيق التعديلات."; });
+rotateRight.addEventListener("click", () => { rotation = (rotation + 90) % 360; updatePreviewTransform(); status.textContent = "تم تدوير المعاينة 90° لليمين. سيُحفظ التدوير عند تطبيق التعديلات."; });
+flipHorizontal.addEventListener("click", () => { flipX = !flipX; flipHorizontal.setAttribute("aria-pressed", String(flipX)); updatePreviewTransform(); status.textContent = flipX ? "تم قلب المعاينة أفقيًا." : "أُلغي القلب الأفقي."; });
+flipVertical.addEventListener("click", () => { flipY = !flipY; flipVertical.setAttribute("aria-pressed", String(flipY)); updatePreviewTransform(); status.textContent = flipY ? "تم قلب المعاينة رأسيًا." : "أُلغي القلب الرأسي."; });
 fileInput.addEventListener("change", async () => {
   selectedFile = fileInput.files?.[0] || null;
+  rotation = 0; flipX = false; flipY = false; updatePreviewTransform();
+  [flipHorizontal, flipVertical].forEach(button => button.setAttribute("aria-pressed", "false"));
   status.textContent = "";
   result.hidden = true;
   targetWarning.hidden = true;
@@ -283,12 +286,12 @@ const getBackgroundPipeline = async () => {
       if ("gpu" in navigator) {
         try {
           backgroundStatus.textContent = "يجري تحميل نموذج إزالة الخلفية مع محاولة استخدام تسريع الجهاز…";
-          return await pipeline("background-removal", "Xenova/modnet", { device: "webgpu" });
+          return await pipeline("background-removal", "Xenova/modnet", { device: "webgpu", dtype: "fp32" });
         } catch (gpuError) {
           backgroundStatus.textContent = "تعذر بدء التسريع الرسومي؛ يجري تجربة المعالجة المتوافقة مع المعالج…";
         }
       }
-      return await pipeline("background-removal", "Xenova/modnet", { device: "wasm" });
+      return await pipeline("background-removal", "Xenova/modnet", { device: "wasm", dtype: "fp32" });
     })().catch(error => {
       backgroundPipelinePromise = null;
       throw error;
@@ -472,6 +475,8 @@ window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl)
 .editor-tab.active{background:#135fc2;border-color:#135fc2;color:#fff}
 .editor-tab:focus-visible{outline:3px solid #f59e0b;outline-offset:3px}
 .editor-tab-panel[hidden]{display:none}
+#preview-wrap,#result-preview{background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}
+#preview{max-width:100%;height:auto;transition:transform .15s ease}
 @media(max-width:560px){.editor-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-tab{font-size:.92rem;padding:10px 6px}}
 </style>
 <script src="../scripts/background-removal.js"></script>
