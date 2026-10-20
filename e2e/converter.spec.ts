@@ -395,6 +395,7 @@ test("crop controls apply the requested source rectangle", async ({ page }) => {
   await page.locator("#crop-height").fill("1");
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#use-crop").click();
+  await expect(page.locator("#crop-preview-wrap")).toBeVisible();
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#fit-mode").selectOption("actual");
   await page.locator("#convert").click();
@@ -446,6 +447,8 @@ test("rotate controls swap output dimensions when keeping original pixel size", 
   await page.getByRole("tab", { name: "التدوير والقلب" }).click();
   await expect(page.locator("#panel-transform #rotate-left")).toBeVisible();
   await page.locator("#rotate-right").click();
+  await expect(page.locator("#width")).toHaveValue("1");
+  await expect(page.locator("#height")).toHaveValue("2");
   await expect(page.locator("#preview")).toHaveCSS("transform", "matrix(0, 1, -1, 0, 0, 0)");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
