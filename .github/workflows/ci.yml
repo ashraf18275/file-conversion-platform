@@ -4,6 +4,9 @@ on:
     branches: [main, phase-1-prototype]
   pull_request:
   workflow_dispatch:
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -16,4 +19,5 @@ jobs:
           node-version: 22
       - run: npm install --no-audit --no-fund
       - run: npm test
+      - run: npm run check
       - run: npm run build
