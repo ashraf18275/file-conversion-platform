@@ -223,3 +223,33 @@ test("keyboard users can skip directly to the main content", async ({ page }) =>
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeInViewport();
 });
+
+
+test("converts a 24-megapixel image in Chromium", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const source = document.createElement("canvas");
+    source.width = 6000;
+    source.height = 4000;
+    const context = source.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#e2e8f0";
+    context.fillRect(0, 0, source.width, source.height);
+    context.fillStyle = "#2563eb";
+    context.fillRect(0, 0, 3000, 2000);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create 24-megapixel test PNG")), "image/png");
+    });
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input was not found");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "twenty-four-megapixel.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.locator("#format").selectOption("image/webp");
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible({ timeout: 45_000 });
+  await expect(page.locator("#result-info")).toContainText("6000 × 4000");
+});
