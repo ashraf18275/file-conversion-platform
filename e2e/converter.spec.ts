@@ -45,6 +45,7 @@ test("shows a clear error for a corrupt image without sending file contents", as
     return route.continue();
   });
   await page.goto("/convert/");
+  outbound.length = 0;
   await page.locator("#image-file").setInputFiles({
     name: "broken.png",
     mimeType: "image/png",
@@ -53,5 +54,5 @@ test("shows a clear error for a corrupt image without sending file contents", as
   await page.locator("#convert").click();
   await expect(page.locator("#status")).not.toHaveText("جارٍ تحويل الصورة داخل المتصفح…");
   await expect(page.locator("#status")).not.toHaveText("اكتمل التحويل. راجع المعاينة قبل التنزيل.");
-  expect(outbound.every(url => url.startsWith("http://127.0.0.1:4321/"))).toBeTruthy();
+  expect(outbound.filter(url => /^https?:/i.test(url))).toHaveLength(0);
 });
