@@ -428,3 +428,34 @@ test("rotate controls swap output dimensions when keeping original pixel size", 
   await expect(page.locator("#result")).toBeVisible();
   await expect(page.locator("#result-info")).toContainText("الأبعاد النهائية: 1 × 2");
 });
+
+
+test("preserves transparency in PNG output by default", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const source = document.createElement("canvas");
+    source.width = 2; source.height = 2;
+    const blob = await new Promise<Blob>((resolve, reject) => source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create transparent test PNG")), "image/png"));
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input was not found");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "transparent.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.locator("#format").selectOption("image/png");
+  await page.locator("#fit-mode").selectOption("actual");
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible();
+  const alpha = await page.locator("#result-preview").evaluate(async element => {
+    const image = element as HTMLImageElement;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.drawImage(image, 0, 0);
+    return context.getImageData(0, 0, 1, 1).data[3];
+  });
+  expect(alpha).toBe(0);
+});
