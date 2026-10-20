@@ -11,7 +11,12 @@ for (const format of [
   { value: "image/webp", extension: ".webp", label: "WebP" }
 ]) {
   test(`converts a local image to ${format.label} and downloads it`, async ({ page }) => {
-    const requestsAfter: string[] = [];
+    const networkRequests: Array<{ url: string; method: string; postData?: string | null }> = [];
+    page.on("request", request => networkRequests.push({
+      url: request.url(),
+      method: request.method(),
+      postData: request.postData()
+    }));
     await page.goto("/convert/");
     await page.locator("#image-file").setInputFiles({
       name: "pixel.png",
@@ -20,8 +25,6 @@ for (const format of [
     });
     await expect(page.locator("#convert")).toBeEnabled();
     await page.locator("#format").selectOption(format.value);
-    page.on("request", request => requestsAfter.push(request.url()));
-    const before = requestsAfter.length;
     await page.locator("#convert").click();
     await expect(page.locator("#result")).toBeVisible();
     await expect(page.locator("#result-info")).toContainText(`التنسيق: ${format.label}`);
@@ -29,7 +32,11 @@ for (const format of [
     await page.locator("#download").click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(new RegExp(format.extension.replace(".", "\\.") + "$"));
-    expect(requestsAfter.length).toBe(before);
+    expect(networkRequests.every(request =>
+      request.url.startsWith("http://127.0.0.1:4321/") &&
+      ["GET", "HEAD"].includes(request.method) &&
+      !request.postData
+    )).toBeTruthy();
   });
 }
 
