@@ -21,9 +21,9 @@
 - توثيق المشروع والخصوصية والتكلفة والاختبار وخطة الطريق.
 
 ## التحقق الآلي
-- آخر تشغيل ناجح: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39432426723
+- آخر تشغيل ناجح: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39432702694
 - النتيجة: تثبيت الاعتماديات، `npm test`، `npm run check`، `npm run build`، تثبيت Chromium و`npm run test:e2e` كلها ناجحة.
-- آخر commit تم اختباره: `5f4af2e004f128d0eed981d52857f90f2e2cc5bb`.
+- آخر commit تم اختباره: `9efbb1d2b286177c8216ff0facd23e3b254cd7c2`.
 
 ## ما لم يُنجز أو لم يُتحقق منه
 - اختبار يدوي على أجهزة ومتصفحات حقيقية، خصوصًا Android.
