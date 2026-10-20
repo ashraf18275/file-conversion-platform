@@ -25,7 +25,7 @@
 - آخر تشغيل ناجح لاختبارات الدفع: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39438909876
 - تشغيل الدفع اجتاز تثبيت الاعتماديات، `npm test`، `npm run check`، `npm run build`، تثبيت Chromium و`npm run test:e2e`، بما فيها اختبار الملف الفارغ وامتداد المصدر المضلل.
 - آخر commit تم اختباره بنجاح: `4a38afa2f0e8fba0340705ea3f40d0c78299aac2`.
-- تشغيل طلب الدمج لنفس commit لا يزال قيد الانتظار/التنفيذ: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39438930785.
+- تشغيل طلب الدمج لنفس commit نجح أيضًا: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39438930785.
 
 ## ما لم يُنجز أو لم يُتحقق منه
 - اختبار يدوي على أجهزة ومتصفحات حقيقية، خصوصًا Android.
