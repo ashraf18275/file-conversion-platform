@@ -67,7 +67,7 @@ test("locks file and conversion options while a conversion is in progress", asyn
   await expect(page.locator("#image-file")).toBeDisabled();
   await expect(page.locator("#format")).toBeDisabled();
   await expect(page.locator("#quality")).toBeDisabled();
-  await expect(page.locator("#status")).toContainText("اكتمل التحويل", { timeout: 10_000 });
+  await expect(page.locator("#status")).toContainText("اكتمل التعديل", { timeout: 10_000 });
   await expect(page.locator("#image-file")).toBeEnabled();
   await expect(page.locator("#format")).toBeEnabled();
   await expect(page.locator("#quality")).toBeEnabled();
