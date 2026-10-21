@@ -589,10 +589,19 @@ test("applies a mocked local background-removal result and can restore the origi
 
 test("selects a crop region directly by dragging over the image preview", async ({ page }) => {
   await page.goto("/convert/");
-  await page.locator("#image-file").setInputFiles({
-    name: "pixel.png",
-    mimeType: "image/png",
-    buffer: pixel
+  await page.evaluate(async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 200; canvas.height = 120;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#4b83d1"; context.fillRect(0, 0, 200, 120);
+    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error("Could not create crop test image")), "image/png"));
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input missing");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "crop-test.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
   });
   await expect(page.locator("#convert")).toBeEnabled();
   const overlay = page.locator("#crop-overlay");
@@ -603,11 +612,10 @@ test("selects a crop region directly by dragging over the image preview", async 
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8, { steps: 4 });
   await page.mouse.up();
-  await expect(page.locator("#crop-width")).toHaveValue("1");
-  await expect(page.locator("#crop-height")).toHaveValue("1");
+  await expect(page.locator("#crop-width")).not.toHaveValue("200");
+  await expect(page.locator("#crop-height")).not.toHaveValue("120");
   await expect(page.locator("#crop-info")).toContainText("تم تحديد مساحة الاقتصاص");
 });
-
 test("converts multiple selected images locally and provides one download per result", async ({ page }) => {
   await page.goto("/convert/");
   await page.locator("#image-file").setInputFiles([
