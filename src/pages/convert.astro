@@ -710,7 +710,7 @@ convertButton.addEventListener("click", async () => {
       const kb = Number(targetKb.value);
       if (!Number.isFinite(kb) || kb < 1 || kb > 100000) throw new Error("أدخل حجمًا مستهدفًا بين 1 و100000 كيلوبايت.");
       encoded = await encodeWithTarget(canvas, mime, Number(qualityInput.value), Math.floor(kb * 1024));
-    } else encoded = { blob: await canvasToBlob(canvas, mime, Number(qualityInput.value)), quality: mime === "image/png" ? null : Number(qualityInput.value), metTarget: true };
+    } else encoded = { blob: await canvasToBlob(canvas, mime, Number(qualityInput.value)), quality: (mime === "image/png" || mime === "image/bmp") ? null : Number(qualityInput.value), metTarget: true };
     const blob = encoded.blob;
     if (blob.type !== mime) throw new Error("هذا المتصفح لا ينتج التنسيق المطلوب. اختر تنسيقًا آخر.");
     revoke(resultUrl);
@@ -722,10 +722,10 @@ convertButton.addEventListener("click", async () => {
     download.href = resultUrl;
     download.download = safeBase(selectedFile.name) + "." + ext[blob.type];
     if (targetEnabled.checked && !encoded.metTarget) {
-      targetWarning.textContent = mime === "image/png" ? "لم يُطبّق حد الحجم المستهدف؛ صيغة PNG لا تدعم التحكم في الجودة عبر هذا المحرر. جرّب WebP أو JPEG أو أبعادًا أصغر." : "تعذر الوصول إلى الحجم المستهدف حتى عند أقل جودة متاحة. جرّب أبعادًا أصغر أو تنسيقًا آخر.";
+      targetWarning.textContent = mime === "image/png" ? "لم يُطبّق حد الحجم المستهدف؛ صيغة PNG لا تدعم التحكم في الجودة عبر هذا المحرر. جرّب WebP أو JPEG أو أبعادًا أصغر." : mime === "image/bmp" ? "ملفات BMP غير مضغوطة في هذه الأداة؛ جرّب WebP أو JPEG إذا أردت حجمًا أصغر." : "تعذر الوصول إلى الحجم المستهدف حتى عند أقل جودة متاحة. جرّب أبعادًا أصغر أو تنسيقًا آخر.";
       targetWarning.hidden = false;
     } else if (targetEnabled.checked) {
-      targetWarning.textContent = mime === "image/png" ? "حجم الملف ضمن الهدف المحدد، لكن PNG لا يدعم التحكم في الجودة عبر هذا المحرر." : "تم بلوغ الحجم المستهدف باستخدام أعلى جودة عُثر عليها ضمن محاولات الضبط.";
+      targetWarning.textContent = mime === "image/png" ? "حجم الملف ضمن الهدف المحدد، لكن PNG لا يدعم التحكم في الجودة عبر هذا المحرر." : mime === "image/bmp" ? "حجم ملف BMP ضمن الهدف المحدد؛ صيغة BMP غير مضغوطة في هذه الأداة." : "تم بلوغ الحجم المستهدف باستخدام أعلى جودة عُثر عليها ضمن محاولات الضبط.";
       targetWarning.hidden = false;
     }
     result.hidden = false;
@@ -735,7 +735,7 @@ convertButton.addEventListener("click", async () => {
   } finally {
     if (canvas) { canvas.width = 0; canvas.height = 0; }
     [fileInput, formatInput, qualityInput, widthInput, heightInput, keepRatio, fitMode, backgroundInput, backgroundMode, targetEnabled, targetKb, useCropButton, resetCropButton, cropX, cropY, cropWidth, cropHeight, rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(el => el.disabled = false);
-    qualityInput.disabled = formatInput.value === "image/png";
+    qualityInput.disabled = formatInput.value === "image/png" || formatInput.value === "image/bmp";
     targetKb.disabled = !targetEnabled.checked;
     convertButton.disabled = !selectedFile || !allowedInputTypes.has(selectedFile.type);
     useCropButton.textContent = cropEnabled ? "إلغاء تفعيل الاقتصاص" : "تفعيل الاقتصاص";
