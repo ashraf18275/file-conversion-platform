@@ -204,6 +204,7 @@ const updateCropDefaults = () => {
   useCropButton.disabled = false;
   resetCropButton.disabled = false;
   refreshCropPreview();
+  syncCropOverlay();
 };
 const getCropRect = () => {
   const x = Number(cropX.value), y = Number(cropY.value);
@@ -214,6 +215,66 @@ const getCropRect = () => {
   }
   return { x, y, width, height };
 };
+const syncCropOverlay = () => {
+  if (!preview.complete || !preview.naturalWidth || !preview.naturalHeight || previewWrap.hidden) return;
+  const stage = previewWrap.getBoundingClientRect();
+  const image = preview.getBoundingClientRect();
+  cropOverlay.style.left = (image.left - stage.left) + "px";
+  cropOverlay.style.top = (image.top - stage.top) + "px";
+  cropOverlay.style.width = image.width + "px";
+  cropOverlay.style.height = image.height + "px";
+  const x = Number(cropX.value), y = Number(cropY.value), width = Number(cropWidth.value), height = Number(cropHeight.value);
+  cropSelection.style.left = (x / sourceDimensions.width * 100) + "%";
+  cropSelection.style.top = (y / sourceDimensions.height * 100) + "%";
+  cropSelection.style.width = (width / sourceDimensions.width * 100) + "%";
+  cropSelection.style.height = (height / sourceDimensions.height * 100) + "%";
+  previewWrap.classList.add("crop-mode");
+};
+let cropDragStart = null;
+cropOverlay.addEventListener("pointerdown", event => {
+  if (!sourceDimensions.width || !sourceDimensions.height || backgroundRemovalBusy) return;
+  event.preventDefault();
+  cropOverlay.setPointerCapture?.(event.pointerId);
+  const rect = preview.getBoundingClientRect();
+  cropDragStart = {
+    x: Math.max(0, Math.min(sourceDimensions.width, Math.round((event.clientX - rect.left) / rect.width * sourceDimensions.width))),
+    y: Math.max(0, Math.min(sourceDimensions.height, Math.round((event.clientY - rect.top) / rect.height * sourceDimensions.height)))
+  };
+  cropX.value = String(cropDragStart.x);
+  cropY.value = String(cropDragStart.y);
+  cropWidth.value = "1";
+  cropHeight.value = "1";
+  cropEnabled = false;
+  useCropButton.textContent = "تفعيل الاقتصاص";
+  cropInfo.textContent = "حرّك المؤشر لتحديد مساحة الاقتصاص.";
+  syncCropOverlay();
+});
+cropOverlay.addEventListener("pointermove", event => {
+  if (!cropDragStart) return;
+  const rect = preview.getBoundingClientRect();
+  const x = Math.max(0, Math.min(sourceDimensions.width, Math.round((event.clientX - rect.left) / rect.width * sourceDimensions.width)));
+  const y = Math.max(0, Math.min(sourceDimensions.height, Math.round((event.clientY - rect.top) / rect.height * sourceDimensions.height)));
+  const left = Math.min(cropDragStart.x, x), top = Math.min(cropDragStart.y, y);
+  cropX.value = String(left); cropY.value = String(top);
+  cropWidth.value = String(Math.max(1, Math.abs(x - cropDragStart.x)));
+  cropHeight.value = String(Math.max(1, Math.abs(y - cropDragStart.y)));
+  cropInfo.textContent = "المساحة المحددة: " + cropWidth.value + " × " + cropHeight.value + " بكسل.";
+  refreshCropPreview();
+  syncCropOverlay();
+});
+const finishCropDrag = () => {
+  if (!cropDragStart) return;
+  cropDragStart = null;
+  cropEnabled = true;
+  useCropButton.textContent = "إلغاء تفعيل الاقتصاص";
+  cropInfo.textContent = "تم تحديد مساحة الاقتصاص: " + cropWidth.value + " × " + cropHeight.value + " بكسل.";
+  if (keepRatio.checked) { widthInput.value = cropWidth.value; heightInput.value = cropHeight.value; }
+  refreshCropPreview();
+  syncCropOverlay();
+};
+cropOverlay.addEventListener("pointerup", finishCropDrag);
+cropOverlay.addEventListener("pointercancel", finishCropDrag);
+window.addEventListener("resize", syncCropOverlay);
 const refreshCropPreview = () => {
   if (!sourceDimensions.width || !sourceDimensions.height || previewWrap.hidden) { cropPreviewWrap.hidden = true; return; }
   try {
@@ -283,6 +344,18 @@ rotateLeft.addEventListener("click", () => { rotation = (rotation + 270) % 360; 
 rotateRight.addEventListener("click", () => { rotation = (rotation + 90) % 360; swapOutputDimensionsForRotation(); updatePreviewTransform(); status.textContent = "تم تدوير المعاينة 90° لليمين. سيُحفظ التدوير عند تطبيق التعديلات."; });
 flipHorizontal.addEventListener("click", () => { flipX = !flipX; flipHorizontal.setAttribute("aria-pressed", String(flipX)); updatePreviewTransform(); status.textContent = flipX ? "تم قلب المعاينة أفقيًا." : "أُلغي القلب الأفقي."; });
 flipVertical.addEventListener("click", () => { flipY = !flipY; flipVertical.setAttribute("aria-pressed", String(flipY)); updatePreviewTransform(); status.textContent = flipY ? "تم قلب المعاينة رأسيًا." : "أُلغي القلب الرأسي."; });
+uploadZone.addEventListener("dragover", event => { event.preventDefault(); uploadZone.classList.add("drag-over"); });
+uploadZone.addEventListener("dragleave", event => { if (!uploadZone.contains(event.relatedTarget)) uploadZone.classList.remove("drag-over"); });
+uploadZone.addEventListener("drop", event => {
+  event.preventDefault();
+  uploadZone.classList.remove("drag-over");
+  const files = Array.from(event.dataTransfer?.files || []);
+  const image = files.find(file => allowedInputTypes.has(file.type));
+  if (!image) { sourceInfo.textContent = "لم نعثر على صورة مدعومة ضمن الملفات المسحوبة."; return; }
+  const transfer = new DataTransfer(); transfer.items.add(image);
+  fileInput.files = transfer.files;
+  fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+});
 fileInput.addEventListener("change", async () => {
   selectedFile = fileInput.files?.[0] || null;
   rotation = 0; flipX = false; flipY = false; updatePreviewTransform();
@@ -316,6 +389,7 @@ fileInput.addEventListener("change", async () => {
     widthInput.value = String(sourceDimensions.width);
     heightInput.value = String(sourceDimensions.height);
     updateCropDefaults();
+    syncCropOverlay();
     convertButton.disabled = false;
     removeBackgroundButton.disabled = false;
     useCropButton.disabled = false;
@@ -420,6 +494,7 @@ removeBackgroundButton.addEventListener("click", async () => {
     widthInput.value = String(sourceDimensions.width);
     heightInput.value = String(sourceDimensions.height);
     updateCropDefaults();
+    syncCropOverlay();
     cropEnabled = false;
     useCropButton.textContent = "تفعيل الاقتصاص";
     restoreOriginalButton.hidden = false;
@@ -451,6 +526,7 @@ restoreOriginalButton.addEventListener("click", async () => {
   widthInput.value = String(sourceDimensions.width);
   heightInput.value = String(sourceDimensions.height);
   updateCropDefaults();
+  syncCropOverlay();
   cropEnabled = false;
   useCropButton.textContent = "تفعيل الاقتصاص";
   restoreOriginalButton.hidden = true;
