@@ -635,3 +635,59 @@ test("converts multiple selected images locally and provides one download per re
   expect(links.some(label => label.includes("first"))).toBeTruthy();
   expect(links.some(label => label.includes("second"))).toBeTruthy();
 });
+
+
+test("tool directory supports Arabic search and category filtering", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("#tool-search")).toBeVisible();
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(4);
+  await page.getByRole("button", { name: "ضغط الصور" }).click();
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(1);
+  await expect(page.locator("#tool-grid .tool-card:visible")).toContainText("ضغط الصور");
+  await page.locator("#tool-search").fill("BMP");
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(0);
+  await page.locator("#tool-search").fill("تحويل");
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(0);
+  await page.getByRole("button", { name: "الكل" }).click();
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(1);
+});
+
+test("batch queue provides thumbnails, reorder, removal, and status per file", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.locator("#image-file").setInputFiles([
+    { name: "first.png", mimeType: "image/png", buffer: pixel },
+    { name: "second.png", mimeType: "image/png", buffer: pixel },
+    { name: "third.png", mimeType: "image/png", buffer: pixel }
+  ]);
+  await expect(page.locator("#batch-file-list li")).toHaveCount(3);
+  await expect(page.locator(".batch-thumb")).toHaveCount(3);
+  await expect(page.locator(".queue-status").first()).toHaveText("بانتظار التحويل");
+  await page.getByRole("button", { name: "تحريك third.png إلى أعلى" }).click();
+  await expect(page.locator("#batch-file-list li").first()).toContainText("third.png");
+  await page.getByRole("button", { name: "حذف second.png من القائمة" }).click();
+  await expect(page.locator("#batch-file-list li")).toHaveCount(2);
+  await expect(page.locator("#batch-file-list")).not.toContainText("second.png");
+});
+
+test("crop selection exposes eight resize handles and can be moved", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const canvas = document.createElement("canvas"); canvas.width=200; canvas.height=120;
+    const ctx=canvas.getContext("2d"); if(!ctx) throw new Error("Canvas context unavailable");
+    ctx.fillStyle="#4b83d1";ctx.fillRect(0,0,200,120);
+    const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error("blob failed")),"image/png"));
+    const input=document.querySelector<HTMLInputElement>("#image-file");if(!input)throw new Error("input missing");
+    const transfer=new DataTransfer();transfer.items.add(new File([blob],"handles.png",{type:"image/png"}));input.files=transfer.files;input.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+  await expect(page.locator("#convert")).toBeEnabled();
+  const overlay=page.locator("#crop-overlay"), box=await overlay.boundingBox();if(!box)throw new Error("overlay missing");
+  await page.mouse.move(box.x+box.width*.2,box.y+box.height*.2);await page.mouse.down();
+  await page.mouse.move(box.x+box.width*.7,box.y+box.height*.7,{steps:4});await page.mouse.up();
+  await expect(page.locator("[data-crop-handle]")).toHaveCount(8);
+  const oldX=await page.locator("#crop-x").inputValue();
+  await page.locator("[data-crop-handle='se']").hover();
+  const handle=await page.locator("[data-crop-handle='se']").boundingBox();if(!handle)throw new Error("resize handle missing");
+  await page.mouse.move(handle.x+handle.width/2,handle.y+handle.height/2);await page.mouse.down();
+  await page.mouse.move(handle.x+handle.width+20,handle.y+handle.height+12,{steps:3});await page.mouse.up();
+  await expect(page.locator("#crop-x")).not.toHaveValue(oldX);
+});
