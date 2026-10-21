@@ -160,6 +160,7 @@ const batchStatus = document.querySelector("#batch-status");
 const batchResults = document.querySelector("#batch-results");
 let queuedFiles = [];
 let batchResultUrls = [];
+let isBatchProcessing = false;
 const targetEnabled = document.querySelector("#target-enabled");
 const targetKb = document.querySelector("#target-kb");
 const rotateLeft = document.querySelector("#rotate-left");
@@ -366,6 +367,7 @@ uploadZone.addEventListener("drop", event => {
   fileInput.dispatchEvent(new Event("change", { bubbles: true }));
 });
 const updateBatchQueue = () => {
+  if (isBatchProcessing) return;
   batchResultUrls.forEach(revoke); batchResultUrls = [];
   batchFileList.replaceChildren();
   batchResults.replaceChildren();
@@ -390,6 +392,7 @@ batchConvertButton.addEventListener("click", async () => {
   const files = queuedFiles.slice();
   if (files.length < 2 || batchConvertButton.disabled) return;
   batchConvertButton.disabled = true;
+  isBatchProcessing = true;
   batchResults.replaceChildren();
   let completed = 0;
   try {
@@ -418,6 +421,7 @@ batchConvertButton.addEventListener("click", async () => {
   } catch (error) {
     batchStatus.textContent = "توقف التحويل عند الملف " + (completed + 1) + ": " + (error instanceof Error ? error.message : "حدث خطأ غير متوقع");
   } finally {
+    isBatchProcessing = false;
     batchConvertButton.disabled = false;
   }
 });
