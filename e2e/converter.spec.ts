@@ -640,7 +640,7 @@ test("converts multiple selected images locally and provides one download per re
 test("tool directory supports Arabic search and category filtering", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("#tool-search")).toBeVisible();
-  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(4);
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(5);
   await page.getByRole("button", { name: "ضغط الصور" }).click();
   await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(1);
   await expect(page.locator("#tool-grid .tool-card:visible")).toContainText("ضغط الصور");
