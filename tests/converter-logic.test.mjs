@@ -4,8 +4,9 @@ const supported = new Set(["image/png", "image/jpeg", "image/webp", "image/bmp"]
 const extension = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/bmp": "bmp" };
 const safeBase = (name) => name.replace(/\.[^.]+$/, "").replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "image";
 test("only supported output formats are accepted", () => {
-  assert.deepEqual([...supported], ["image/png", "image/jpeg", "image/webp"]);
+  assert.deepEqual([...supported], ["image/png", "image/jpeg", "image/webp", "image/bmp"]);
   assert.equal(supported.has("image/gif"), false);
+  assert.equal(supported.has("image/bmp"), true);
 });
 test("extensions match actual MIME types", () => {
   assert.equal(extension["image/png"], "png");
