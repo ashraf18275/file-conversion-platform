@@ -15,6 +15,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <button class="editor-tab" type="button" role="tab" id="tab-size" aria-selected="false" aria-controls="panel-size" data-editor-tab="size">الأبعاد والاقتصاص</button>
   <button class="editor-tab" type="button" role="tab" id="tab-background" aria-selected="false" aria-controls="panel-background" data-editor-tab="background">إزالة الخلفية</button>
   <button class="editor-tab" type="button" role="tab" id="tab-transform" aria-selected="false" aria-controls="panel-transform" data-editor-tab="transform">التدوير والقلب</button>
+  <button class="editor-tab" type="button" role="tab" id="tab-enhance" aria-selected="false" aria-controls="panel-enhance" data-editor-tab="enhance">تحسين الصور</button>
 </div>
 <div class="editor-tab-panels">
   <div id="panel-size" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-size" data-editor-panel="size"></div>
@@ -39,6 +40,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </div>
   <div id="panel-export" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-export" data-editor-panel="export" hidden></div>
   <div id="panel-transform" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-transform" data-editor-panel="transform" hidden></div>
+  <div id="panel-enhance" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-enhance" data-editor-panel="enhance" hidden>
+    <section class="tool-panel">
+      <h2>تحسين الصور</h2>
+      <p class="muted">اضبط الإضاءة والتباين والألوان، ثم قارن المعاينة قبل التنزيل. تتم المعالجة داخل المتصفح.</p>
+      <div class="field"><label for="enhance-brightness">السطوع <output id="enhance-brightness-value">100%</output></label><input id="enhance-brightness" type="range" min="50" max="150" step="1" value="100" /></div>
+      <div class="field"><label for="enhance-contrast">التباين <output id="enhance-contrast-value">100%</output></label><input id="enhance-contrast" type="range" min="50" max="150" step="1" value="100" /></div>
+      <div class="field"><label for="enhance-saturation">تشبّع الألوان <output id="enhance-saturation-value">100%</output></label><input id="enhance-saturation" type="range" min="0" max="180" step="1" value="100" /></div>
+      <div class="button-row"><button id="enhance-reset" class="button secondary" type="button">إعادة الضبط</button><button id="enhance-auto" class="button secondary" type="button">تحسين متوازن</button></div>
+      <p id="enhance-status" class="muted hint" role="status" aria-live="polite">اختر صورة لتجربة التحسين. التغييرات لا تُحفظ إلا عند الضغط على زر تطبيق التعديلات.</p>
+      <p class="muted hint">هذه أدوات ضبط للصورة وليست استعادة تفاصيل مفقودة أو رفعًا بالذكاء الاصطناعي. افحص النتيجة قبل تنزيلها.</p>
+    </section>
+  </div>
 </div>
 
 <details class="tool-panel" open>
@@ -124,6 +137,7 @@ editorTabs.forEach((tab, index) => {
 activateEditorTab("export");
 if (location.hash === "#crop-panel") activateEditorTab("size");
 if (location.hash === "#panel-background") activateEditorTab("background");
+if (location.hash === "#panel-enhance") activateEditorTab("enhance");
 const fileInput = document.querySelector("#image-file");
 const formatInput = document.querySelector("#format");
 const qualityInput = document.querySelector("#quality");
@@ -184,6 +198,28 @@ const restoreOriginalButton = document.querySelector("#restore-original");
 const backgroundStatus = document.querySelector("#background-status");
 const matteStrengthInput = document.querySelector("#matte-strength");
 const matteStrengthValue = document.querySelector("#matte-strength-value");
+const enhanceBrightness = document.querySelector("#enhance-brightness");
+const enhanceContrast = document.querySelector("#enhance-contrast");
+const enhanceSaturation = document.querySelector("#enhance-saturation");
+const enhanceBrightnessValue = document.querySelector("#enhance-brightness-value");
+const enhanceContrastValue = document.querySelector("#enhance-contrast-value");
+const enhanceSaturationValue = document.querySelector("#enhance-saturation-value");
+const enhanceReset = document.querySelector("#enhance-reset");
+const enhanceAuto = document.querySelector("#enhance-auto");
+const enhanceStatus = document.querySelector("#enhance-status");
+const getEnhancementFilter = () => `brightness(${Number(enhanceBrightness.value)}%) contrast(${Number(enhanceContrast.value)}%) saturate(${Number(enhanceSaturation.value)}%)`;
+const updateEnhancementPreview = () => {
+  const filter = getEnhancementFilter();
+  preview.style.filter = filter;
+  enhanceBrightnessValue.value = Number(enhanceBrightness.value) + "%";
+  enhanceContrastValue.value = Number(enhanceContrast.value) + "%";
+  enhanceSaturationValue.value = Number(enhanceSaturation.value) + "%";
+  const changed = Number(enhanceBrightness.value) !== 100 || Number(enhanceContrast.value) !== 100 || Number(enhanceSaturation.value) !== 100;
+  enhanceStatus.textContent = changed ? "تظهر المعاينة بالتعديلات الحالية؛ ستُطبّق على الملف عند التحويل." : "الإعدادات الأصلية دون تغيير.";
+};
+[enhanceBrightness, enhanceContrast, enhanceSaturation].forEach(input => input.addEventListener("input", updateEnhancementPreview));
+enhanceReset.addEventListener("click", () => { enhanceBrightness.value = "100"; enhanceContrast.value = "100"; enhanceSaturation.value = "100"; updateEnhancementPreview(); });
+enhanceAuto.addEventListener("click", () => { enhanceBrightness.value = "105"; enhanceContrast.value = "108"; enhanceSaturation.value = "108"; updateEnhancementPreview(); enhanceStatus.textContent = "طُبّق إعداد متوازن مبدئي؛ راجع الصورة فقد لا يناسب جميع الصور."; });
 let backgroundCutoutBlob = null;
 let sourceUrl = null;
 let originalSourceUrl = null;
@@ -725,7 +761,9 @@ convertButton.addEventListener("click", async () => {
     transformContext.translate(transformed.width / 2, transformed.height / 2);
     transformContext.rotate(rotation * Math.PI / 180);
     transformContext.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+    transformContext.filter = getEnhancementFilter();
     transformContext.drawImage(image, crop.x, crop.y, crop.width, crop.height, -crop.width / 2, -crop.height / 2, crop.width, crop.height);
+    transformContext.filter = "none";
 
     let targetWidth = transformed.width, targetHeight = transformed.height;
     if (fitMode.value === "contain") {
