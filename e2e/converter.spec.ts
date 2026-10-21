@@ -691,3 +691,45 @@ test("crop selection exposes eight resize handles and supports resizing", async 
   await page.mouse.move(handle.x+handle.width+20,handle.y+handle.height+12,{steps:3});await page.mouse.up();
   await expect(page.locator("#crop-width")).not.toHaveValue(oldWidth);
 });
+
+test("image enhancement controls update preview and are applied to exported pixels", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const source = document.createElement("canvas");
+    source.width = 2; source.height = 2;
+    const context = source.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#646464";
+    context.fillRect(0, 0, 2, 2);
+    const blob = await new Promise<Blob>((resolve, reject) => source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create enhancement test image")), "image/png"));
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input was not found");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "gray-test.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.getByRole("tab", { name: "تحسين الصور" }).click();
+  await page.locator("#enhance-brightness").fill("150");
+  await expect(page.locator("#preview")).toHaveCSS("filter", /brightness\(150%\)/);
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
+  await page.locator("#fit-mode").selectOption("actual");
+  await page.getByRole("tab", { name: "تحويل الصيغ" }).click();
+  await page.locator("#format").selectOption("image/png");
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible();
+  const pixel = await page.locator("#result-preview").evaluate(async element => {
+    const image = element as HTMLImageElement;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.drawImage(image, 0, 0);
+    return Array.from(context.getImageData(0, 0, 1, 1).data);
+  });
+  expect(pixel[0]).toBeGreaterThan(130);
+  expect(pixel[1]).toBeGreaterThan(130);
+  expect(pixel[2]).toBeGreaterThan(130);
+});
+
