@@ -711,7 +711,7 @@ test("image enhancement controls update preview and are applied to exported pixe
   });
   await page.getByRole("tab", { name: "تحسين الصور" }).click();
   await page.locator("#enhance-brightness").fill("150");
-  await expect(page.locator("#preview")).toHaveCSS("filter", /brightness\(150%\)/);
+  await expect(page.locator("#preview")).toHaveAttribute("style", /brightness\(150%\)/);
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#fit-mode").selectOption("actual");
   await page.getByRole("tab", { name: "تحويل الصيغ" }).click();
