@@ -669,7 +669,7 @@ test("batch queue provides thumbnails, reorder, removal, and status per file", a
   await expect(page.locator("#batch-file-list")).not.toContainText("second.png");
 });
 
-test("crop selection exposes eight resize handles and can be moved", async ({ page }) => {
+test("crop selection exposes eight resize handles and supports resizing", async ({ page }) => {
   await page.goto("/convert/");
   await page.evaluate(async () => {
     const canvas = document.createElement("canvas"); canvas.width=200; canvas.height=120;
@@ -684,10 +684,10 @@ test("crop selection exposes eight resize handles and can be moved", async ({ pa
   await page.mouse.move(box.x+box.width*.2,box.y+box.height*.2);await page.mouse.down();
   await page.mouse.move(box.x+box.width*.7,box.y+box.height*.7,{steps:4});await page.mouse.up();
   await expect(page.locator("[data-crop-handle]")).toHaveCount(8);
-  const oldX=await page.locator("#crop-x").inputValue();
+  const oldWidth=await page.locator("#crop-width").inputValue();
   await page.locator("[data-crop-handle='se']").hover();
   const handle=await page.locator("[data-crop-handle='se']").boundingBox();if(!handle)throw new Error("resize handle missing");
   await page.mouse.move(handle.x+handle.width/2,handle.y+handle.height/2);await page.mouse.down();
   await page.mouse.move(handle.x+handle.width+20,handle.y+handle.height+12,{steps:3});await page.mouse.up();
-  await expect(page.locator("#crop-x")).not.toHaveValue(oldX);
+  await expect(page.locator("#crop-width")).not.toHaveValue(oldWidth);
 });
