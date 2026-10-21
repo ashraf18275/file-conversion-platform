@@ -164,6 +164,7 @@ const batchStatus = document.querySelector("#batch-status");
 const batchResults = document.querySelector("#batch-results");
 let queuedFiles = [];
 let batchResultUrls = [];
+let batchThumbUrls = [];
 let isBatchProcessing = false;
 const targetEnabled = document.querySelector("#target-enabled");
 const targetKb = document.querySelector("#target-kb");
@@ -391,17 +392,37 @@ uploadZone.addEventListener("drop", event => {
 const updateBatchQueue = () => {
   if (isBatchProcessing) return;
   batchResultUrls.forEach(revoke); batchResultUrls = [];
+  batchThumbUrls.forEach(revoke); batchThumbUrls = [];
   batchFileList.replaceChildren();
   batchResults.replaceChildren();
   batchStatus.textContent = "";
-  batchPanel.hidden = queuedFiles.length < 2;
-  batchCount.textContent = queuedFiles.length + " ملفات محددة";
-  queuedFiles.forEach(file => {
-    const item = document.createElement("li");
-    const name = document.createElement("span"); name.textContent = file.name;
-    const size = document.createElement("small"); size.textContent = fmtBytes(file.size);
-    item.append(name, size); batchFileList.append(item);
+  batchPanel.hidden = queuedFiles.length === 0;
+  batchConvertButton.disabled = queuedFiles.length < 2;
+  batchCount.textContent = queuedFiles.length + " " + (queuedFiles.length === 1 ? "ملف محدد" : "ملفات محددة");
+  queuedFiles.forEach((file, index) => {
+    const item = document.createElement("li"); item.className = "batch-file-item"; item.dataset.queueIndex = String(index);
+    const thumb = document.createElement("img"); thumb.className = "batch-thumb"; thumb.alt = ""; thumb.src = URL.createObjectURL(file); batchThumbUrls.push(thumb.src);
+    const details = document.createElement("div"); details.className = "batch-file-details";
+    const name = document.createElement("strong"); name.textContent = file.name;
+    const meta = document.createElement("small"); meta.textContent = fmtBytes(file.size);
+    const status = document.createElement("span"); status.className = "queue-status"; status.textContent = "بانتظار التحويل"; status.setAttribute("aria-label","حالة الملف");
+    details.append(name, meta, status);
+    const controls = document.createElement("div"); controls.className = "queue-controls";
+    const up = document.createElement("button"); up.type="button"; up.className="queue-action"; up.textContent="↑"; up.title="تحريك الملف إلى أعلى"; up.setAttribute("aria-label","تحريك " + file.name + " إلى أعلى"); up.disabled=index===0;
+    up.addEventListener("click",()=>{[queuedFiles[index-1],queuedFiles[index]]=[queuedFiles[index],queuedFiles[index-1]];updateBatchQueue();});
+    const down = document.createElement("button"); down.type="button"; down.className="queue-action"; down.textContent="↓"; down.title="تحريك الملف إلى أسفل"; down.setAttribute("aria-label","تحريك " + file.name + " إلى أسفل"); down.disabled=index===queuedFiles.length-1;
+    down.addEventListener("click",()=>{[queuedFiles[index+1],queuedFiles[index]]=[queuedFiles[index],queuedFiles[index+1]];updateBatchQueue();});
+    const remove = document.createElement("button"); remove.type="button"; remove.className="queue-action remove"; remove.textContent="×"; remove.title="حذف من القائمة"; remove.setAttribute("aria-label","حذف " + file.name + " من القائمة");
+    remove.addEventListener("click",()=>{queuedFiles.splice(index,1);const transfer=new DataTransfer();queuedFiles.forEach(f=>transfer.items.add(f));fileInput.files=transfer.files;updateBatchQueue();});
+    controls.append(up,down,remove); item.append(thumb,details,controls); batchFileList.append(item);
   });
+};
+const setBatchItemStatus = (index, state, label) => {
+  const item = batchFileList.querySelector('[data-queue-index="' + index + '"]');
+  if (!item) return;
+  const status = item.querySelector(".queue-status");
+  status.textContent = label;
+  item.dataset.state = state;
 };
 const waitFor = async (predicate, timeout = 30000) => {
   const started = performance.now();
@@ -420,8 +441,10 @@ batchConvertButton.addEventListener("click", async () => {
   batchResults.replaceChildren();
   let completed = 0;
   try {
-    for (const file of files) {
+    for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+      const file = files[fileIndex];
       batchStatus.textContent = "يجري تحويل " + (completed + 1) + " من " + files.length + "…";
+      setBatchItemStatus(fileIndex, "running", "جارٍ التحويل");
       const transfer = new DataTransfer(); transfer.items.add(file);
       fileInput.files = transfer.files;
       fileInput.dispatchEvent(new Event("change", { bubbles: true }));
@@ -439,11 +462,13 @@ batchConvertButton.addEventListener("click", async () => {
       link.className = "batch-result-link";
       link.textContent = "تنزيل " + safeBase(file.name) + " (" + fmtBytes(blob.size) + ")";
       batchResults.append(link);
+      setBatchItemStatus(fileIndex, "completed", "اكتمل التحويل");
       completed++;
     }
     batchStatus.textContent = "اكتمل تحويل " + completed + " ملفات. نزّل كل نتيجة من الروابط أدناه.";
   } catch (error) {
-    batchStatus.textContent = "توقف التحويل عند الملف " + (completed + 1) + ": " + (error instanceof Error ? error.message : "حدث خطأ غير متوقع");
+    setBatchItemStatus(completed, "failed", "تعذر التحويل");
+    batchStatus.textContent = "تعذر تحويل الملف " + (completed + 1) + ": " + (error instanceof Error ? error.message : "حدث خطأ غير متوقع");
   } finally {
     isBatchProcessing = false;
     batchConvertButton.disabled = false;
@@ -759,12 +784,12 @@ convertButton.addEventListener("click", async () => {
     useCropButton.textContent = cropEnabled ? "إلغاء تفعيل الاقتصاص" : "تفعيل الاقتصاص";
   }
 });
-window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl) revoke(sourceUrl); revoke(originalSourceUrl); revoke(resultUrl); batchResultUrls.forEach(revoke); });
+window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl) revoke(sourceUrl); revoke(originalSourceUrl); revoke(resultUrl); batchResultUrls.forEach(revoke); batchThumbUrls.forEach(revoke); });
 </script>
 
 <style>
 .editor-hero{padding:8px 0 22px}.editor-hero h1 span{color:#3157c8}.privacy-notice{display:flex;gap:12px;align-items:center;margin-bottom:22px}.privacy-notice>span:first-child{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:11px;background:#d9f5e4;color:#18794e;font-weight:900}.privacy-notice strong{color:#24583a}.upload-zone{position:relative;display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:22px;border:2px dashed #b9c7df;border-radius:18px;background:linear-gradient(120deg,#f8faff,#fff);transition:border-color .15s,background .15s}.upload-zone.drag-over{border-color:#3157c8;background:#eef3ff}.upload-symbol{display:grid;place-items:center;flex:0 0 54px;height:54px;border-radius:16px;background:#e8efff;color:#3157c8;font-size:2rem;font-weight:500}.upload-copy{display:flex;flex:1 1 180px;flex-direction:column;gap:3px}.upload-copy strong{font-size:1.02rem}.upload-copy span{font-size:.9rem;color:#64748b}.upload-button{cursor:pointer;white-space:nowrap}.upload-zone input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.file-meta{font-size:.9rem;margin:12px 2px 16px;min-height:1.6em}.preview-stage{position:relative;display:flex;justify-content:center;align-items:center;min-height:180px;padding:22px;background:#f8faff;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden}.preview-stage #preview{max-width:100%;max-height:min(52vh,480px);width:auto;height:auto;object-fit:contain;user-select:none;-webkit-user-drag:none}.crop-overlay{position:absolute;inset:22px;display:none;touch-action:none;cursor:crosshair}.preview-stage.crop-mode .crop-overlay{display:block}.crop-selection{position:absolute;left:0;top:0;width:100%;height:100%;border:2px solid #fff;box-shadow:0 0 0 9999px #0f172a40,inset 0 0 0 1px #3157c8;pointer-events:auto;cursor:move}.crop-handle{position:absolute;display:block;width:14px;height:14px;border:2px solid #3157c8;background:#fff;border-radius:4px;z-index:2;touch-action:none}.handle-nw{top:-7px;left:-7px;cursor:nwse-resize}.handle-n{top:-7px;left:calc(50% - 7px);cursor:ns-resize}.handle-ne{top:-7px;right:-7px;cursor:nesw-resize}.handle-e{top:calc(50% - 7px);right:-7px;cursor:ew-resize}.handle-se{bottom:-7px;right:-7px;cursor:nwse-resize}.handle-s{bottom:-7px;left:calc(50% - 7px);cursor:ns-resize}.handle-sw{bottom:-7px;left:-7px;cursor:nesw-resize}.handle-w{top:calc(50% - 7px);left:-7px;cursor:ew-resize}preview-tip{position:absolute;bottom:9px;right:12px;left:12px;text-align:center;font-size:.78rem;color:#526176;pointer-events:none}.editor-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:24px 0 14px}.editor-tab{font:inherit;font-weight:750;line-height:1.45;padding:13px 10px;border:1px solid #d7dfec;border-radius:13px;background:#fff;color:#4a5870;cursor:pointer;transition:background .15s,border-color .15s}.editor-tab.active{background:#3157c8;border-color:#3157c8;color:#fff;box-shadow:0 7px 16px #3157c82b}.editor-tab-panel[hidden]{display:none}.editor-tab-panel .tool-panel{margin-top:12px}.tool-panel{scroll-margin-top:95px}.tool-panel summary{font-size:1.02rem}.button-row .button{min-height:46px}.button#convert{width:100%;min-height:56px;font-size:1.05rem;margin-top:12px}.result{margin-top:20px;padding:22px;border:1px solid #d7e2f4;border-radius:18px;background:#f8faff}.result h2{margin-top:0}.result-info{line-height:1.8}.result .button{margin-top:8px}#preview-wrap,#result-preview{background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}#crop-preview{display:block;max-width:100%;height:auto;border:1px solid #cbd5e1;border-radius:8px;background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}
-.preview-stage[hidden],.batch-panel[hidden]{display:none}.help-details{margin:14px 0;padding:12px 14px;border:1px solid #e2e8f0;border-radius:12px;background:#fbfcff}.help-details summary{font-weight:750;cursor:pointer;color:#43516a}.help-details p{margin:10px 0 0;color:#64748b;font-size:.9rem}.background-summary{display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#fff8ef;border:1px solid #f3e0c8}.background-summary .tool-icon{flex:0 0 49px}.background-summary p{margin:2px 0 0;font-size:.9rem}.batch-panel{margin:16px 0;padding:18px;border:1px solid #dbe4f2;border-radius:16px;background:#f8faff}.batch-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.batch-file-list{display:grid;gap:6px;padding:0;list-style:none;margin:14px 0}.batch-file-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;background:#fff;border:1px solid #e4eaf3;border-radius:10px;overflow-wrap:anywhere}.batch-file-list small{flex:0 0 auto;color:#64748b}.batch-results{display:grid;gap:8px}.batch-result-link{display:block;padding:11px 14px;border-radius:10px;background:#e8efff;font-weight:750}.batch-result-link:hover{background:#dce6ff;text-decoration:none}
+.preview-stage[hidden],.batch-panel[hidden]{display:none}.help-details{margin:14px 0;padding:12px 14px;border:1px solid #e2e8f0;border-radius:12px;background:#fbfcff}.help-details summary{font-weight:750;cursor:pointer;color:#43516a}.help-details p{margin:10px 0 0;color:#64748b;font-size:.9rem}.background-summary{display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#fff8ef;border:1px solid #f3e0c8}.background-summary .tool-icon{flex:0 0 49px}.background-summary p{margin:2px 0 0;font-size:.9rem}.batch-panel{margin:16px 0;padding:18px;border:1px solid #dbe4f2;border-radius:16px;background:#f8faff}.batch-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.batch-file-list{display:grid;gap:6px;padding:0;list-style:none;margin:14px 0}.batch-file-list li{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#fff;border:1px solid #e4eaf3;border-radius:12px;overflow-wrap:anywhere}.batch-thumb{width:54px;height:54px;object-fit:contain;flex:0 0 54px;border-radius:8px;background-color:#f5f7fb;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}.batch-file-details{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}.batch-file-details strong{font-size:.9rem;overflow-wrap:anywhere}.batch-file-list small{color:#64748b}.queue-status{font-size:.8rem;color:#64748b}.batch-file-item[data-state="running"] .queue-status{color:#3157c8}.batch-file-item[data-state="completed"] .queue-status{color:#16804a}.batch-file-item[data-state="failed"] .queue-status{color:#b42318}.queue-controls{display:flex;gap:5px;flex:0 0 auto}.queue-action{width:38px;height:38px;border:1px solid #dbe3ef;border-radius:9px;background:#fff;color:#43516a;font-size:1.2rem;cursor:pointer}.queue-action:disabled{opacity:.35;cursor:not-allowed}.queue-action.remove{color:#b42318}.queue-action:focus-visible,.category-filter:focus-visible{outline:3px solid #8ba7ff;outline-offset:2px}.batch-results{display:grid;gap:8px}.batch-result-link{display:block;padding:11px 14px;border-radius:10px;background:#e8efff;font-weight:750}.batch-result-link:hover{background:#dce6ff;text-decoration:none}
 @media(max-width:720px){.editor-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-tab{font-size:.94rem;padding:12px 7px}.upload-zone{padding:17px;gap:12px}.upload-button{width:100%}.preview-stage{padding:14px;min-height:150px}.crop-overlay{inset:14px}.preview-tip{font-size:.72rem}.tool-panel{padding:16px}.button-row .button{flex:1 1 45%}}
 </style>
 <script src="../scripts/background-removal.js"></script>
