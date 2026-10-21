@@ -159,6 +159,7 @@ const batchFileList = document.querySelector("#batch-file-list");
 const batchStatus = document.querySelector("#batch-status");
 const batchResults = document.querySelector("#batch-results");
 let queuedFiles = [];
+let batchResultUrls = [];
 const targetEnabled = document.querySelector("#target-enabled");
 const targetKb = document.querySelector("#target-kb");
 const rotateLeft = document.querySelector("#rotate-left");
@@ -365,6 +366,7 @@ uploadZone.addEventListener("drop", event => {
   fileInput.dispatchEvent(new Event("change", { bubbles: true }));
 });
 const updateBatchQueue = () => {
+  batchResultUrls.forEach(revoke); batchResultUrls = [];
   batchFileList.replaceChildren();
   batchResults.replaceChildren();
   batchStatus.textContent = "";
@@ -396,13 +398,14 @@ batchConvertButton.addEventListener("click", async () => {
       const transfer = new DataTransfer(); transfer.items.add(file);
       fileInput.files = transfer.files;
       fileInput.dispatchEvent(new Event("change", { bubbles: true }));
-      await waitFor(() => !convertButton.disabled, 30000);
+      await waitFor(() => !convertButton.disabled && preview.complete && preview.naturalWidth > 0 && preview.src === sourceUrl && Number(widthInput.value) === preview.naturalWidth, 30000);
       if (!allowedInputTypes.has(file.type)) throw new Error("نوع ملف غير مدعوم: " + file.name);
       convertButton.click();
       await waitFor(() => !convertButton.disabled && !result.hidden, 60000);
       const response = await fetch(download.href);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
+      batchResultUrls.push(url);
       const link = document.createElement("a");
       link.href = url;
       link.download = download.download;
@@ -700,7 +703,7 @@ convertButton.addEventListener("click", async () => {
     useCropButton.textContent = cropEnabled ? "إلغاء تفعيل الاقتصاص" : "تفعيل الاقتصاص";
   }
 });
-window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl) revoke(sourceUrl); revoke(originalSourceUrl); revoke(resultUrl); });
+window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl) revoke(sourceUrl); revoke(originalSourceUrl); revoke(resultUrl); batchResultUrls.forEach(revoke); });
 </script>
 
 <style>
