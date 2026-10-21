@@ -491,10 +491,12 @@ test("preserves transparency in PNG output by default", async ({ page }) => {
 
 test("organizes tools into accessible tabs without resetting editor values", async ({ page }) => {
   await page.goto("/convert/");
+  await expect(page.getByRole("tab", { name: "تحويل الصيغ" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await expect(page.getByRole("tab", { name: "الأبعاد والاقتصاص" })).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#panel-size #width")).toBeVisible();
   await page.locator("#panel-size #width").fill("900");
-  await page.getByRole("tab", { name: "الخلفية" }).click();
+  await page.getByRole("tab", { name: "إزالة الخلفية" }).click();
   await expect(page.locator("#panel-background")).toBeVisible();
   await expect(page.locator("#panel-background")).toContainText("صور الأشخاص");
   await expect(page.locator("#remove-background")).toBeDisabled();
@@ -514,7 +516,7 @@ test("keeps background model downloads lazy until the user starts removal", asyn
     if (/huggingface\.co|cdn\.jsdelivr\.net|unpkg\.com/i.test(request.url())) externalRequests.push(request.url());
   });
   await page.goto("/convert/");
-  await page.getByRole("tab", { name: "الخلفية" }).click();
+  await page.getByRole("tab", { name: "إزالة الخلفية" }).click();
   await expect(page.locator("#remove-background")).toBeDisabled();
   expect(externalRequests).toHaveLength(0);
 });
@@ -551,7 +553,7 @@ test("applies a mocked local background-removal result and can restore the origi
     });
   });
   externalRequests.length = 0;
-  await page.getByRole("tab", { name: "الخلفية" }).click();
+  await page.getByRole("tab", { name: "إزالة الخلفية" }).click();
   await page.locator("#remove-background").click();
   await expect(page.locator("#background-status")).toContainText("اكتملت إزالة الخلفية", { timeout: 10_000 });
   await expect(page.locator("#restore-original")).toBeVisible();
@@ -581,7 +583,7 @@ test("applies a mocked local background-removal result and can restore the origi
   });
   expect(outputAlpha.subjectAlpha).toBeGreaterThan(0);
   expect(outputAlpha.transparentAlpha).toBe(0);
-  await page.getByRole("tab", { name: "الخلفية" }).click();
+  await page.getByRole("tab", { name: "إزالة الخلفية" }).click();
   await page.locator("#restore-original").click();
   await expect(page.locator("#restore-original")).toBeHidden();
   await expect(page.locator("#background-status")).toContainText("تمت استعادة الصورة الأصلية");
