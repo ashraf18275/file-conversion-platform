@@ -8,7 +8,8 @@ const pixel = Buffer.from(
 for (const format of [
   { value: "image/png", extension: ".png", label: "PNG", signature: [137, 80, 78, 71, 13, 10, 26, 10] },
   { value: "image/jpeg", extension: ".jpg", label: "JPEG", signature: [255, 216, 255] },
-  { value: "image/webp", extension: ".webp", label: "WebP", signature: [82, 73, 70, 70] }
+  { value: "image/webp", extension: ".webp", label: "WebP", signature: [82, 73, 70, 70] },
+  { value: "image/bmp", extension: ".bmp", label: "BMP", signature: [66, 77] }
 ]) {
   test(`converts a local image to ${format.label} and downloads it`, async ({ page }) => {
     const networkRequests: Array<{ url: string; method: string; postData?: string | null }> = [];
