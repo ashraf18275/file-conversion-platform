@@ -124,11 +124,13 @@ const config = conversionMap[tool.slug];
   const addFiles = (selected) => {
     const allowed = selected.filter(file => file.type === root.dataset.inputMime);
     const rejected = selected.length - allowed.length;
-    files = [...files, ...allowed];
-    const unique = new Map(files.map(file => [file.name + "|" + file.size + "|" + file.lastModified, file]));
+    const previousCount = files.length;
+    const unique = new Map([...files, ...allowed].map(file => [file.name + "|" + file.size + "|" + file.lastModified, file]));
     files = Array.from(unique.values());
+    const addedCount = files.length - previousCount;
+    if (addedCount > 0) clearResults();
     renderList();
-    status.textContent = (allowed.length ? "تمت إضافة " + allowed.length + " ملف." : "لم تتم إضافة ملفات.") + (rejected ? " تم تجاهل " + rejected + " ملف لأن صيغته لا تطابق الأداة." : "");
+    status.textContent = (addedCount ? "تمت إضافة " + addedCount + " ملف." : "لم تتم إضافة ملفات جديدة.") + (rejected ? " تم تجاهل " + rejected + " ملف لأن صيغته لا تطابق الأداة." : "");
   };
   input.addEventListener("change", () => {
     addFiles(Array.from(input.files || []));
@@ -253,6 +255,9 @@ const config = conversionMap[tool.slug];
       const scale = Math.min(1, maxWidth / bitmap.width, maxHeight / bitmap.height);
       const targetWidth = Math.max(1, Math.round(bitmap.width * scale));
       const targetHeight = Math.max(1, Math.round(bitmap.height * scale));
+      if (targetWidth * targetHeight > 40000000) {
+        throw new Error("الصورة الناتجة تتجاوز الحد الآمن البالغ 40 مليون بكسل. قلّل العرض أو الارتفاع ثم أعد المحاولة.");
+      }
       const canvas = document.createElement("canvas");
       canvas.width = targetWidth;
       canvas.height = targetHeight;
@@ -292,7 +297,13 @@ const config = conversionMap[tool.slug];
         const converted = await convertOne(file);
         const url = URL.createObjectURL(converted.blob);
         objectUrls.add(url);
-        successfulResults.push({ name: file.name.replace(/\.[^.]+$/, "") + "." + outputExtension, blob: converted.blob });
+        const baseName = file.name.replace(/\.[^.]+$/, "");
+        let zipName = baseName + "." + outputExtension;
+        let suffix = 2;
+        while (successfulResults.some(item => item.name.toLowerCase() === zipName.toLowerCase())) {
+          zipName = baseName + " (" + suffix++ + ")." + outputExtension;
+        }
+        successfulResults.push({ name: zipName, blob: converted.blob });
         const article = document.createElement("article");
         article.className = "result-card";
         const heading = document.createElement("strong");
