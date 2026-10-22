@@ -821,6 +821,6 @@ test("mobile navigation stays compact, scrollable, and free of page overflow", a
   expect(measurements.links).toHaveLength(4);
   expect(measurements.scrollWidth).toBeGreaterThanOrEqual(measurements.clientWidth);
   expect(measurements.pageWidth).toBeLessThanOrEqual(measurements.viewportWidth + 1);
-  await nav.evaluate(element => { element.scrollLeft = element.scrollWidth; });
+  await nav.evaluate(element => { element.scrollLeft = -element.scrollWidth; });
   await expect(nav.getByRole("link", { name: "الخصوصية" })).toBeInViewport();
 });
