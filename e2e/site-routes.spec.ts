@@ -147,3 +147,31 @@ test("lets users remove selected files and rejects files with a mismatched forma
   await expect(items).toHaveCount(0);
   await expect(page.getByRole("button", { name: "تحويل الصور المحددة" })).toBeDisabled();
 });
+
+
+test("browser image conversion does not upload selected image contents", async ({ page }) => {
+  const externalRequests: string[] = [];
+  page.on("request", request => {
+    if (/^https?:/i.test(request.url())) externalRequests.push(request.url());
+  });
+  await page.goto("/png-to-webp/");
+  externalRequests.length = 0;
+  const png = await page.evaluate(async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 3; canvas.height = 2;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#d97706";
+    context.fillRect(0, 0, 3, 2);
+    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error("Could not create PNG fixture")), "image/png"));
+    return Array.from(new Uint8Array(await blob.arrayBuffer()));
+  });
+  await page.locator("#tool-files").setInputFiles({
+    name: "private-image.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(png)
+  });
+  await page.getByRole("button", { name: "تحويل الصور المحددة" }).click();
+  await expect(page.locator(".result-card")).toHaveCount(1);
+  expect(externalRequests, "Conversion should stay in the browser and not upload image data").toHaveLength(0);
+});
