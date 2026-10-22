@@ -778,3 +778,26 @@ test("shows all selected files in the multi-image queue", async ({ page }) => {
   await expect(page.locator("#batch-file-list li")).toHaveCount(2);
   await expect(page.locator("#batch-convert")).toBeEnabled();
 });
+
+test("keeps the image editor usable on a narrow mobile viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/convert/");
+  await expect(page.getByRole("tab", { name: "تحويل الصيغ" })).toBeVisible();
+  await expect(page.locator("#image-file")).toBeAttached();
+  const layout = await page.evaluate(() => {
+    const previewWrap = document.querySelector<HTMLElement>("#preview-wrap");
+    const upload = document.querySelector<HTMLElement>("#upload-zone");
+    const remove = document.querySelector<HTMLElement>("#remove-selected");
+    return {
+      viewportWidth: document.documentElement.clientWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      previewWidth: previewWrap?.getBoundingClientRect().width ?? 0,
+      uploadWidth: upload?.getBoundingClientRect().width ?? 0,
+      removeHeight: remove?.getBoundingClientRect().height ?? 0
+    };
+  });
+  expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth + 1);
+  expect(layout.previewWidth).toBeLessThanOrEqual(layout.viewportWidth);
+  expect(layout.uploadWidth).toBeGreaterThan(280);
+  expect(layout.removeHeight).toBeGreaterThanOrEqual(40);
+});
