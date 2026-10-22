@@ -801,3 +801,26 @@ test("keeps the image editor usable on a narrow mobile viewport", async ({ page 
   expect(layout.uploadWidth).toBeGreaterThan(280);
   expect(layout.removeHeight).toBeGreaterThanOrEqual(40);
 });
+
+test("mobile navigation stays compact, scrollable, and free of page overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/");
+  const nav = page.locator("header nav.links");
+  await expect(nav).toBeVisible();
+  const measurements = await nav.evaluate(element => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+    pageWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+    links: Array.from(element.querySelectorAll("a")).map(link => ({
+      text: link.textContent?.trim(),
+      left: link.getBoundingClientRect().left,
+      right: link.getBoundingClientRect().right
+    }))
+  }));
+  expect(measurements.links).toHaveLength(4);
+  expect(measurements.scrollWidth).toBeGreaterThanOrEqual(measurements.clientWidth);
+  expect(measurements.pageWidth).toBeLessThanOrEqual(measurements.viewportWidth + 1);
+  await nav.evaluate(element => { element.scrollLeft = element.scrollWidth; });
+  await expect(nav.getByRole("link", { name: "الخصوصية" })).toBeInViewport();
+});
