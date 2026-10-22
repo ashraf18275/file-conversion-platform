@@ -836,3 +836,12 @@ test("marks the current page in the primary navigation", async ({ page }) => {
   await page.goto("/privacy/");
   await expect(page.locator("header nav a[aria-current='page']")).toHaveText("الخصوصية");
 });
+
+
+test("image guide renders format cards without visible escape characters", async ({ page }) => {
+  await page.goto("/guide/");
+  await expect(page.getByRole("heading", { name: "دليل تحويل الصور" })).toBeVisible();
+  await expect(page.locator("article.card h2")).toHaveText(["PNG", "JPEG", "WebP", "BMP"]);
+  const bodyText = await page.locator("body").innerText();
+  expect(bodyText).not.toContain("\\n");
+});
