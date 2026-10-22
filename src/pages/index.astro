@@ -7,15 +7,11 @@ const base = import.meta.env.BASE_URL;
   <div class="hero-copy">
     <h1>كل أدوات صورك، في مكان واحد.</h1>
     <p class="lead">حوّل الصيغ، واضبط الأبعاد، واقتصص الصور، وجهّز ملفاتك للتنزيل بخطوات واضحة. نُعالج ملفاتك داخل المتصفح كلما أمكن، دون رفعها إلى خادم التحويل.</p>
-    <div class="hero-actions"><a class="button hero-primary" href={`${base}convert/`}><span aria-hidden="true">⇄</span> ابدأ تحويل الصور الآن <span aria-hidden="true">←</span></a><a class="button hero-secondary" href={`${base}convert/`}><span aria-hidden="true">▣</span> افتح مساحة الصور</a></div>
+    <div class="hero-actions"><a class="button hero-primary" href={`${base}convert/`}><span aria-hidden="true">⇄</span> ابدأ تحويل الصور الآن <span aria-hidden="true">←</span></a></div>
   </div>
 </section>
-<section class="value-strip" aria-label="مميزات المنصة">
-  <div class="value-item"><span class="value-icon">↗</span><div><strong>أدوات واضحة</strong><small>إعدادات في مكان واحد</small></div></div>
-  <div class="value-item"><span class="value-icon">⌁</span><div><strong>خصوصية أولًا</strong><small>معالجة محلية للأدوات المدعومة</small></div></div>
-  <div class="value-item"><span class="value-icon">▣</span><div><strong>معاينة قبل التنزيل</strong><small>راجع النتيجة قبل حفظها</small></div></div>
-</section>
-<section class="section-heading"><div><span class="eyebrow">ماذا تريد أن تفعل؟</span><h2>اختر الأداة المناسبة</h2><p class="muted">ابدأ بالمهمة التي تحتاجها، وستجد إعداداتها في مكان واحد.</p></div><a class="button section-cta" href={`${base}convert/`}>عرض أدوات الصور <span aria-hidden="true">←</span></a></section>
+
+<section class="section-heading"><div><span class="eyebrow">ماذا تريد أن تفعل؟</span><h2>اختر الأداة المناسبة</h2><p class="muted">ابدأ بالمهمة التي تحتاجها، وستجد إعداداتها في مكان واحد.</p></div></section>
 <aside class="ad-slot ad-slot-top" aria-label="مساحة إعلانية"><span class="ad-label">إعلان</span><span class="ad-placeholder">مساحة إعلانية متاحة مستقبلًا</span></aside>
 <div class="tool-filters" aria-label="البحث وتصنيف الأدوات">
   <label class="tool-search"><span aria-hidden="true">⌕</span><input id="tool-search" type="search" placeholder="ابحث باسم الأداة أو الصيغة…" aria-label="ابحث باسم الأداة أو الصيغة" /></label>
@@ -38,7 +34,7 @@ const base = import.meta.env.BASE_URL;
 </section>
 <aside class="ad-slot ad-slot-bottom" aria-label="مساحة إعلانية"><span class="ad-label">إعلان</span><span class="ad-placeholder">مساحة إعلانية متاحة مستقبلًا</span></aside>
   <section class="privacy-strip"><span class="privacy-icon" aria-hidden="true">⌑</span><div><h2>اعرف كيف تُعالج ملفاتك</h2><p>معالجة الصور في المحرر تتم داخل المتصفح. راجع طلبات الشبكة في أدوات المطور للتحقق من عدم إرسال ملف الصورة إلى خادم.</p></div><a href={`${base}privacy/`}>اقرأ سياسة الخصوصية</a></section>
-<section class="home-bottom"><div><h2>مصممة لتكون سهلة من البداية</h2><p class="muted">واجهة عربية واضحة، ومعاينة مناسبة لحجم الشاشة، ونتيجة يمكنك مراجعتها قبل التنزيل.</p></div><a class="button" href={`${base}convert/`}>افتح محرر الصور</a></section>
+
 <script>
 const toolSearch = document.querySelector<HTMLInputElement>("#tool-search");
 const toolCards = [...document.querySelectorAll<HTMLElement>("#tool-grid .tool-card")];
@@ -265,6 +261,16 @@ for (const button of categoryButtons) button.addEventListener("click", () => {
  .home-hero h1{font-size:1.8rem}
  .home-hero .hero-actions{flex-direction:column;gap:12px}
  .home-hero .hero-actions .button{width:100%;flex:auto}
+}
+
+
+/* Final homepage cleanup: one clear action and no repeated feature strip */
+.home-hero .hero-actions{display:flex;justify-content:center;align-items:center;gap:0;width:100%;max-width:560px;margin-inline:auto}
+.home-hero .hero-actions .button{min-width:260px}
+.section-heading{align-items:center}
+@media(max-width:600px){
+ .home-hero .hero-actions{max-width:100%}
+ .home-hero .hero-actions .button{width:100%;min-width:0}
 }
 
 </style>
