@@ -3,15 +3,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 const base = import.meta.env.BASE_URL;
 ---
 <BaseLayout title="تحويل الصور وضغطها وتغيير حجمها مجانًا أونلاين" description="أدوات صور مجانية أونلاين: تحويل JPG إلى PNG وWebP، ضغط الصور، تغيير حجم الصورة واقتصاصها وتدويرها مباشرة من المتصفح.">
-<section class="home-hero">
-  <div class="hero-copy">
-    <h1>كل أدوات صورك، في مكان واحد.</h1>
-    <p class="lead">حوّل الصيغ، واضبط الأبعاد، واقتصص الصور، وجهّز ملفاتك للتنزيل بخطوات واضحة. نُعالج ملفاتك داخل المتصفح كلما أمكن، دون رفعها إلى خادم التحويل.</p>
-    <div class="hero-actions"><a class="button hero-primary" href={`${base}convert/`}><span aria-hidden="true">⇄</span> ابدأ تحويل الصور الآن <span aria-hidden="true">←</span></a></div>
-  </div>
-</section>
 
-<section class="section-heading"><div><span class="eyebrow">ماذا تريد أن تفعل؟</span><h2>اختر الأداة المناسبة</h2><p class="muted">ابدأ بالمهمة التي تحتاجها، وستجد إعداداتها في مكان واحد.</p></div></section>
+
+<section class="section-heading" id="tools"><div><span class="eyebrow">ماذا تريد أن تفعل؟</span><h2>اختر الأداة المناسبة</h2><p class="muted">ابدأ بالمهمة التي تحتاجها، وستجد إعداداتها في مكان واحد.</p></div></section>
 <aside class="ad-slot ad-slot-top" aria-label="مساحة إعلانية"><span class="ad-label">إعلان</span><span class="ad-placeholder">مساحة إعلانية متاحة مستقبلًا</span></aside>
 <div class="tool-filters" aria-label="البحث وتصنيف الأدوات">
   <label class="tool-search"><span aria-hidden="true">⌕</span><input id="tool-search" type="search" placeholder="ابحث باسم الأداة أو الصيغة…" aria-label="ابحث باسم الأداة أو الصيغة" /></label>
