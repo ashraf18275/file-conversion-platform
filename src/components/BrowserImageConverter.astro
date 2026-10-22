@@ -293,7 +293,7 @@ const config = conversionMap[tool.slug];
         const converted = await convertOne(file);
         const url = URL.createObjectURL(converted.blob);
         objectUrls.add(url);
-        successfulResults.push({ name: file.name.replace(/\\.[^.]+$/, "") + "." + outputExtension, blob: converted.blob });
+        successfulResults.push({ name: file.name.replace(/\.[^.]+$/, "") + "." + outputExtension, blob: converted.blob });
         const article = document.createElement("article");
         article.className = "result-card";
         const heading = document.createElement("strong");
