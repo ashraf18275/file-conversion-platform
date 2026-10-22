@@ -669,7 +669,7 @@ test("home tool directory fits a narrow phone viewport without horizontal overfl
 test("batch queue provides thumbnails, reorder, removal, and status per file", async ({ page }) => {
   await page.goto("/convert/");
   await page.locator("#image-file").setInputFiles([
-    { name: "first.png", mimeType: "image/png", buffer: pixel },
+    { name: ".trashed-1754500255-first.png", mimeType: "image/png", buffer: pixel },
     { name: "second.png", mimeType: "image/png", buffer: pixel },
     { name: "third.png", mimeType: "image/png", buffer: pixel }
   ]);
