@@ -60,6 +60,32 @@ test("lists the published routes in the sitemap", async ({ request }) => {
   expect(xml).toContain("https://ashraf18275.github.io/pdf-tools/");
 });
 
+test("lets users reorder selected images before conversion", async ({ page }) => {
+  await page.goto("/png-to-webp/");
+  const png = await page.evaluate(async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 2; canvas.height = 2;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#2674d9";
+    context.fillRect(0, 0, 2, 2);
+    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error("Could not create PNG fixture")), "image/png"));
+    return Array.from(new Uint8Array(await blob.arrayBuffer()));
+  });
+  await page.locator("#tool-files").setInputFiles([
+    { name: "first.png", mimeType: "image/png", buffer: Buffer.from(png) },
+    { name: "second.png", mimeType: "image/png", buffer: Buffer.from(png) }
+  ]);
+  const items = page.locator("#converter-file-list li");
+  await expect(items).toHaveCount(2);
+  await expect(items.nth(0)).toContainText("first.png");
+  await expect(items.nth(1)).toContainText("second.png");
+  await page.getByRole("button", { name: "نقل first.png إلى أسفل" }).click();
+  await expect(items.nth(0)).toContainText("second.png");
+  await expect(items.nth(1)).toContainText("first.png");
+  await expect(page.getByRole("button", { name: "نقل second.png إلى أعلى" })).toBeDisabled();
+});
+
 test("converts a PNG locally and downloads the result in a valid ZIP archive", async ({ page }) => {
   await page.goto("/png-to-webp/");
   const png = await page.evaluate(async () => {
