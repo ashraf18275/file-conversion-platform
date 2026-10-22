@@ -120,3 +120,30 @@ test("converts a PNG locally and downloads the result in a valid ZIP archive", a
   expect(archive.subarray(0, 4).toString("hex")).toBe("504b0304");
   expect(archive.toString("utf8")).toContain("sample-image.webp");
 });
+
+
+test("lets users remove selected files and rejects files with a mismatched format", async ({ page }) => {
+  await page.goto("/png-to-webp/");
+  const png = await page.evaluate(async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 2; canvas.height = 2;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#2674d9";
+    context.fillRect(0, 0, 2, 2);
+    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error("Could not create PNG fixture")), "image/png"));
+    return Array.from(new Uint8Array(await blob.arrayBuffer()));
+  });
+  await page.locator("#tool-files").setInputFiles([
+    { name: "keep.png", mimeType: "image/png", buffer: Buffer.from(png) },
+    { name: "remove.png", mimeType: "image/png", buffer: Buffer.from(png) },
+    { name: "wrong-format.jpg", mimeType: "image/jpeg", buffer: Buffer.from(png) }
+  ]);
+  const items = page.locator("#converter-file-list li");
+  await expect(items).toHaveCount(1);
+  await expect(items.first()).toContainText("keep.png");
+  await expect(page.locator("#converter-status")).toContainText("تم تجاهل 1 ملف");
+  await page.getByRole("button", { name: "حذف keep.png" }).click();
+  await expect(items).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "تحويل الصور المحددة" })).toBeDisabled();
+});
