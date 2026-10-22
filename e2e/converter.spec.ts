@@ -634,6 +634,34 @@ test("planned tools have stable routes and do not pretend to process files", asy
   await expect(page).toHaveURL(/\/$/);
 });
 
+test("every planned tool has a working route and honest coming-soon state", async ({ page }) => {
+  await page.goto("/");
+  const hrefs = await page.locator("#tool-grid .planned-tool-card").evaluateAll(links =>
+    links.map(link => (link as HTMLAnchorElement).getAttribute("href")).filter((href): href is string => Boolean(href))
+  );
+  expect(hrefs).toHaveLength(21);
+  expect(new Set(hrefs).size).toBe(21);
+  for (const href of hrefs) {
+    await page.goto(href);
+    await expect(page.locator("h1")).toHaveCount(1);
+    await expect(page.locator(".coming-badge")).toContainText("قريبًا");
+    await expect(page.locator(".planned-note")).toContainText("هذه الأداة لم تُنفّذ بعد");
+    await expect(page.locator("#image-file")).toHaveCount(0);
+    await expect(page.locator("#convert")).toHaveCount(0);
+  }
+});
+
+test("home tool directory fits a narrow phone viewport without horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.locator("#tool-search")).toBeVisible();
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(27);
+  const hasHorizontalOverflow = await page.evaluate(() =>
+    document.documentElement.scrollWidth > document.documentElement.clientWidth
+  );
+  expect(hasHorizontalOverflow).toBe(false);
+});
+
 test("batch queue provides thumbnails, reorder, removal, and status per file", async ({ page }) => {
   await page.goto("/convert/");
   await page.locator("#image-file").setInputFiles([
