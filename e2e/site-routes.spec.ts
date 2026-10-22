@@ -59,3 +59,38 @@ test("lists the published routes in the sitemap", async ({ request }) => {
   expect(xml).toContain("https://ashraf18275.github.io/image-converter/");
   expect(xml).toContain("https://ashraf18275.github.io/pdf-tools/");
 });
+
+test("converts a PNG locally and downloads the result in a valid ZIP archive", async ({ page }) => {
+  await page.goto("/png-to-webp/");
+  const png = await page.evaluate(async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 2; canvas.height = 2;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#2674d9";
+    context.fillRect(0, 0, 2, 2);
+    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error("Could not create PNG fixture")), "image/png"));
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    return Array.from(bytes);
+  });
+  await page.locator("#tool-files").setInputFiles({
+    name: "sample-image.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(png)
+  });
+  await page.getByRole("button", { name: "تحويل الصور المحددة" }).click();
+  await expect(page.locator(".result-card")).toHaveCount(1);
+  const zipButton = page.getByRole("button", { name: "تنزيل النتائج كملف ZIP" });
+  await expect(zipButton).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await zipButton.click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("converted-images.zip");
+  const stream = await download.createReadStream();
+  if (!stream) throw new Error("ZIP download stream unavailable");
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  const archive = Buffer.concat(chunks);
+  expect(archive.subarray(0, 4).toString("hex")).toBe("504b0304");
+  expect(archive.toString("utf8")).toContain("sample-image.webp");
+});
