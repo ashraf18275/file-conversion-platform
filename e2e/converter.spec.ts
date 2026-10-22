@@ -640,7 +640,7 @@ test("converts multiple selected images locally and provides one download per re
 test("tool directory supports Arabic search and category filtering", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("#tool-search")).toBeVisible();
-  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(5);
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(27);
   await page.getByRole("button", { name: "ضغط الصور" }).click();
   await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(1);
   await expect(page.locator("#tool-grid .tool-card:visible")).toContainText("ضغط الصور");
@@ -649,7 +649,20 @@ test("tool directory supports Arabic search and category filtering", async ({ pa
   await page.locator("#tool-search").fill("تحويل");
   await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(0);
   await page.getByRole("button", { name: "الكل" }).click();
-  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(1);
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(9);
+  await expect(page.locator("#tool-grid .planned-tool-card")).toHaveCount(21);
+  await expect(page.locator("#tool-grid .planned-tool-card .tag-coming-soon")).toHaveCount(21);
+});
+
+test("planned tools have stable routes and do not pretend to process files", async ({ page }) => {
+  await page.goto("/tools/pdf-merge/");
+  await expect(page.getByRole("heading", { name: "دمج ملفات PDF" })).toBeVisible();
+  await expect(page.getByText("قريبًا")).toBeVisible();
+  await expect(page.getByText("هذه الأداة لم تُنفّذ بعد.")).toBeVisible();
+  await expect(page.locator("#image-file")).toHaveCount(0);
+  await expect(page.locator("#convert")).toHaveCount(0);
+  await page.getByRole("link", { name: /العودة إلى دليل الأدوات/ }).click();
+  await expect(page).toHaveURL(/\/$/);
 });
 
 test("batch queue provides thumbnails, reorder, removal, and status per file", async ({ page }) => {
