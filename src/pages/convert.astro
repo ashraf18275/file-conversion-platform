@@ -1,0 +1,872 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+<BaseLayout title="محرر الصور" description="حوّل صور PNG وJPEG وWebP، وغيّر أبعادها واقتصصها واضغطها محليًا داخل المتصفح.">
+<section class="hero editor-hero"><span class="eyebrow"><span class="status-dot"></span> مساحة عمل الصور</span><h1>حوّل صورك وعدّلها <span>بسهولة.</span></h1><p class="lead">اختر صورة، حدّد التعديلات التي تحتاجها، ثم راجع النتيجة قبل التنزيل. تبقى ملفاتك على جهازك أثناء التحويل المحلي.</p></section>
+<section class="card">
+<div class="notice privacy-notice"><span aria-hidden="true">✓</span><span><strong>خصوصيتك أولًا</strong><br />تتم معالجة الصورة داخل المتصفح في الأدوات المحلية؛ لا تُرفع إلى خادم التحويل.</span></div>
+<div class="upload-zone" id="upload-zone"><span class="upload-symbol" aria-hidden="true">↑</span><div class="upload-copy"><strong>أضف صورة لبدء العمل</strong><span>اسحب الصور إلى هنا أو اخترها من جهازك</span></div><label class="button upload-button" for="image-file">اختيار صورة أو عدة صور</label><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" multiple /></div>
+<div class="source-toolbar"><div id="source-info" class="file-meta muted" aria-live="polite">لم يتم اختيار صورة بعد.</div><button id="remove-selected" class="button secondary remove-selected" type="button" disabled>حذف الصورة المختارة</button></div>
+<div id="batch-panel" class="batch-panel" hidden><div class="batch-heading"><strong id="batch-count">0 ملفات محددة</strong><button id="batch-convert" class="button" type="button">تحويل جميع الملفات</button></div><ul id="batch-file-list" class="batch-file-list"></ul><p id="batch-status" class="muted" role="status" aria-live="polite"></p><div id="batch-results" class="batch-results"></div></div>
+<div id="preview-wrap" class="preview-stage" hidden><img id="preview" class="preview" alt="معاينة الصورة الأصلية" /><div id="crop-overlay" class="crop-overlay" aria-label="اسحب لتحديد مساحة الاقتصاص"><div id="crop-selection" class="crop-selection"><span class="crop-handle handle-nw" data-crop-handle="nw" aria-label="تغيير الزاوية العلوية اليسرى"></span><span class="crop-handle handle-n" data-crop-handle="n" aria-label="تغيير الحافة العلوية"></span><span class="crop-handle handle-ne" data-crop-handle="ne" aria-label="تغيير الزاوية العلوية اليمنى"></span><span class="crop-handle handle-e" data-crop-handle="e" aria-label="تغيير الحافة اليمنى"></span><span class="crop-handle handle-se" data-crop-handle="se" aria-label="تغيير الزاوية السفلية اليمنى"></span><span class="crop-handle handle-s" data-crop-handle="s" aria-label="تغيير الحافة السفلية"></span><span class="crop-handle handle-sw" data-crop-handle="sw" aria-label="تغيير الزاوية السفلية اليسرى"></span><span class="crop-handle handle-w" data-crop-handle="w" aria-label="تغيير الحافة اليسرى"></span></div></div><div class="preview-tip">يمكنك سحب المؤشر على الصورة لتحديد الجزء المطلوب</div></div>
+
+<div class="editor-tabs" role="tablist" aria-label="أدوات تحرير الصورة">
+  <button class="editor-tab active" type="button" role="tab" id="tab-export" aria-selected="true" aria-controls="panel-export" data-editor-tab="export">تحويل الصيغ</button>
+  <button class="editor-tab" type="button" role="tab" id="tab-size" aria-selected="false" aria-controls="panel-size" data-editor-tab="size">الأبعاد والاقتصاص</button>
+  <button class="editor-tab" type="button" role="tab" id="tab-background" aria-selected="false" aria-controls="panel-background" data-editor-tab="background" hidden>إزالة الخلفية</button>
+  <button class="editor-tab" type="button" role="tab" id="tab-transform" aria-selected="false" aria-controls="panel-transform" data-editor-tab="transform">التدوير والقلب</button>
+  <button class="editor-tab" type="button" role="tab" id="tab-enhance" aria-selected="false" aria-controls="panel-enhance" data-editor-tab="enhance">تحسين الصور</button>
+</div>
+<div class="editor-tab-panels">
+  <div id="panel-size" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-size" data-editor-panel="size"></div>
+  <div id="panel-background" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-background" data-editor-panel="background" hidden>
+    <section class="tool-panel">
+      <h2>إزالة الخلفية</h2>
+      <p class="muted">أزل خلفية الصورة داخل المتصفح، ثم راجع الحواف والشفافية قبل التنزيل.</p>
+      <div class="background-summary"><span class="tool-icon icon-orange" aria-hidden="true">◐</span><div><strong>مصممة أساسًا لصور الأشخاص</strong><p class="muted">قد تحتاج الصور المعقدة أو التفاصيل الدقيقة إلى مراجعة يدوية.</p></div></div>
+      <details class="help-details"><summary>معلومات قبل الاستخدام</summary><p>في أول تشغيل، يُنزّل المتصفح مكتبة المعالجة والنموذج من Hugging Face. قد يكون التنزيل كبيرًا؛ لا تُرفع صورة المستخدم إلى خدمة إزالة الخلفية.</p></details>
+      <div class="button-row">
+        <button id="remove-background" class="button" type="button" disabled>إزالة الخلفية محليًا</button>
+        <button id="restore-original" class="button secondary" type="button" hidden>استعادة الصورة الأصلية</button>
+      </div>
+      <p id="background-status" class="muted hint" role="status" aria-live="polite">اختر صورة لبدء إزالة الخلفية.</p>
+      <div class="field">
+        <label for="matte-strength">توازن الحواف <output id="matte-strength-value">0.85</output></label>
+        <input id="matte-strength" type="range" min="0.65" max="1.4" step="0.05" value="0.85" disabled />
+        <small class="muted">حرّكه إلى اليسار للاحتفاظ بمزيد من تفاصيل الشخصية، أو إلى اليمين لتقليل بقايا الخلفية. قد تحتاج إلى الموازنة بين الأمرين.</small>
+      </div>
+      <p class="muted hint">تحتاج الميزة إلى اتصال بالإنترنت في أول تشغيل لتنزيل مكتبة المعالجة والنموذج. بعد التنزيل يعتمد توفر الاستخدام المتكرر على ذاكرة التخزين المؤقت بالمتصفح.</p>
+    </section>
+  </div>
+  <div id="panel-export" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-export" data-editor-panel="export" hidden></div>
+  <div id="panel-transform" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-transform" data-editor-panel="transform" hidden></div>
+  <div id="panel-enhance" class="editor-tab-panel" role="tabpanel" aria-labelledby="tab-enhance" data-editor-panel="enhance" hidden>
+    <section class="tool-panel">
+      <h2>تحسين الصور</h2>
+      <p class="muted">اضبط الإضاءة والتباين والألوان، ثم قارن المعاينة قبل التنزيل. تتم المعالجة داخل المتصفح.</p>
+      <div class="field"><label for="enhance-brightness">السطوع <output id="enhance-brightness-value">100%</output></label><input id="enhance-brightness" type="range" min="50" max="150" step="1" value="100" /></div>
+      <div class="field"><label for="enhance-contrast">التباين <output id="enhance-contrast-value">100%</output></label><input id="enhance-contrast" type="range" min="50" max="150" step="1" value="100" /></div>
+      <div class="field"><label for="enhance-saturation">تشبّع الألوان <output id="enhance-saturation-value">100%</output></label><input id="enhance-saturation" type="range" min="0" max="180" step="1" value="100" /></div>
+      <div class="button-row"><button id="enhance-reset" class="button secondary" type="button">إعادة الضبط</button><button id="enhance-auto" class="button secondary" type="button">تحسين متوازن</button></div>
+      <p id="enhance-status" class="muted hint" role="status" aria-live="polite">اختر صورة لتجربة التحسين. التغييرات لا تُحفظ إلا عند الضغط على زر تطبيق التعديلات.</p>
+      <p class="muted hint">هذه أدوات ضبط للصورة وليست استعادة تفاصيل مفقودة أو رفعًا بالذكاء الاصطناعي. افحص النتيجة قبل تنزيلها.</p>
+    </section>
+  </div>
+</div>
+
+<details class="tool-panel" open>
+<summary>الأبعاد والمقاس</summary>
+<div class="grid fields-grid">
+<div class="field"><label for="width">العرض النهائي (بكسل)</label><input id="width" type="number" min="1" max="12000" inputmode="numeric" value="1200" /></div>
+<div class="field"><label for="height">الارتفاع النهائي (بكسل)</label><input id="height" type="number" min="1" max="12000" inputmode="numeric" value="1200" /></div>
+</div>
+<label class="check-row"><input id="keep-ratio" type="checkbox" checked /> تحديث البعد الآخر تلقائيًا عند تغيير أحد البعدين</label>
+<div class="field"><label for="fit-mode">طريقة ملاءمة الصورة</label><select id="fit-mode"><option value="contain">احتواء الصورة كاملة دون اقتطاع (قد تظهر مساحة فارغة)</option><option value="actual">الحفاظ على الأبعاد الأصلية وعدم تغيير الحجم</option></select></div>
+<div class="field"><label for="background-mode">خلفية المساحة الفارغة</label><select id="background-mode"><option value="transparent">شفافة في PNG وWebP (موصى به)</option><option value="color">استخدام لون محدد</option></select></div>
+<div class="field"><label for="background">لون الخلفية</label><div class="color-row"><input id="background" type="color" value="#ffffff" /><span class="muted">JPEG يستخدم خلفية بيضاء لأن الصيغة لا تدعم الشفافية.</span></div></div>
+<p class="muted hint">لن تُقص الصورة عند تغيير الأبعاد. عند اختيار أبعاد مختلفة النسبة، ستظهر الصورة كاملة داخل المساحة المحددة.</p>
+</details>
+
+<details id="crop-panel" class="tool-panel" open>
+<summary>اقتصاص الصورة</summary>
+<p class="muted">اسحب مباشرة فوق الصورة لتحديد الجزء الذي تريد الاحتفاظ به، ثم حرّك المؤشر لتغيير التحديد.</p>
+<details class="help-details advanced-fields"><summary>ضبط دقيق بالأرقام (اختياري)</summary>
+<div class="grid fields-grid">
+<div class="field"><label for="crop-x">بداية الاقتصاص أفقيًا (X)</label><input id="crop-x" type="number" min="0" step="1" value="0" inputmode="numeric" /></div>
+<div class="field"><label for="crop-y">بداية الاقتصاص رأسيًا (Y)</label><input id="crop-y" type="number" min="0" step="1" value="0" inputmode="numeric" /></div>
+<div class="field"><label for="crop-width">عرض الجزء (بكسل)</label><input id="crop-width" type="number" min="1" step="1" value="1" inputmode="numeric" /></div>
+<div class="field"><label for="crop-height">ارتفاع الجزء (بكسل)</label><input id="crop-height" type="number" min="1" step="1" value="1" inputmode="numeric" /></div>
+</div>
+</details>
+<div class="button-row"><button id="use-crop" class="button secondary" type="button" disabled>تفعيل الاقتصاص</button><button id="reset-crop" class="button secondary" type="button" disabled>إلغاء الاقتصاص</button></div>
+<p id="crop-info" class="muted hint" aria-live="polite">اختر صورة لتحديد مساحة الاقتصاص.</p>
+<div id="crop-preview-wrap" hidden><p class="muted">معاينة الجزء المحدد بالضبط:</p><canvas id="crop-preview" width="240" height="160" aria-label="معاينة الجزء المحدد للاقتصاص"></canvas></div>
+</details>
+
+<details id="format-panel" class="tool-panel" open>
+<summary>صيغة الإخراج والجودة</summary>
+<div class="field"><label for="format">تنسيق الإخراج</label><select id="format"><option value="image/webp">WebP — حجم أصغر غالبًا</option><option value="image/jpeg">JPEG</option><option value="image/png">PNG — يدعم الشفافية</option><option value="image/bmp">BMP — توافق واسع وحجم أكبر</option></select></div>
+<div class="field"><label for="quality">جودة JPEG وWebP: <output id="quality-value">0.85</output></label><input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.85" /><small class="muted">الجودة الأقل تعطي عادةً ملفًا أصغر. هذا الخيار لا يؤثر في PNG.</small></div>
+<label class="check-row"><input id="target-enabled" type="checkbox" /> استهداف حجم ملف محدد</label>
+<div class="field"><label for="target-kb">الحجم المستهدف (كيلوبايت)</label><input id="target-kb" type="number" min="1" max="100000" step="1" value="200" inputmode="numeric" disabled /><small class="muted">سيبحث المحرر عن أعلى جودة ممكنة ضمن الحجم المستهدف. قد يتعذر بلوغ الحجم المطلوب مع بعض الصور أو عند استخدام PNG.</small></div>
+</details>
+
+<details class="tool-panel" open>
+<summary>التدوير والقلب</summary>
+<div class="button-row">
+<button id="rotate-left" class="button secondary" type="button" disabled>تدوير 90° لليسار</button>
+<button id="rotate-right" class="button secondary" type="button" disabled>تدوير 90° لليمين</button>
+<button id="flip-horizontal" class="button secondary" type="button" disabled>قلب أفقي</button>
+<button id="flip-vertical" class="button secondary" type="button" disabled>قلب رأسي</button>
+</div>
+<p class="muted hint">يمكنك تجربة التدوير والقلب قبل إنشاء الملف النهائي. تبقى الصورة الأصلية محفوظة.</p>
+</details>
+
+<button id="convert" class="button" disabled>تطبيق التعديلات وتحويل الصورة</button>
+<p id="status" role="status" aria-live="polite" class="muted"></p>
+<div id="result" class="result" hidden><h2>النتيجة</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التعديل" /><p id="result-info"></p><div id="target-warning" class="warn" hidden></div><a id="download" class="button" download>تنزيل الصورة</a></div>
+</section>
+<script is:inline>
+const editorTabs = Array.from(document.querySelectorAll("[data-editor-tab]")).filter(tab => !tab.hidden);
+const editorPanels = Array.from(document.querySelectorAll("[data-editor-panel]"));
+const detailPanels = Array.from(document.querySelectorAll("details.tool-panel"));
+const tabAssignment = ["size", "size", "export", "transform"];
+detailPanels.forEach((panel, index) => {
+  const target = document.querySelector('[data-editor-panel="' + (tabAssignment[index] || "export") + '"]');
+  if (target) target.appendChild(panel);
+});
+const activateEditorTab = (name) => {
+  editorTabs.forEach(tab => {
+    const active = tab.dataset.editorTab === name;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+  });
+  editorPanels.forEach(panel => { panel.hidden = panel.dataset.editorPanel !== name; });
+};
+editorTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => activateEditorTab(tab.dataset.editorTab));
+  tab.addEventListener("keydown", event => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    const next = (index + (event.key === "ArrowLeft" ? 1 : -1) + editorTabs.length) % editorTabs.length;
+    editorTabs[next].focus();
+    activateEditorTab(editorTabs[next].dataset.editorTab);
+  });
+});
+activateEditorTab("export");
+if (location.hash === "#crop-panel") activateEditorTab("size");
+if (location.hash === "#panel-enhance") activateEditorTab("enhance");
+const fileInput = document.querySelector("#image-file");
+const formatInput = document.querySelector("#format");
+const qualityInput = document.querySelector("#quality");
+const qualityValue = document.querySelector("#quality-value");
+const convertButton = document.querySelector("#convert");
+const status = document.querySelector("#status");
+const sourceInfo = document.querySelector("#source-info");
+const removeSelectedButton = document.querySelector("#remove-selected");
+const previewWrap = document.querySelector("#preview-wrap");
+const preview = document.querySelector("#preview");
+const result = document.querySelector("#result");
+const resultPreview = document.querySelector("#result-preview");
+const resultInfo = document.querySelector("#result-info");
+const targetWarning = document.querySelector("#target-warning");
+const download = document.querySelector("#download");
+const widthInput = document.querySelector("#width");
+const heightInput = document.querySelector("#height");
+const keepRatio = document.querySelector("#keep-ratio");
+const fitMode = document.querySelector("#fit-mode");
+const backgroundInput = document.querySelector("#background");
+const backgroundMode = document.querySelector("#background-mode");
+const cropX = document.querySelector("#crop-x");
+const cropY = document.querySelector("#crop-y");
+const cropWidth = document.querySelector("#crop-width");
+const cropHeight = document.querySelector("#crop-height");
+const useCropButton = document.querySelector("#use-crop");
+const resetCropButton = document.querySelector("#reset-crop");
+const cropInfo = document.querySelector("#crop-info");
+const cropPreviewWrap = document.querySelector("#crop-preview-wrap");
+const cropPreview = document.querySelector("#crop-preview");
+const cropOverlay = document.querySelector("#crop-overlay");
+const cropSelection = document.querySelector("#crop-selection");
+const uploadZone = document.querySelector("#upload-zone");
+const batchPanel = document.querySelector("#batch-panel");
+const batchCount = document.querySelector("#batch-count");
+const batchConvertButton = document.querySelector("#batch-convert");
+const batchFileList = document.querySelector("#batch-file-list");
+const batchStatus = document.querySelector("#batch-status");
+const batchResults = document.querySelector("#batch-results");
+let queuedFiles = [];
+let batchResultUrls = [];
+let batchThumbUrls = [];
+let isBatchProcessing = false;
+const targetEnabled = document.querySelector("#target-enabled");
+const targetKb = document.querySelector("#target-kb");
+const rotateLeft = document.querySelector("#rotate-left");
+const updatePreviewTransform = () => { preview.style.transform = "rotate(" + rotation + "deg) scale(" + (flipX ? "-1" : "1") + ", " + (flipY ? "-1" : "1") + ")"; preview.style.transformOrigin = "center"; };
+const swapOutputDimensionsForRotation = () => {
+  if (!keepRatio.checked) return;
+  const oldWidth = widthInput.value;
+  widthInput.value = heightInput.value;
+  heightInput.value = oldWidth;
+};
+const rotateRight = document.querySelector("#rotate-right");
+const flipHorizontal = document.querySelector("#flip-horizontal");
+const flipVertical = document.querySelector("#flip-vertical");
+const removeBackgroundButton = document.querySelector("#remove-background");
+const restoreOriginalButton = document.querySelector("#restore-original");
+const backgroundStatus = document.querySelector("#background-status");
+const matteStrengthInput = document.querySelector("#matte-strength");
+const matteStrengthValue = document.querySelector("#matte-strength-value");
+const enhanceBrightness = document.querySelector("#enhance-brightness");
+const enhanceContrast = document.querySelector("#enhance-contrast");
+const enhanceSaturation = document.querySelector("#enhance-saturation");
+const enhanceBrightnessValue = document.querySelector("#enhance-brightness-value");
+const enhanceContrastValue = document.querySelector("#enhance-contrast-value");
+const enhanceSaturationValue = document.querySelector("#enhance-saturation-value");
+const enhanceReset = document.querySelector("#enhance-reset");
+const enhanceAuto = document.querySelector("#enhance-auto");
+const enhanceStatus = document.querySelector("#enhance-status");
+const getEnhancementFilter = () => `brightness(${Number(enhanceBrightness.value)}%) contrast(${Number(enhanceContrast.value)}%) saturate(${Number(enhanceSaturation.value)}%)`;
+const updateEnhancementPreview = () => {
+  const filter = getEnhancementFilter();
+  preview.style.filter = filter;
+  enhanceBrightnessValue.value = Number(enhanceBrightness.value) + "%";
+  enhanceContrastValue.value = Number(enhanceContrast.value) + "%";
+  enhanceSaturationValue.value = Number(enhanceSaturation.value) + "%";
+  const changed = Number(enhanceBrightness.value) !== 100 || Number(enhanceContrast.value) !== 100 || Number(enhanceSaturation.value) !== 100;
+  enhanceStatus.textContent = changed ? "تظهر المعاينة بالتعديلات الحالية؛ ستُطبّق على الملف عند التحويل." : "الإعدادات الأصلية دون تغيير.";
+};
+[enhanceBrightness, enhanceContrast, enhanceSaturation].forEach(input => input.addEventListener("input", updateEnhancementPreview));
+enhanceReset.addEventListener("click", () => { enhanceBrightness.value = "100"; enhanceContrast.value = "100"; enhanceSaturation.value = "100"; updateEnhancementPreview(); });
+enhanceAuto.addEventListener("click", () => { enhanceBrightness.value = "105"; enhanceContrast.value = "108"; enhanceSaturation.value = "108"; updateEnhancementPreview(); enhanceStatus.textContent = "طُبّق إعداد متوازن مبدئي؛ راجع الصورة فقد لا يناسب جميع الصور."; });
+let backgroundCutoutBlob = null;
+let sourceUrl = null;
+let originalSourceUrl = null;
+let resultUrl = null;
+let backgroundPipelinePromise = null;
+let backgroundRemovalBusy = false;
+let selectedFile = null;
+let cropEnabled = false;
+let rotation = 0;
+let flipX = false;
+let flipY = false;
+let sourceDimensions = { width: 0, height: 0 };
+const labels = { "image/png": "PNG", "image/jpeg": "JPEG", "image/webp": "WebP", "image/bmp": "BMP" };
+const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/bmp": "bmp" };
+const allowedInputTypes = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "image/bmp", "image/avif"]);
+const fmtBytes = (bytes) => bytes < 1024 ? bytes + " بايت" : bytes < 1048576 ? (bytes / 1024).toFixed(1) + " كيلوبايت" : (bytes / 1048576).toFixed(2) + " ميجا";
+const displayFileName = (name) => name.replace(/^\.trashed-\d+-/i, "").slice(0, 100) || "صورة بدون اسم";
+const safeBase = (name) => displayFileName(name).replace(/\.[^.]+$/, "").replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "image";
+const revoke = (url) => { if (url) URL.revokeObjectURL(url); };
+const validDimension = (value) => Number.isInteger(Number(value)) && Number(value) >= 1 && Number(value) <= 12000;
+const updateCropDefaults = () => {
+  if (!sourceDimensions.width || !sourceDimensions.height) return;
+  cropX.max = String(sourceDimensions.width - 1);
+  cropY.max = String(sourceDimensions.height - 1);
+  cropWidth.max = String(sourceDimensions.width);
+  cropHeight.max = String(sourceDimensions.height);
+  cropWidth.value = String(sourceDimensions.width);
+  cropHeight.value = String(sourceDimensions.height);
+  cropX.value = "0";
+  cropY.value = "0";
+  cropEnabled = false;
+  useCropButton.textContent = "تفعيل الاقتصاص";
+  cropInfo.textContent = "أبعاد الصورة الأصلية: " + sourceDimensions.width + " × " + sourceDimensions.height + " بكسل.";
+  useCropButton.disabled = false;
+  resetCropButton.disabled = false;
+  refreshCropPreview();
+  syncCropOverlay();
+};
+const getCropRect = () => {
+  const x = Number(cropX.value), y = Number(cropY.value);
+  const width = Number(cropWidth.value), height = Number(cropHeight.value);
+  if (![x,y,width,height].every(Number.isInteger) || x < 0 || y < 0 || width < 1 || height < 1 ||
+      x + width > sourceDimensions.width || y + height > sourceDimensions.height) {
+    throw new Error("تحقق من إحداثيات الاقتصاص؛ يجب أن تبقى المساحة كاملة داخل الصورة الأصلية.");
+  }
+  return { x, y, width, height };
+};
+const syncCropOverlay = () => {
+  if (!preview.complete || !preview.naturalWidth || !preview.naturalHeight || previewWrap.hidden) return;
+  const stage = previewWrap.getBoundingClientRect();
+  const image = preview.getBoundingClientRect();
+  cropOverlay.style.left = (image.left - stage.left) + "px";
+  cropOverlay.style.top = (image.top - stage.top) + "px";
+  cropOverlay.style.width = image.width + "px";
+  cropOverlay.style.height = image.height + "px";
+  const x = Number(cropX.value), y = Number(cropY.value), width = Number(cropWidth.value), height = Number(cropHeight.value);
+  cropSelection.style.left = (x / sourceDimensions.width * 100) + "%";
+  cropSelection.style.top = (y / sourceDimensions.height * 100) + "%";
+  cropSelection.style.width = (width / sourceDimensions.width * 100) + "%";
+  cropSelection.style.height = (height / sourceDimensions.height * 100) + "%";
+  previewWrap.classList.add("crop-mode");
+};
+let cropDragStart = null;
+const cropPoint = event => {
+  // Use the interactive overlay's own bounds so pointer coordinates always map
+  // to the exact region the user can see and drag, including responsive layouts.
+  const rect = cropOverlay.getBoundingClientRect();
+  if (!rect.width || !rect.height) return { x: 0, y: 0 };
+  return {
+    x: Math.max(0, Math.min(sourceDimensions.width, Math.round((event.clientX - rect.left) / rect.width * sourceDimensions.width))),
+    y: Math.max(0, Math.min(sourceDimensions.height, Math.round((event.clientY - rect.top) / rect.height * sourceDimensions.height)))
+  };
+};
+cropOverlay.addEventListener("pointerdown", event => {
+  if (!sourceDimensions.width || !sourceDimensions.height || backgroundRemovalBusy) return;
+  event.preventDefault();
+  cropOverlay.setPointerCapture?.(event.pointerId);
+  const point = cropPoint(event);
+  const handle = event.target.closest("[data-crop-handle]")?.dataset.cropHandle;
+  const existing = { x:Number(cropX.value), y:Number(cropY.value), width:Number(cropWidth.value), height:Number(cropHeight.value) };
+  const selectionVisible = cropEnabled && existing.width > 1 && existing.height > 1;
+  cropDragStart = { ...point, mode: handle && selectionVisible ? "resize" : (selectionVisible && event.target === cropSelection ? "move" : "new"), handle, original:existing };
+  if (cropDragStart.mode === "new") {
+    cropX.value = String(point.x); cropY.value = String(point.y);
+    cropWidth.value = "1"; cropHeight.value = "1"; cropEnabled = false;
+    useCropButton.textContent = "تفعيل الاقتصاص";
+    cropInfo.textContent = "اسحب لتحديد مساحة جديدة للاقتصاص.";
+  } else {
+    cropInfo.textContent = cropDragStart.mode === "move" ? "حرّك التحديد إلى الموضع المطلوب." : "اسحب المقبض لتغيير حجم التحديد.";
+  }
+  syncCropOverlay();
+});
+cropOverlay.addEventListener("pointermove", event => {
+  if (!cropDragStart) return;
+  const point = cropPoint(event), drag = cropDragStart;
+  let x, y, width, height;
+  if (drag.mode === "new") {
+    x = Math.min(drag.x, point.x); y = Math.min(drag.y, point.y);
+    width = Math.max(1, Math.abs(point.x - drag.x)); height = Math.max(1, Math.abs(point.y - drag.y));
+  } else if (drag.mode === "move") {
+    width = drag.original.width; height = drag.original.height;
+    x = Math.max(0, Math.min(sourceDimensions.width - width, drag.original.x + point.x - drag.x));
+    y = Math.max(0, Math.min(sourceDimensions.height - height, drag.original.y + point.y - drag.y));
+  } else {
+    const o = drag.original;
+    let left=o.x, top=o.y, right=o.x+o.width, bottom=o.y+o.height;
+    if (drag.handle.includes("w")) left=Math.max(0,Math.min(right-1,point.x));
+    if (drag.handle.includes("e")) right=Math.min(sourceDimensions.width,Math.max(left+1,point.x));
+    if (drag.handle.includes("n")) top=Math.max(0,Math.min(bottom-1,point.y));
+    if (drag.handle.includes("s")) bottom=Math.min(sourceDimensions.height,Math.max(top+1,point.y));
+    x=left; y=top; width=right-left; height=bottom-top;
+  }
+  cropX.value=String(x); cropY.value=String(y); cropWidth.value=String(width); cropHeight.value=String(height);
+  cropEnabled = true; useCropButton.textContent = "إلغاء تفعيل الاقتصاص";
+  cropInfo.textContent = "المساحة المحددة: " + width + " × " + height + " بكسل.";
+  if (keepRatio.checked && drag.mode === "new") { widthInput.value=String(width); heightInput.value=String(height); }
+  refreshCropPreview(); syncCropOverlay();
+});
+const finishCropDrag = () => {
+  if (!cropDragStart) return;
+  cropDragStart = null; cropEnabled = Number(cropWidth.value)>1 && Number(cropHeight.value)>1;
+  useCropButton.textContent = cropEnabled ? "إلغاء تفعيل الاقتصاص" : "تفعيل الاقتصاص";
+  cropInfo.textContent = cropEnabled ? "تم تحديد مساحة الاقتصاص: " + cropWidth.value + " × " + cropHeight.value + " بكسل." : "اسحب على الصورة لتحديد مساحة الاقتصاص.";
+  refreshCropPreview(); syncCropOverlay();
+};
+cropOverlay.addEventListener("pointerup", finishCropDrag);
+cropOverlay.addEventListener("pointercancel", finishCropDrag);
+// Pointer capture can be interrupted by browser/OS gestures on touch devices;
+// finalize at window level as a safe fallback. The handler is idempotent.
+window.addEventListener("pointerup", finishCropDrag);
+window.addEventListener("pointercancel", finishCropDrag);
+window.addEventListener("resize", syncCropOverlay);
+const refreshCropPreview = () => {
+  if (!sourceDimensions.width || !sourceDimensions.height || previewWrap.hidden) { cropPreviewWrap.hidden = true; return; }
+  try {
+    const crop = getCropRect();
+    const scale = Math.min(240 / crop.width, 160 / crop.height);
+    const width = Math.max(1, Math.round(crop.width * scale));
+    const height = Math.max(1, Math.round(crop.height * scale));
+    cropPreview.width = width; cropPreview.height = height;
+    const context = cropPreview.getContext("2d");
+    if (!context) throw new Error("تعذر عرض معاينة الاقتصاص.");
+    context.clearRect(0, 0, width, height);
+    context.drawImage(preview, crop.x, crop.y, crop.width, crop.height, 0, 0, width, height);
+    cropPreviewWrap.hidden = false;
+  } catch { cropPreviewWrap.hidden = true; }
+};
+[cropX, cropY, cropWidth, cropHeight].forEach(input => input.addEventListener("input", () => {
+  refreshCropPreview();
+  if (cropEnabled) {
+    cropEnabled = false;
+    useCropButton.textContent = "تفعيل الاقتصاص";
+    cropInfo.textContent = "تغيرت قيم الاقتصاص؛ فعّل الاقتصاص مجددًا لتطبيق المساحة الجديدة.";
+  }
+}));
+const updateRatioDimension = (changed) => {
+  if (!keepRatio.checked || !sourceDimensions.width || !sourceDimensions.height) return;
+  let ratio = sourceDimensions.width / sourceDimensions.height;
+  if (cropEnabled) {
+    try {
+      const crop = getCropRect();
+      ratio = crop.width / crop.height;
+    } catch { /* Invalid crop values are reported when the user applies the crop. */ }
+  }
+  if (rotation % 180 !== 0) ratio = 1 / ratio;
+  if (changed === "width" && validDimension(widthInput.value)) heightInput.value = String(Math.max(1, Math.round(Number(widthInput.value) / ratio)));
+  if (changed === "height" && validDimension(heightInput.value)) widthInput.value = String(Math.max(1, Math.round(Number(heightInput.value) * ratio)));
+};
+qualityInput.addEventListener("input", () => qualityValue.value = Number(qualityInput.value).toFixed(2));
+widthInput.addEventListener("input", () => updateRatioDimension("width"));
+heightInput.addEventListener("input", () => updateRatioDimension("height"));
+targetEnabled.addEventListener("change", () => { targetKb.disabled = !targetEnabled.checked; });
+formatInput.addEventListener("change", () => {
+  qualityInput.disabled = formatInput.value === "image/png" || formatInput.value === "image/bmp";
+  targetKb.disabled = !targetEnabled.checked;
+});
+useCropButton.addEventListener("click", () => {
+  try {
+    const crop = getCropRect();
+    cropEnabled = !cropEnabled;
+    useCropButton.textContent = cropEnabled ? "إلغاء تفعيل الاقتصاص" : "تفعيل الاقتصاص";
+    cropInfo.textContent = cropEnabled ? "سيُستخدم الجزء المحدد: " + crop.width + " × " + crop.height + " بكسل." : "الاقتصاص غير مفعل؛ ستُستخدم الصورة كاملة.";
+    refreshCropPreview();
+    if (cropEnabled && keepRatio.checked) {
+      widthInput.value = String(crop.width);
+      heightInput.value = String(crop.height);
+    }
+  } catch (error) { cropInfo.textContent = error.message; cropEnabled = false; }
+});
+resetCropButton.addEventListener("click", () => {
+  if (!sourceDimensions.width) return;
+  cropX.value = "0"; cropY.value = "0";
+  cropWidth.value = String(sourceDimensions.width); cropHeight.value = String(sourceDimensions.height);
+  cropEnabled = false; useCropButton.textContent = "تفعيل الاقتصاص";
+  cropInfo.textContent = "أُلغي الاقتصاص؛ ستُستخدم الصورة كاملة.";
+  refreshCropPreview();
+});
+rotateLeft.addEventListener("click", () => { rotation = (rotation + 270) % 360; swapOutputDimensionsForRotation(); updatePreviewTransform(); status.textContent = "تم تدوير المعاينة 90° لليسار. سيُحفظ التدوير عند تطبيق التعديلات."; });
+rotateRight.addEventListener("click", () => { rotation = (rotation + 90) % 360; swapOutputDimensionsForRotation(); updatePreviewTransform(); status.textContent = "تم تدوير المعاينة 90° لليمين. سيُحفظ التدوير عند تطبيق التعديلات."; });
+flipHorizontal.addEventListener("click", () => { flipX = !flipX; flipHorizontal.setAttribute("aria-pressed", String(flipX)); updatePreviewTransform(); status.textContent = flipX ? "تم قلب المعاينة أفقيًا." : "أُلغي القلب الأفقي."; });
+flipVertical.addEventListener("click", () => { flipY = !flipY; flipVertical.setAttribute("aria-pressed", String(flipY)); updatePreviewTransform(); status.textContent = flipY ? "تم قلب المعاينة رأسيًا." : "أُلغي القلب الرأسي."; });
+uploadZone.addEventListener("dragover", event => { event.preventDefault(); uploadZone.classList.add("drag-over"); });
+uploadZone.addEventListener("dragleave", event => { if (!uploadZone.contains(event.relatedTarget)) uploadZone.classList.remove("drag-over"); });
+uploadZone.addEventListener("drop", event => {
+  event.preventDefault();
+  uploadZone.classList.remove("drag-over");
+  const files = Array.from(event.dataTransfer?.files || []);
+  const images = files.filter(file => allowedInputTypes.has(file.type));
+  if (!images.length) { sourceInfo.textContent = "لم نعثر على صورة مدعومة ضمن الملفات المسحوبة."; return; }
+  const transfer = new DataTransfer(); images.forEach(image => transfer.items.add(image));
+  fileInput.files = transfer.files;
+  fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+});
+const updateBatchQueue = () => {
+  if (isBatchProcessing) return;
+  batchResultUrls.forEach(revoke); batchResultUrls = [];
+  batchThumbUrls.forEach(revoke); batchThumbUrls = [];
+  batchFileList.replaceChildren();
+  batchResults.replaceChildren();
+  batchStatus.textContent = "";
+  batchPanel.hidden = queuedFiles.length === 0;
+  batchConvertButton.disabled = queuedFiles.length < 2;
+  batchCount.textContent = queuedFiles.length + " " + (queuedFiles.length === 1 ? "ملف محدد" : "ملفات محددة");
+  queuedFiles.forEach((file, index) => {
+    const item = document.createElement("li"); item.className = "batch-file-item"; item.dataset.queueIndex = String(index);
+    const thumb = document.createElement("img"); thumb.className = "batch-thumb"; thumb.alt = ""; thumb.src = URL.createObjectURL(file); batchThumbUrls.push(thumb.src);
+    const details = document.createElement("div"); details.className = "batch-file-details";
+    const name = document.createElement("strong"); name.textContent = displayFileName(file.name); name.title = displayFileName(file.name);
+    const meta = document.createElement("small"); meta.textContent = fmtBytes(file.size);
+    const status = document.createElement("span"); status.className = "queue-status"; status.textContent = "بانتظار التحويل"; status.setAttribute("aria-label","حالة الملف");
+    details.append(name, meta, status);
+    const controls = document.createElement("div"); controls.className = "queue-controls";
+    const up = document.createElement("button"); up.type="button"; up.className="queue-action"; up.textContent="↑"; up.title="تحريك الملف إلى أعلى"; up.setAttribute("aria-label","تحريك " + displayFileName(file.name) + " إلى أعلى"); up.disabled=index===0;
+    up.addEventListener("click",()=>{[queuedFiles[index-1],queuedFiles[index]]=[queuedFiles[index],queuedFiles[index-1]];updateBatchQueue();});
+    const down = document.createElement("button"); down.type="button"; down.className="queue-action"; down.textContent="↓"; down.title="تحريك الملف إلى أسفل"; down.setAttribute("aria-label","تحريك " + displayFileName(file.name) + " إلى أسفل"); down.disabled=index===queuedFiles.length-1;
+    down.addEventListener("click",()=>{[queuedFiles[index+1],queuedFiles[index]]=[queuedFiles[index],queuedFiles[index+1]];updateBatchQueue();});
+    const remove = document.createElement("button"); remove.type="button"; remove.className="queue-action remove"; remove.textContent="×"; remove.title="حذف من القائمة"; remove.setAttribute("aria-label","حذف " + displayFileName(file.name) + " من القائمة");
+    remove.addEventListener("click",()=>{queuedFiles.splice(index,1);const transfer=new DataTransfer();queuedFiles.forEach(f=>transfer.items.add(f));fileInput.files=transfer.files;updateBatchQueue();});
+    controls.append(up,down,remove); item.append(thumb,details,controls); batchFileList.append(item);
+  });
+};
+const setBatchItemStatus = (index, state, label) => {
+  const item = batchFileList.querySelector('[data-queue-index="' + index + '"]');
+  if (!item) return;
+  const status = item.querySelector(".queue-status");
+  status.textContent = label;
+  item.dataset.state = state;
+};
+const waitFor = async (predicate, timeout = 30000) => {
+  const started = performance.now();
+  while (!predicate()) {
+    if (performance.now() - started > timeout) throw new Error("انتهت مهلة انتظار تجهيز أحد الملفات.");
+    await new Promise(resolve => setTimeout(resolve, 80));
+  }
+};
+batchConvertButton.addEventListener("click", async () => {
+  const files = queuedFiles.slice();
+  if (files.length < 2 || batchConvertButton.disabled) return;
+  const unsupported = files.filter(file => !allowedInputTypes.has(file.type));
+  if (unsupported.length) { batchStatus.textContent = "تعذر بدء التحويل؛ توجد ملفات غير مدعومة: " + unsupported.map(file => displayFileName(file.name)).join("، "); return; }
+  batchConvertButton.disabled = true;
+  isBatchProcessing = true;
+  batchResults.replaceChildren();
+  let completed = 0;
+  try {
+    for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+      const file = files[fileIndex];
+      batchStatus.textContent = "يجري تحويل " + (completed + 1) + " من " + files.length + "…";
+      setBatchItemStatus(fileIndex, "running", "جارٍ التحويل");
+      const transfer = new DataTransfer(); transfer.items.add(file);
+      fileInput.files = transfer.files;
+      fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitFor(() => !convertButton.disabled && preview.complete && preview.naturalWidth > 0 && preview.src === sourceUrl && Number(widthInput.value) === preview.naturalWidth, 30000);
+      if (!allowedInputTypes.has(file.type)) throw new Error("نوع ملف غير مدعوم: " + displayFileName(file.name));
+      convertButton.click();
+      await waitFor(() => !convertButton.disabled && !result.hidden, 60000);
+      const response = await fetch(download.href);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      batchResultUrls.push(url);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = download.download;
+      link.className = "batch-result-link";
+      link.textContent = "تنزيل " + safeBase(file.name) + " (" + fmtBytes(blob.size) + ")";
+      batchResults.append(link);
+      setBatchItemStatus(fileIndex, "completed", "اكتمل التحويل");
+      completed++;
+    }
+    batchStatus.textContent = "اكتمل تحويل " + completed + " ملفات. نزّل كل نتيجة من الروابط أدناه.";
+  } catch (error) {
+    setBatchItemStatus(completed, "failed", "تعذر التحويل");
+    batchStatus.textContent = "تعذر تحويل الملف " + (completed + 1) + ": " + (error instanceof Error ? error.message : "حدث خطأ غير متوقع");
+  } finally {
+    isBatchProcessing = false;
+    batchConvertButton.disabled = false;
+  }
+});
+removeSelectedButton.addEventListener("click", () => {
+  if (isBatchProcessing) return;
+  fileInput.value = "";
+  fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+});
+fileInput.addEventListener("change", async () => {
+  if (!isBatchProcessing) { queuedFiles = Array.from(fileInput.files || []); updateBatchQueue(); }
+  selectedFile = fileInput.files?.[0] || null;
+  rotation = 0; flipX = false; flipY = false; updatePreviewTransform();
+  [flipHorizontal, flipVertical].forEach(button => button.setAttribute("aria-pressed", "false"));
+  status.textContent = "";
+  result.hidden = true;
+  targetWarning.hidden = true;
+  revoke(resultUrl); resultUrl = null;
+  revoke(sourceUrl); sourceUrl = null;
+  revoke(originalSourceUrl); originalSourceUrl = null;
+  restoreOriginalButton.hidden = true;
+  removeBackgroundButton.disabled = true;
+  backgroundStatus.textContent = "اختر صورة لبدء إزالة الخلفية.";
+  backgroundCutoutBlob = null;
+  matteStrengthInput.disabled = true;
+  matteStrengthInput.value = "0.85"; matteStrengthValue.value = "0.85";
+  backgroundRemovalBusy = false;
+  rotation = 0; flipX = false; flipY = false;
+  [rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(button => { button.disabled = !selectedFile; button.setAttribute("aria-pressed", "false"); });
+  if (!selectedFile) { convertButton.disabled = true; removeSelectedButton.disabled = true; sourceInfo.textContent = "لم يتم اختيار صورة."; previewWrap.hidden = true; preview.removeAttribute("src"); return; }
+  if (!allowedInputTypes.has(selectedFile.type)) { convertButton.disabled = true; removeSelectedButton.disabled = false; sourceInfo.textContent = "نوع الصورة غير مدعوم. اختر PNG أو JPEG أو WebP أو GIF أو BMP أو AVIF."; previewWrap.hidden = true; return; }
+  sourceUrl = URL.createObjectURL(selectedFile);
+  originalSourceUrl = sourceUrl;
+  preview.src = sourceUrl;
+  previewWrap.hidden = false;
+  sourceInfo.textContent = "حجم الملف: " + fmtBytes(selectedFile.size);
+  removeSelectedButton.disabled = false;
+  try {
+    await preview.decode();
+    sourceDimensions = { width: preview.naturalWidth, height: preview.naturalHeight };
+    if (!sourceDimensions.width || !sourceDimensions.height) throw new Error("أبعاد الصورة غير صالحة.");
+    widthInput.value = String(sourceDimensions.width);
+    heightInput.value = String(sourceDimensions.height);
+    updateCropDefaults();
+    syncCropOverlay();
+    convertButton.disabled = false;
+    removeBackgroundButton.disabled = false;
+    useCropButton.disabled = false;
+    resetCropButton.disabled = false;
+    [rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(button => button.disabled = false);
+  } catch {
+    convertButton.disabled = true;
+    sourceInfo.textContent = "تعذرت قراءة الصورة. جرّب ملف صورة آخر.";
+    previewWrap.hidden = true;
+  }
+});
+
+const adjustMatteAlpha = async (blob, strength) => {
+  const bitmap = await createImageBitmap(blob);
+  const canvas = document.createElement("canvas");
+  canvas.width = bitmap.width; canvas.height = bitmap.height;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) { bitmap.close?.(); throw new Error("تعذر تجهيز صورة الحواف."); }
+  context.drawImage(bitmap, 0, 0);
+  bitmap.close?.();
+  const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+  for (let i = 3; i < frame.data.length; i += 4) {
+    const alpha = frame.data[i] / 255;
+    frame.data[i] = alpha === 0 ? 0 : Math.max(0, Math.min(255, Math.round(255 * Math.pow(alpha, strength))));
+  }
+  context.putImageData(frame, 0, 0);
+  return await new Promise((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error("تعذر حفظ تحسين الحواف.")), "image/png"));
+};
+matteStrengthInput.addEventListener("input", () => { matteStrengthValue.value = Number(matteStrengthInput.value).toFixed(2); });
+matteStrengthInput.addEventListener("change", async () => {
+  if (!backgroundCutoutBlob || backgroundRemovalBusy) return;
+  backgroundRemovalBusy = true;
+  removeBackgroundButton.disabled = true;
+  backgroundStatus.textContent = "يجري ضبط توازن الحواف…";
+  try {
+    const tunedBlob = await adjustMatteAlpha(backgroundCutoutBlob, Number(matteStrengthInput.value));
+    const oldUrl = sourceUrl;
+    sourceUrl = URL.createObjectURL(tunedBlob);
+    preview.src = sourceUrl;
+    await preview.decode();
+    if (oldUrl !== originalSourceUrl) revoke(oldUrl);
+    result.hidden = true;
+    sourceInfo.textContent = "حجم الصورة بعد إزالة الخلفية: " + fmtBytes(tunedBlob.size);
+    backgroundStatus.textContent = "تم تحديث الحواف. راجع المعاينة ذات المربعات؛ المربعات الظاهرة من خلالها تعني أن الخلفية شفافة.";
+  } catch (error) {
+    backgroundStatus.textContent = "تعذر ضبط الحواف: " + (error instanceof Error ? error.message : "خطأ غير معروف");
+  } finally {
+    backgroundRemovalBusy = false;
+    removeBackgroundButton.disabled = !selectedFile;
+  }
+});
+const getBackgroundPipeline = async () => {
+  if (!backgroundPipelinePromise) {
+    backgroundPipelinePromise = (async () => {
+      const pipeline = await window.loadLocalBackgroundPipeline();
+      if ("gpu" in navigator) {
+        try {
+          backgroundStatus.textContent = "يجري تحميل نموذج إزالة الخلفية مع محاولة استخدام تسريع الجهاز…";
+          return await pipeline("background-removal", "Xenova/modnet", { device: "webgpu", dtype: "fp32" });
+        } catch (gpuError) {
+          backgroundStatus.textContent = "تعذر بدء التسريع الرسومي؛ يجري تجربة المعالجة المتوافقة مع المعالج…";
+        }
+      }
+      return await pipeline("background-removal", "Xenova/modnet", { device: "wasm", dtype: "fp32" });
+    })().catch(error => {
+      backgroundPipelinePromise = null;
+      throw error;
+    });
+  }
+  return backgroundPipelinePromise;
+};
+removeBackgroundButton.addEventListener("click", async () => {
+  if (!selectedFile || !sourceUrl || backgroundRemovalBusy) return;
+  backgroundRemovalBusy = true;
+  fileInput.disabled = true;
+  removeBackgroundButton.disabled = true;
+  restoreOriginalButton.disabled = true;
+  convertButton.disabled = true;
+  const startedAt = performance.now();
+  backgroundStatus.textContent = "يجري تجهيز المعالجة المحلية. قد يستغرق التنزيل الأول وقتًا أطول…";
+  try {
+    const segmenter = await getBackgroundPipeline();
+    backgroundStatus.textContent = "يجري تحليل الصورة داخل المتصفح…";
+    const output = await segmenter(sourceUrl);
+    const cutout = output?.[0];
+    if (!cutout || typeof cutout.toBlob !== "function") {
+      throw new Error("لم يُرجع النموذج صورة شفافة قابلة للتصدير.");
+    }
+    const blob = await cutout.toBlob();
+    if (!(blob instanceof Blob) || !blob.type.startsWith("image/")) {
+      throw new Error("تعذر إنشاء صورة شفافة من نتيجة النموذج.");
+    }
+    backgroundCutoutBlob = blob;
+    matteStrengthInput.disabled = false;
+    const tunedBlob = await adjustMatteAlpha(blob, Number(matteStrengthInput.value));
+    const nextUrl = URL.createObjectURL(tunedBlob);
+    if (sourceUrl !== originalSourceUrl) revoke(sourceUrl);
+    sourceUrl = nextUrl;
+    preview.src = sourceUrl;
+    await preview.decode();
+    sourceDimensions = { width: preview.naturalWidth, height: preview.naturalHeight };
+    widthInput.value = String(sourceDimensions.width);
+    heightInput.value = String(sourceDimensions.height);
+    updateCropDefaults();
+    syncCropOverlay();
+    cropEnabled = false;
+    useCropButton.textContent = "تفعيل الاقتصاص";
+    restoreOriginalButton.hidden = false;
+    sourceInfo.textContent = "حجم الصورة بعد إزالة الخلفية: " + fmtBytes(tunedBlob.size);
+    backgroundStatus.textContent = "اكتملت إزالة الخلفية داخل المتصفح خلال " + ((performance.now() - startedAt) / 1000).toFixed(1) + " ثانية. صدّر بصيغة PNG أو WebP للاحتفاظ بالشفافية.";
+    formatInput.value = "image/png";
+    qualityInput.disabled = true;
+    result.hidden = true;
+  } catch (error) {
+    backgroundStatus.textContent = "تعذرت إزالة الخلفية: " + (error instanceof Error ? error.message : "خطأ غير معروف") + ". يمكنك متابعة تحويل الصورة الأصلية.";
+  } finally {
+    backgroundRemovalBusy = false;
+    fileInput.disabled = false;
+    removeBackgroundButton.disabled = !selectedFile;
+    restoreOriginalButton.disabled = false;
+    convertButton.disabled = !selectedFile || !allowedInputTypes.has(selectedFile.type);
+  }
+});
+restoreOriginalButton.addEventListener("click", async () => {
+  if (!originalSourceUrl || backgroundRemovalBusy) return;
+  if (sourceUrl !== originalSourceUrl) revoke(sourceUrl);
+  backgroundCutoutBlob = null;
+  matteStrengthInput.disabled = true;
+  matteStrengthInput.value = "0.85"; matteStrengthValue.value = "0.85";
+  sourceUrl = originalSourceUrl;
+  preview.src = sourceUrl;
+  await preview.decode();
+  sourceDimensions = { width: preview.naturalWidth, height: preview.naturalHeight };
+  widthInput.value = String(sourceDimensions.width);
+  heightInput.value = String(sourceDimensions.height);
+  updateCropDefaults();
+  syncCropOverlay();
+  cropEnabled = false;
+  useCropButton.textContent = "تفعيل الاقتصاص";
+  restoreOriginalButton.hidden = true;
+  sourceInfo.textContent = "حجم الملف: " + fmtBytes(selectedFile.size);
+  backgroundStatus.textContent = "تمت استعادة الصورة الأصلية.";
+});
+
+const canvasToBlob = (canvas, mime, quality) => {
+  if (mime === "image/bmp") {
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) return Promise.reject(new Error("تعذر قراءة الصورة لإنشاء ملف BMP."));
+    const width = canvas.width, height = canvas.height;
+    const pixels = context.getImageData(0, 0, width, height).data;
+    const rowSize = Math.floor((width * 3 + 3) / 4) * 4;
+    const fileSize = 54 + rowSize * height;
+    const buffer = new ArrayBuffer(fileSize);
+    const view = new DataView(buffer);
+    view.setUint8(0, 0x42); view.setUint8(1, 0x4d);
+    view.setUint32(2, fileSize, true); view.setUint32(10, 54, true);
+    view.setUint32(14, 40, true); view.setInt32(18, width, true); view.setInt32(22, height, true);
+    view.setUint16(26, 1, true); view.setUint16(28, 24, true); view.setUint32(34, rowSize * height, true);
+    view.setInt32(38, 2835, true); view.setInt32(42, 2835, true);
+    for (let y = 0; y < height; y++) {
+      const row = 54 + (height - 1 - y) * rowSize;
+      for (let x = 0; x < width; x++) {
+        const source = (y * width + x) * 4;
+        const alpha = pixels[source + 3] / 255;
+        const target = row + x * 3;
+        view.setUint8(target, Math.round(pixels[source + 2] * alpha + 255 * (1 - alpha)));
+        view.setUint8(target + 1, Math.round(pixels[source + 1] * alpha + 255 * (1 - alpha)));
+        view.setUint8(target + 2, Math.round(pixels[source] * alpha + 255 * (1 - alpha)));
+      }
+    }
+    return Promise.resolve(new Blob([buffer], { type: "image/bmp" }));
+  }
+  return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("لم يتمكن المتصفح من إنشاء ملف الإخراج.")), mime, quality));
+};
+const encodeWithTarget = async (canvas, mime, requestedQuality, targetBytes) => {
+  if (mime === "image/png" || mime === "image/bmp") {
+    const blob = await canvasToBlob(canvas, mime);
+    return { blob, quality: null, metTarget: blob.size <= targetBytes };
+  }
+  let low = 0.1, high = requestedQuality, best = null;
+  const first = await canvasToBlob(canvas, mime, high);
+  if (first.size <= targetBytes) return { blob: first, quality: high, metTarget: true };
+  const lowest = await canvasToBlob(canvas, mime, low);
+  if (lowest.size > targetBytes) return { blob: lowest, quality: low, metTarget: false };
+  best = lowest;
+  for (let i = 0; i < 8; i++) {
+    const mid = (low + high) / 2;
+    const blob = await canvasToBlob(canvas, mime, mid);
+    if (blob.size <= targetBytes) { best = blob; low = mid; } else high = mid;
+  }
+  return { blob: best, quality: low, metTarget: true };
+};
+convertButton.addEventListener("click", async () => {
+  if (!selectedFile || convertButton.disabled) return;
+  convertButton.disabled = true;
+  [fileInput, formatInput, qualityInput, widthInput, heightInput, keepRatio, fitMode, backgroundInput, backgroundMode, targetEnabled, targetKb, useCropButton, resetCropButton, cropX, cropY, cropWidth, cropHeight, rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(el => el.disabled = true);
+  status.textContent = "جارٍ تطبيق التعديلات داخل المتصفح…";
+  result.hidden = true;
+  targetWarning.hidden = true;
+  let canvas;
+  try {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = sourceUrl;
+    await image.decode();
+    let crop = { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight };
+    if (cropEnabled) crop = getCropRect();
+    const swap = rotation % 180 !== 0;
+    const transformed = document.createElement("canvas");
+    transformed.width = swap ? crop.height : crop.width;
+    transformed.height = swap ? crop.width : crop.height;
+    const transformContext = transformed.getContext("2d");
+    if (!transformContext) throw new Error("المتصفح لا يدعم مساحة الرسم المطلوبة.");
+    transformContext.translate(transformed.width / 2, transformed.height / 2);
+    transformContext.rotate(rotation * Math.PI / 180);
+    transformContext.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+    transformContext.filter = getEnhancementFilter();
+    transformContext.drawImage(image, crop.x, crop.y, crop.width, crop.height, -crop.width / 2, -crop.height / 2, crop.width, crop.height);
+    transformContext.filter = "none";
+
+    let targetWidth = transformed.width, targetHeight = transformed.height;
+    if (fitMode.value === "contain") {
+      if (!validDimension(widthInput.value) || !validDimension(heightInput.value)) throw new Error("أدخل عرضًا وارتفاعًا صحيحين بين 1 و12000 بكسل.");
+      targetWidth = Number(widthInput.value); targetHeight = Number(heightInput.value);
+    }
+    canvas = document.createElement("canvas");
+    canvas.width = targetWidth; canvas.height = targetHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("المتصفح لا يدعم مساحة الرسم المطلوبة.");
+    if (formatInput.value === "image/jpeg" || formatInput.value === "image/bmp" || backgroundMode.value === "color") {
+      ctx.fillStyle = formatInput.value === "image/jpeg" ? "#ffffff" : backgroundInput.value;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    const sourceRatio = transformed.width / transformed.height;
+    const targetRatio = targetWidth / targetHeight;
+    let drawWidth = targetWidth, drawHeight = targetHeight;
+    if (sourceRatio > targetRatio) drawHeight = targetWidth / sourceRatio;
+    else drawWidth = targetHeight * sourceRatio;
+    ctx.drawImage(transformed, (targetWidth - drawWidth) / 2, (targetHeight - drawHeight) / 2, drawWidth, drawHeight);
+    transformed.width = 0; transformed.height = 0;
+    const mime = formatInput.value;
+    let encoded;
+    if (targetEnabled.checked) {
+      const kb = Number(targetKb.value);
+      if (!Number.isFinite(kb) || kb < 1 || kb > 100000) throw new Error("أدخل حجمًا مستهدفًا بين 1 و100000 كيلوبايت.");
+      encoded = await encodeWithTarget(canvas, mime, Number(qualityInput.value), Math.floor(kb * 1024));
+    } else encoded = { blob: await canvasToBlob(canvas, mime, Number(qualityInput.value)), quality: (mime === "image/png" || mime === "image/bmp") ? null : Number(qualityInput.value), metTarget: true };
+    const blob = encoded.blob;
+    if (blob.type !== mime) throw new Error("هذا المتصفح لا ينتج التنسيق المطلوب. اختر تنسيقًا آخر.");
+    revoke(resultUrl);
+    resultUrl = URL.createObjectURL(blob);
+    resultPreview.src = resultUrl;
+    const delta = blob.size - selectedFile.size;
+    const deltaText = delta < 0 ? "أصغر بمقدار " + fmtBytes(-delta) : delta > 0 ? "أكبر بمقدار " + fmtBytes(delta) : "بالحجم نفسه تقريبًا";
+    resultInfo.textContent = "التنسيق: " + labels[blob.type] + " — الحجم: " + fmtBytes(blob.size) + " — " + deltaText + ". الأبعاد النهائية: " + canvas.width + " × " + canvas.height + " بكسل." + (encoded.quality ? " الجودة المستخدمة: " + encoded.quality.toFixed(2) + "." : "");
+    download.href = resultUrl;
+    download.download = safeBase(selectedFile.name) + "." + ext[blob.type];
+    if (targetEnabled.checked && !encoded.metTarget) {
+      targetWarning.textContent = mime === "image/png" ? "لم يُطبّق حد الحجم المستهدف؛ صيغة PNG لا تدعم التحكم في الجودة عبر هذا المحرر. جرّب WebP أو JPEG أو أبعادًا أصغر." : mime === "image/bmp" ? "ملفات BMP غير مضغوطة في هذه الأداة؛ جرّب WebP أو JPEG إذا أردت حجمًا أصغر." : "تعذر الوصول إلى الحجم المستهدف حتى عند أقل جودة متاحة. جرّب أبعادًا أصغر أو تنسيقًا آخر.";
+      targetWarning.hidden = false;
+    } else if (targetEnabled.checked) {
+      targetWarning.textContent = mime === "image/png" ? "حجم الملف ضمن الهدف المحدد، لكن PNG لا يدعم التحكم في الجودة عبر هذا المحرر." : mime === "image/bmp" ? "حجم ملف BMP ضمن الهدف المحدد؛ صيغة BMP غير مضغوطة في هذه الأداة." : "تم بلوغ الحجم المستهدف باستخدام أعلى جودة عُثر عليها ضمن محاولات الضبط.";
+      targetWarning.hidden = false;
+    }
+    result.hidden = false;
+    status.textContent = "اكتمل التعديل. راجع المعاينة قبل التنزيل.";
+  } catch (error) {
+    status.textContent = error instanceof Error ? error.message : "حدث خطأ غير متوقع أثناء تعديل الصورة.";
+  } finally {
+    if (canvas) { canvas.width = 0; canvas.height = 0; }
+    [fileInput, formatInput, qualityInput, widthInput, heightInput, keepRatio, fitMode, backgroundInput, backgroundMode, targetEnabled, targetKb, useCropButton, resetCropButton, cropX, cropY, cropWidth, cropHeight, rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(el => el.disabled = false);
+    qualityInput.disabled = formatInput.value === "image/png" || formatInput.value === "image/bmp";
+    targetKb.disabled = !targetEnabled.checked;
+    convertButton.disabled = !selectedFile || !allowedInputTypes.has(selectedFile.type);
+    useCropButton.textContent = cropEnabled ? "إلغاء تفعيل الاقتصاص" : "تفعيل الاقتصاص";
+  }
+});
+window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl) revoke(sourceUrl); revoke(originalSourceUrl); revoke(resultUrl); batchResultUrls.forEach(revoke); batchThumbUrls.forEach(revoke); });
+</script>
+
+<style>
+.editor-hero{padding:8px 0 22px}.editor-hero h1 span{color:#3157c8}.privacy-notice{display:flex;gap:12px;align-items:center;margin-bottom:22px}.privacy-notice>span:first-child{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:11px;background:#d9f5e4;color:#18794e;font-weight:900}.privacy-notice strong{color:#24583a}.upload-zone{position:relative;display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:30px;border:2px dashed #aabce0;border-radius:20px;background:linear-gradient(120deg,#f4f7ff,#fff);transition:border-color .15s,background .15s;min-height:150px}.upload-zone.drag-over{border-color:#3157c8;background:#eef3ff}.upload-symbol{display:grid;place-items:center;flex:0 0 54px;height:54px;border-radius:16px;background:#e8efff;color:#3157c8;font-size:2rem;font-weight:500}.upload-copy{display:flex;flex:1 1 180px;flex-direction:column;gap:3px}.upload-copy strong{font-size:1.02rem}.upload-copy span{font-size:.9rem;color:#64748b}.upload-button{cursor:pointer;white-space:nowrap}.upload-zone input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.file-meta{font-size:.9rem;margin:12px 2px 16px;min-height:1.6em}.preview-stage{position:relative;display:flex;justify-content:center;align-items:center;height:clamp(280px,42vw,420px);min-height:280px;padding:18px;background:#f8faff;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden}.preview-stage #preview{display:block;max-width:100%;max-height:min(330px,calc(42vh - 28px));width:auto;height:auto;object-fit:contain;user-select:none;-webkit-user-drag:none;flex:0 1 auto}.crop-overlay{position:absolute;left:22px;top:22px;right:auto;bottom:auto;display:none;touch-action:none;cursor:crosshair}.preview-stage.crop-mode .crop-overlay{display:block}.crop-selection{position:absolute;left:0;top:0;width:100%;height:100%;border:2px solid #fff;box-shadow:0 0 0 9999px #0f172a40,inset 0 0 0 1px #3157c8;pointer-events:auto;cursor:move}.crop-handle{position:absolute;display:block;width:14px;height:14px;border:2px solid #3157c8;background:#fff;border-radius:4px;z-index:2;touch-action:none}.handle-nw{top:-7px;left:-7px;cursor:nwse-resize}.handle-n{top:-7px;left:calc(50% - 7px);cursor:ns-resize}.handle-ne{top:-7px;right:-7px;cursor:nesw-resize}.handle-e{top:calc(50% - 7px);right:-7px;cursor:ew-resize}.handle-se{bottom:-7px;right:-7px;cursor:nwse-resize}.handle-s{bottom:-7px;left:calc(50% - 7px);cursor:ns-resize}.handle-sw{bottom:-7px;left:-7px;cursor:nesw-resize}.handle-w{top:calc(50% - 7px);left:-7px;cursor:ew-resize}.preview-tip{position:absolute;bottom:9px;right:12px;left:12px;text-align:center;font-size:.78rem;color:#526176;pointer-events:none}.source-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 18px}.source-toolbar .file-meta{margin:0;flex:1 1 180px}.remove-selected{min-height:42px;padding:9px 14px}.editor-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:24px 0 14px}.editor-tab{font:inherit;font-weight:750;line-height:1.45;padding:13px 10px;border:1px solid #d7dfec;border-radius:13px;background:#fff;color:#4a5870;cursor:pointer;transition:background .15s,border-color .15s}.editor-tab.active{background:#3157c8;border-color:#3157c8;color:#fff;box-shadow:0 7px 16px #3157c82b}.editor-tab-panel[hidden]{display:none}.editor-tab-panel .tool-panel{margin-top:12px}.tool-panel{scroll-margin-top:95px}.tool-panel summary{font-size:1.02rem}.button-row .button{min-height:46px}.button#convert{width:100%;min-height:56px;font-size:1.05rem;margin-top:12px}.result{margin-top:20px;padding:22px;border:1px solid #d7e2f4;border-radius:18px;background:#f8faff}.result h2{margin-top:0}.result-info{line-height:1.8}.result .button{margin-top:8px}#preview-wrap,#result-preview{background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}#crop-preview{display:block;max-width:100%;height:auto;border:1px solid #cbd5e1;border-radius:8px;background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}
+.preview-stage[hidden],.batch-panel[hidden]{display:none}.help-details{margin:14px 0;padding:12px 14px;border:1px solid #e2e8f0;border-radius:12px;background:#fbfcff}.help-details summary{font-weight:750;cursor:pointer;color:#43516a}.help-details p{margin:10px 0 0;color:#64748b;font-size:.9rem}.background-summary{display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#fff8ef;border:1px solid #f3e0c8}.background-summary .tool-icon{flex:0 0 49px}.background-summary p{margin:2px 0 0;font-size:.9rem}.batch-panel{margin:16px 0;padding:18px;border:1px solid #dbe4f2;border-radius:16px;background:#f8faff}.batch-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.batch-file-list{display:grid;gap:6px;padding:0;list-style:none;margin:14px 0}.batch-file-list li{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#fff;border:1px solid #e4eaf3;border-radius:12px;overflow-wrap:anywhere}.batch-thumb{width:54px;height:54px;object-fit:contain;flex:0 0 54px;border-radius:8px;background-color:#f5f7fb;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}.batch-file-details{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}.batch-file-details strong{font-size:.9rem;overflow-wrap:anywhere}.batch-file-list small{color:#64748b}.queue-status{font-size:.8rem;color:#64748b}.batch-file-item[data-state="running"] .queue-status{color:#3157c8}.batch-file-item[data-state="completed"] .queue-status{color:#16804a}.batch-file-item[data-state="failed"] .queue-status{color:#b42318}.queue-controls{display:flex;gap:5px;flex:0 0 auto}.queue-action{width:38px;height:38px;border:1px solid #dbe3ef;border-radius:9px;background:#fff;color:#43516a;font-size:1.2rem;cursor:pointer}.queue-action:disabled{opacity:.35;cursor:not-allowed}.queue-action.remove{color:#b42318}.queue-action:focus-visible,.category-filter:focus-visible{outline:3px solid #8ba7ff;outline-offset:2px}.batch-results{display:grid;gap:8px}.batch-result-link{display:block;padding:11px 14px;border-radius:10px;background:#e8efff;font-weight:750}.batch-result-link:hover{background:#dce6ff;text-decoration:none}
+@media(max-width:720px){.editor-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.preview-stage{height:300px;min-height:260px}.preview-stage #preview{max-height:230px}.upload-zone{padding:22px;min-height:140px}.editor-tab{font-size:.94rem;padding:12px 7px}.upload-zone{padding:17px;gap:12px}.upload-button{width:100%}.preview-stage{padding:14px;min-height:150px}.crop-overlay{left:14px;top:14px;right:auto;bottom:auto}.preview-tip{font-size:.72rem}.tool-panel{padding:16px}.button-row .button{flex:1 1 45%}}
+
+/* Consistent compact editor styling */
+.editor-hero{padding:0 0 14px}.editor-hero h1{font-size:clamp(1.8rem,3vw,2.45rem);line-height:1.3;margin:5px 0 8px}.editor-hero p{margin:5px 0 12px}
+.privacy-notice{margin:0 0 14px;padding:12px 14px;border:1px solid #cce8d7;border-radius:12px;background:#f1faf5}
+.upload-zone{padding:22px;min-height:112px;gap:14px;border:1.5px dashed #a9b9d7;border-radius:14px;background:#f8faff}
+.upload-symbol{flex-basis:46px;height:46px;border-radius:12px;font-size:1.7rem}
+.upload-copy strong{font-size:1rem}.upload-copy span{font-size:.88rem}
+.upload-button{min-height:44px;padding:10px 16px;border-radius:10px}
+.file-meta{margin:8px 2px 12px;font-size:.88rem}
+.preview-stage{height:clamp(230px,34vw,340px);min-height:230px;padding:14px;border-radius:14px;background:#f4f6fa}
+.preview-stage #preview{max-height:min(280px,calc(38vh - 20px))}
+.editor-tabs{gap:7px;margin:16px 0 10px}
+.editor-tab{padding:10px 8px;border-radius:10px;font-size:.92rem}
+.tool-panel{margin:10px 0;padding:16px;border-radius:13px}
+.tool-panel summary{font-size:1rem}
+.button-row{gap:8px;margin:12px 0}.button-row .button{min-height:44px;padding:10px 14px}
+.button#convert{min-height:50px;margin-top:8px;font-size:1rem;border-radius:11px}
+.result{margin-top:14px;padding:17px;border-radius:14px}
+.help-details{margin:10px 0;padding:10px 12px;border-radius:10px}
+.batch-panel{margin:12px 0;padding:14px;border-radius:13px}
+.batch-file-list{gap:5px;margin:10px 0}.batch-file-list li{padding:8px 10px;gap:9px}
+.background-summary{gap:11px;padding:12px;border-radius:12px}
+@media(max-width:720px){.editor-hero{padding-bottom:10px}.upload-zone{padding:15px;gap:10px}.preview-stage{height:260px;min-height:220px;padding:10px}.preview-stage #preview{max-height:220px}.editor-tabs{gap:6px;margin:12px 0 8px}.editor-tab{min-height:44px;padding:9px 6px;font-size:.9rem}.tool-panel{padding:13px}.button-row .button{flex:1 1 44%}}
+@media(max-width:420px){.editor-hero h1{font-size:1.75rem}.upload-copy{flex-basis:140px}.upload-button{width:100%}.preview-stage{height:230px;min-height:200px}.editor-tab{font-size:.84rem}.result{padding:13px}}
+</style>
+<script src="../scripts/background-removal.js"></script>
+</BaseLayout>

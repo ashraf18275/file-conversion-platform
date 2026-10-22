@@ -1,0 +1,388 @@
+---
+import type { ToolPage } from "../data/tool-catalog";
+
+const { tool } = Astro.props as { tool: ToolPage };
+const conversionMap: Record<string, { input: string; output: string; mime: string; extension: string; title: string }> = {
+  "webp-to-jpg": { input: "image/webp", output: "JPG", mime: "image/jpeg", extension: "jpg", title: "تحويل WebP إلى JPG" },
+  "webp-to-png": { input: "image/webp", output: "PNG", mime: "image/png", extension: "png", title: "تحويل WebP إلى PNG" },
+  "png-to-jpg": { input: "image/png", output: "JPG", mime: "image/jpeg", extension: "jpg", title: "تحويل PNG إلى JPG" },
+  "jpg-to-png": { input: "image/jpeg", output: "PNG", mime: "image/png", extension: "png", title: "تحويل JPG إلى PNG" },
+  "png-to-webp": { input: "image/png", output: "WebP", mime: "image/webp", extension: "webp", title: "تحويل PNG إلى WebP" },
+  "jpg-to-webp": { input: "image/jpeg", output: "WebP", mime: "image/webp", extension: "webp", title: "تحويل JPG إلى WebP" },
+};
+const config = conversionMap[tool.slug];
+---
+{config && <section class="browser-converter" aria-labelledby="converter-heading" data-input-mime={config.input} data-output-mime={config.mime} data-output-extension={config.extension}>
+  <h2 id="converter-heading">حوّل ملفاتك داخل المتصفح</h2>
+  <p class="intro">اختر صورة واحدة أو عدة صور. تتم قراءة الملفات وتحويلها على جهازك؛ لا يُرسل ملف الصورة إلى خادم التحويل.</p>
+  <label class="drop-zone" for="tool-files">
+    <span class="upload-icon" aria-hidden="true">↑</span>
+    <strong>اسحب الصور إلى هنا أو اخترها من جهازك</strong>
+    <span>يمكنك تحديد عدة ملفات دفعة واحدة</span>
+    <span class="choose-button">اختيار الصور</span>
+  </label>
+  <input id="tool-files" class="file-input" type="file" accept={config.input} multiple />
+  <div class="converter-options">
+    <div class="field">
+      <label for="resize-width">أقصى عرض (بكسل)</label>
+      <input id="resize-width" type="number" min="1" max="12000" value="1200" inputmode="numeric" />
+      <small>يُحافظ التحويل على نسبة أبعاد الصورة ولا يكبّر الصور الأصغر من المقاس المحدد.</small>
+    </div>
+    <div class="field">
+      <label for="resize-height">أقصى ارتفاع (بكسل)</label>
+      <input id="resize-height" type="number" min="1" max="12000" value="1200" inputmode="numeric" />
+    </div>
+    <label class="check-option"><input id="grayscale-output" type="checkbox" /> تحويل الصورة إلى تدرّج رمادي</label>
+    {config.mime === "image/jpeg" && <div class="field">
+      <label for="jpg-background">خلفية صور JPG</label>
+      <select id="jpg-background"><option value="#ffffff">أبيض</option><option value="#000000">أسود</option><option value="#f2f2f2">رمادي فاتح</option></select>
+      <small>صيغة JPG لا تدعم الشفافية؛ ستُملأ المناطق الشفافة بهذا اللون.</small>
+    </div>}
+    {config.mime !== "image/png" && <div class="field">
+      <label for="output-quality">جودة الإخراج: <output id="output-quality-value">85%</output></label>
+      <input id="output-quality" type="range" min="10" max="100" step="5" value="85" />
+      <small>الجودة تؤثر في JPG وWebP. لا يؤثر هذا الخيار في PNG.</small>
+    </div>}
+  </div>
+  <div class="file-actions">
+    <button id="convert-files" class="button" type="button" disabled>تحويل الصور المحددة</button>
+    <button id="clear-files" class="button secondary" type="button" disabled>مسح القائمة</button>
+    <button id="cancel-conversion" class="button secondary" type="button" disabled>إيقاف الدفعة</button>
+    <button id="download-zip" class="button secondary" type="button" hidden>تنزيل النتائج كملف ZIP</button>
+  </div>
+  <progress id="conversion-progress" class="conversion-progress" max="100" value="0" aria-label="تقدم التحويل" hidden></progress>
+  <p id="converter-status" class="status" role="status" aria-live="polite">لم يتم اختيار ملفات بعد.</p>
+  <ul id="converter-file-list" class="file-list" aria-label="الملفات المحددة"></ul>
+  <div id="converter-results" class="results" aria-live="polite"></div>
+  <p class="privacy-proof">للتحقق من المعالجة المحلية: افتح أدوات المطوّر في المتصفح، ثم تبويب Network، وراقب الطلبات أثناء التحويل. لا يرسل هذا القالب ملفات الصور إلى واجهة API أو خادم.</p>
+</section>
+<script is:inline>
+(() => {
+  const root = document.querySelector(".browser-converter");
+  if (!root) return;
+  const input = document.querySelector("#tool-files");
+  const convertButton = document.querySelector("#convert-files");
+  const clearButton = document.querySelector("#clear-files");
+  const cancelButton = document.querySelector("#cancel-conversion");
+  const zipButton = document.querySelector("#download-zip");
+  const progress = document.querySelector("#conversion-progress");
+  const status = document.querySelector("#converter-status");
+  const list = document.querySelector("#converter-file-list");
+  const results = document.querySelector("#converter-results");
+  const quality = document.querySelector("#output-quality");
+  const qualityValue = document.querySelector("#output-quality-value");
+  const background = document.querySelector("#jpg-background");
+  const widthInput = document.querySelector("#resize-width");
+  const heightInput = document.querySelector("#resize-height");
+  const grayscale = document.querySelector("#grayscale-output");
+  const dropZone = document.querySelector(".drop-zone");
+  const outputMime = root.dataset.outputMime;
+  const outputExtension = root.dataset.outputExtension;
+  let files = [];
+  let busy = false;
+  let cancelRequested = false;
+  let successfulResults = [];
+  let zipUrl = null;
+  const objectUrls = new Set();
+  const clearResults = () => {
+    objectUrls.forEach(url => URL.revokeObjectURL(url));
+    objectUrls.clear();
+    if (zipUrl) URL.revokeObjectURL(zipUrl);
+    zipUrl = null;
+    successfulResults = [];
+    zipButton.hidden = true;
+    results.replaceChildren();
+  };
+  const formatSize = (bytes) => bytes < 1024 * 1024
+    ? (bytes / 1024).toFixed(1) + " كيلوبايت"
+    : (bytes / (1024 * 1024)).toFixed(2) + " ميجابايت";
+  const renderList = () => {
+    list.replaceChildren();
+    files.forEach((file, index) => {
+      const item = document.createElement("li");
+      const meta = document.createElement("span");
+      meta.className = "file-description";
+      const name = document.createElement("strong");
+      name.textContent = file.name;
+      const size = document.createElement("small");
+      size.textContent = formatSize(file.size);
+      meta.append(name, size);
+      const controls = document.createElement("div");
+      controls.className = "file-controls";
+      const moveUp = document.createElement("button");
+      moveUp.type = "button";
+      moveUp.className = "move-file";
+      moveUp.textContent = "↑";
+      moveUp.setAttribute("aria-label", "نقل " + file.name + " إلى أعلى");
+      moveUp.title = "نقل إلى أعلى";
+      moveUp.disabled = busy || index === 0;
+      moveUp.addEventListener("click", () => {
+        if (busy || index === 0) return;
+        [files[index - 1], files[index]] = [files[index], files[index - 1]];
+        renderList();
+        status.textContent = "تم تغيير ترتيب الملفات.";
+      });
+      const moveDown = document.createElement("button");
+      moveDown.type = "button";
+      moveDown.className = "move-file";
+      moveDown.textContent = "↓";
+      moveDown.setAttribute("aria-label", "نقل " + file.name + " إلى أسفل");
+      moveDown.title = "نقل إلى أسفل";
+      moveDown.disabled = busy || index === files.length - 1;
+      moveDown.addEventListener("click", () => {
+        if (busy || index >= files.length - 1) return;
+        [files[index], files[index + 1]] = [files[index + 1], files[index]];
+        renderList();
+        status.textContent = "تم تغيير ترتيب الملفات.";
+      });
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "remove-file";
+      remove.textContent = "حذف";
+      remove.setAttribute("aria-label", "حذف " + file.name);
+      remove.disabled = busy;
+      remove.addEventListener("click", () => { files.splice(index, 1); clearResults(); renderList(); status.textContent = files.length ? "تم حذف الملف وتحديث القائمة؛ أعد التحويل لتوليد النتائج من القائمة الحالية." : "تم حذف آخر ملف؛ لم يتم اختيار ملفات بعد."; });
+      controls.append(moveUp, moveDown, remove);
+      item.append(meta, controls);
+      list.append(item);
+    });
+    convertButton.disabled = busy || files.length === 0;
+    clearButton.disabled = busy || files.length === 0;
+    cancelButton.disabled = !busy;
+    input.disabled = busy;
+    dropZone.setAttribute("aria-disabled", String(busy));
+  };
+  const addFiles = (selected) => {
+    if (busy) {
+      status.textContent = "انتظر انتهاء الدفعة الحالية قبل إضافة ملفات جديدة.";
+      return;
+    }
+    const allowed = selected.filter(file => file.type === root.dataset.inputMime);
+    const rejected = selected.length - allowed.length;
+    const previousCount = files.length;
+    const unique = new Map([...files, ...allowed].map(file => [file.name + "|" + file.size + "|" + file.lastModified, file]));
+    files = Array.from(unique.values());
+    const addedCount = files.length - previousCount;
+    if (addedCount > 0) clearResults();
+    renderList();
+    status.textContent = (addedCount ? "تمت إضافة " + addedCount + " ملف." : "لم تتم إضافة ملفات جديدة.") + (rejected ? " تم تجاهل " + rejected + " ملف لأن صيغته لا تطابق الأداة." : "");
+  };
+  input.addEventListener("change", () => {
+    addFiles(Array.from(input.files || []));
+    input.value = "";
+  });
+  document.addEventListener("paste", event => {
+    if (busy) return;
+    const pastedFiles = Array.from(event.clipboardData?.items || [])
+      .filter(item => item.kind === "file" && item.type.startsWith("image/"))
+      .map(item => item.getAsFile())
+      .filter(Boolean);
+    if (pastedFiles.length) {
+      addFiles(pastedFiles);
+      status.textContent = "تمت إضافة " + pastedFiles.length + " صورة من الحافظة. " + status.textContent;
+    }
+  });
+  ["dragenter", "dragover"].forEach(eventName => dropZone.addEventListener(eventName, event => {
+    event.preventDefault();
+    dropZone.classList.add("dragging");
+  }));
+  ["dragleave", "drop"].forEach(eventName => dropZone.addEventListener(eventName, event => {
+    event.preventDefault();
+    dropZone.classList.remove("dragging");
+  }));
+  dropZone.addEventListener("drop", event => addFiles(Array.from(event.dataTransfer?.files || [])));
+  if (quality) quality.addEventListener("input", () => { qualityValue.textContent = quality.value + "%"; });
+  clearButton.addEventListener("click", () => { files = []; clearResults(); renderList(); status.textContent = "تم مسح القائمة."; });
+  cancelButton.addEventListener("click", () => {
+    if (!busy) return;
+    cancelRequested = true;
+    cancelButton.disabled = true;
+    status.textContent = "سيتم إيقاف الدفعة بعد انتهاء معالجة الملف الحالي.";
+  });
+  const createStoredZip = async (entries) => {
+    const encoder = new TextEncoder();
+    const crcTable = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let value = n;
+      for (let k = 0; k < 8; k++) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+      crcTable[n] = value >>> 0;
+    }
+    const crc32 = bytes => {
+      let crc = 0xffffffff;
+      for (const byte of bytes) crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+      return (crc ^ 0xffffffff) >>> 0;
+    };
+    const chunks = [];
+    const central = [];
+    let offset = 0;
+    const dosTime = new Date();
+    const dosDate = (((dosTime.getFullYear() - 1980) << 9) | ((dosTime.getMonth() + 1) << 5) | dosTime.getDate());
+    for (const entry of entries) {
+      const name = encoder.encode(entry.name);
+      const data = new Uint8Array(await entry.blob.arrayBuffer());
+      const crc = crc32(data);
+      const local = new Uint8Array(30 + name.length);
+      const lv = new DataView(local.buffer);
+      lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true);
+      lv.setUint16(6, 0x0800, true); lv.setUint16(8, 0, true);
+      lv.setUint16(10, dosTime.getHours() << 11 | dosTime.getMinutes() << 5 | Math.floor(dosTime.getSeconds() / 2), true);
+      lv.setUint16(12, dosDate, true); lv.setUint32(14, crc, true);
+      lv.setUint32(18, data.length, true); lv.setUint32(22, data.length, true);
+      lv.setUint16(26, name.length, true); lv.setUint16(28, 0, true);
+      local.set(name, 30);
+      chunks.push(local, data);
+      const record = new Uint8Array(46 + name.length);
+      const cv = new DataView(record.buffer);
+      cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+      cv.setUint16(8, 0x0800, true); cv.setUint16(10, 0, true);
+      cv.setUint16(12, lv.getUint16(10, true), true); cv.setUint16(14, dosDate, true);
+      cv.setUint32(16, crc, true); cv.setUint32(20, data.length, true); cv.setUint32(24, data.length, true);
+      cv.setUint16(28, name.length, true); cv.setUint16(30, 0, true); cv.setUint16(32, 0, true);
+      cv.setUint16(34, 0, true); cv.setUint16(36, 0, true); cv.setUint32(38, 0, true); cv.setUint32(42, offset, true);
+      record.set(name, 46);
+      central.push(record);
+      offset += local.length + data.length;
+    }
+    const centralSize = central.reduce((sum, part) => sum + part.length, 0);
+    const end = new Uint8Array(22);
+    const ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true); ev.setUint16(4, 0, true); ev.setUint16(6, 0, true);
+    ev.setUint16(8, entries.length, true); ev.setUint16(10, entries.length, true);
+    ev.setUint32(12, centralSize, true); ev.setUint32(16, offset, true); ev.setUint16(20, 0, true);
+    return new Blob([...chunks, ...central, end], { type: "application/zip" });
+  };
+  zipButton.addEventListener("click", async () => {
+    if (!successfulResults.length || zipButton.disabled) return;
+    zipButton.disabled = true;
+    zipButton.textContent = "جارٍ تجهيز ZIP…";
+    try {
+      const blob = await createStoredZip(successfulResults);
+      if (zipUrl) URL.revokeObjectURL(zipUrl);
+      zipUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = zipUrl;
+      link.download = "converted-images.zip";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      status.textContent = "تم تجهيز ملف ZIP يحتوي على " + successfulResults.length + " ملف.";
+    } catch (error) {
+      status.textContent = "تعذّر إنشاء ملف ZIP: " + (error instanceof Error ? error.message : "خطأ غير معروف.");
+    } finally {
+      zipButton.disabled = false;
+      zipButton.textContent = "تنزيل النتائج كملف ZIP";
+    }
+  });
+  const canvasBlob = (canvas, mime, q) => new Promise((resolve, reject) => {
+    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("لم يتمكن المتصفح من إنشاء الملف الناتج بهذه الصيغة.")), mime, q);
+  });
+  const convertOne = async (file) => {
+    let bitmap;
+    try {
+      if (!("createImageBitmap" in window)) throw new Error("هذا المتصفح لا يدعم قراءة الصور المطلوبة. جرّب إصدارًا حديثًا من Chrome أو Firefox أو Edge.");
+      bitmap = await createImageBitmap(file);
+      if (!bitmap.width || !bitmap.height) throw new Error("أبعاد الصورة غير صالحة.");
+      const maxWidth = Number(widthInput.value);
+      const maxHeight = Number(heightInput.value);
+      if (!Number.isFinite(maxWidth) || !Number.isFinite(maxHeight) || maxWidth < 1 || maxHeight < 1 || maxWidth > 12000 || maxHeight > 12000) {
+        throw new Error("أدخل عرضًا وارتفاعًا بين 1 و12000 بكسل.");
+      }
+      const scale = Math.min(1, maxWidth / bitmap.width, maxHeight / bitmap.height);
+      const targetWidth = Math.max(1, Math.round(bitmap.width * scale));
+      const targetHeight = Math.max(1, Math.round(bitmap.height * scale));
+      if (targetWidth * targetHeight > 40000000) {
+        throw new Error("الصورة الناتجة تتجاوز الحد الآمن البالغ 40 مليون بكسل. قلّل العرض أو الارتفاع ثم أعد المحاولة.");
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("تعذّر تهيئة مساحة الرسم.");
+      if (outputMime === "image/jpeg") {
+        context.fillStyle = background ? background.value : "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      if (grayscale?.checked) context.filter = "grayscale(1)";
+      context.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+      context.filter = "none";
+      const q = quality ? Number(quality.value) / 100 : 1;
+      const blob = await canvasBlob(canvas, outputMime, q);
+      if (blob.type !== outputMime) throw new Error("المتصفح لا يدعم ترميز صيغة الإخراج المطلوبة على هذا الجهاز.");
+      return { blob, width: targetWidth, height: targetHeight };
+    } finally {
+      if (bitmap && typeof bitmap.close === "function") bitmap.close();
+    }
+  };
+  convertButton.addEventListener("click", async () => {
+    if (busy || !files.length) return;
+    busy = true;
+    cancelRequested = false;
+    clearResults();
+    progress.hidden = false;
+    progress.value = 0;
+    renderList();
+    const snapshot = [...files];
+    let completed = 0;
+    let attempted = 0;
+    successfulResults = [];
+    status.textContent = "بدأ التحويل محليًا: 0 من " + snapshot.length + ".";
+    for (const file of snapshot) {
+      if (cancelRequested) break;
+      try {
+        const converted = await convertOne(file);
+        const url = URL.createObjectURL(converted.blob);
+        objectUrls.add(url);
+        const baseName = file.name.replace(/\.[^.]+$/, "");
+        let zipName = baseName + "." + outputExtension;
+        let suffix = 2;
+        while (successfulResults.some(item => item.name.toLowerCase() === zipName.toLowerCase())) {
+          zipName = baseName + " (" + suffix++ + ")." + outputExtension;
+        }
+        successfulResults.push({ name: zipName, blob: converted.blob });
+        const article = document.createElement("article");
+        article.className = "result-card";
+        const heading = document.createElement("strong");
+        heading.textContent = file.name + " ← " + outputExtension.toUpperCase();
+        const dimensions = document.createElement("p");
+        dimensions.textContent = converted.width + " × " + converted.height + " بكسل";
+        const sizes = document.createElement("p");
+        sizes.textContent = "الحجم الأصلي: " + formatSize(file.size) + " — الناتج: " + formatSize(converted.blob.size);
+        const image = document.createElement("img");
+        image.src = url;
+        image.alt = "معاينة الملف الناتج من " + file.name;
+        image.loading = "lazy";
+        const download = document.createElement("a");
+        download.className = "button";
+        download.href = url;
+        download.download = file.name.replace(/\.[^.]+$/, "") + "." + outputExtension;
+        download.textContent = "تنزيل الملف";
+        article.append(heading, dimensions, sizes, image, download);
+        results.append(article);
+        completed++;
+      } catch (error) {
+        const message = document.createElement("p");
+        message.className = "error";
+        message.textContent = "تعذّر تحويل " + file.name + ": " + (error instanceof Error ? error.message : "خطأ غير معروف.");
+        results.append(message);
+      }
+      attempted++;
+      progress.value = Math.round((attempted / snapshot.length) * 100);
+      status.textContent = "تقدم التحويل: " + attempted + " من " + snapshot.length + "؛ نجح " + completed + ".";
+    }
+    busy = false;
+    renderList();
+    zipButton.hidden = successfulResults.length === 0;
+    zipButton.disabled = successfulResults.length === 0;
+    if (cancelRequested) {
+      status.textContent = "أُوقفت الدفعة بعد " + attempted + " ملف؛ اكتمل بنجاح " + completed + ".";
+    } else {
+      status.textContent = "انتهى التحويل: نجح " + completed + " من " + snapshot.length + " ملف." + (completed === snapshot.length ? "" : " راجع رسائل الأخطاء بجوار النتائج.");
+    }
+  });
+  window.addEventListener("pagehide", clearResults, { once: true });
+})();
+</script>
+<style>
+.browser-converter{margin:26px 0;padding:clamp(18px,3vw,30px);border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 6px 22px #18243b08}.browser-converter h2{margin:0 0 7px;font-size:1.45rem}.browser-converter .intro{color:var(--muted);margin:0 0 18px;line-height:1.8}.drop-zone{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px;text-align:center;border:2px dashed #a9b9d4;border-radius:16px;background:#f8faff;cursor:pointer}.drop-zone:focus-within,.drop-zone:hover,.drop-zone.dragging{border-color:var(--primary);background:#e8eeff;box-shadow:inset 0 0 0 2px #c7d5ff}.upload-icon{display:grid;place-items:center;width:54px;height:54px;border-radius:16px;background:#e7edff;color:var(--primary);font-size:2rem;font-weight:800}.drop-zone strong{font-size:1.05rem}.drop-zone>span:not(.upload-icon):not(.choose-button){color:var(--muted);font-size:.94rem}.choose-button{display:inline-flex;align-items:center;justify-content:center;margin-top:7px;min-height:46px;padding:9px 23px;border-radius:10px;background:var(--primary);color:#fff;font-weight:800}.file-input{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important}.file-input:focus-visible+.converter-options{outline:3px solid var(--focus)}.converter-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px}.converter-options .field{margin:0}.check-option{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;align-self:center}.check-option input{width:19px;min-height:19px;flex:0 0 19px}.converter-options small{color:var(--muted);line-height:1.6}.file-actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 8px}.file-actions [hidden]{display:none!important}.status{min-height:1.7em;color:var(--muted)}.conversion-progress{display:block;width:100%;height:12px;margin:12px 0;accent-color:var(--primary)}.file-list{display:grid;gap:8px;list-style:none;padding:0;margin:14px 0}.file-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#fbfcff}.file-description{display:grid;min-width:0;gap:2px}.file-description strong{overflow-wrap:anywhere}.file-description small{color:var(--muted)}.file-controls{display:flex;flex-shrink:0;align-items:center;gap:5px}.move-file,.remove-file{border:1px solid var(--line);background:#fff;border-radius:8px;min-width:36px;min-height:36px;padding:6px 9px;cursor:pointer}.move-file{font-size:1.1rem;font-weight:800;color:var(--primary)}.move-file:disabled,.remove-file:disabled{opacity:.4;cursor:not-allowed}.remove-file{border-color:#e5c8c8;background:#fff7f7;color:#9b2c2c}.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}.result-card{min-width:0;border:1px solid var(--line);border-radius:13px;padding:14px;display:flex;flex-direction:column;gap:8px}.result-card p{margin:0;color:var(--muted);font-size:.9rem}.result-card img{width:100%;height:190px;object-fit:contain;background:#f5f7fb;border-radius:9px}.result-card .button{margin-top:auto}.error{color:#9b2c2c;background:#fff5f5;border:1px solid #f0caca;border-radius:10px;padding:12px}.privacy-proof{font-size:.88rem;color:var(--muted);line-height:1.8;border-top:1px solid var(--line);padding-top:14px;margin:20px 0 0}@media(max-width:540px){.drop-zone{min-height:190px;padding:17px}.file-actions .button{flex:1 1 100%}.file-list li{align-items:flex-start}.result-card img{height:150px}}
+</style>
+}
