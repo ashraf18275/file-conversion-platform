@@ -592,7 +592,7 @@ test("applies a mocked local background-removal result and can restore the origi
 test("converts multiple selected images locally and provides one download per result", async ({ page }) => {
   await page.goto("/convert/");
   await page.locator("#image-file").setInputFiles([
-    { name: "first.png", mimeType: "image/png", buffer: pixel },
+    { name: ".trashed-1754500255-first.png", mimeType: "image/png", buffer: pixel },
     { name: "second.png", mimeType: "image/png", buffer: pixel }
   ]);
   await expect(page.locator("#batch-panel")).toBeVisible();
@@ -675,6 +675,8 @@ test("batch queue provides thumbnails, reorder, removal, and status per file", a
   ]);
   await expect(page.locator("#batch-file-list li")).toHaveCount(3);
   await expect(page.locator(".batch-thumb")).toHaveCount(3);
+  await expect(page.locator("#batch-file-list li").first()).toContainText("first.png");
+  await expect(page.locator("#batch-file-list li").first()).not.toContainText(".trashed-1754500255-");
   await expect(page.locator(".queue-status").first()).toHaveText("بانتظار التحويل");
   await page.getByRole("button", { name: "تحريك third.png إلى أعلى" }).click();
   await page.getByRole("button", { name: "تحريك third.png إلى أعلى" }).click();
