@@ -140,9 +140,13 @@ test("lets users remove selected files and rejects files with a mismatched forma
     { name: "wrong-format.jpg", mimeType: "image/jpeg", buffer: Buffer.from(png) }
   ]);
   const items = page.locator("#converter-file-list li");
+  await expect(items).toHaveCount(2);
+  await expect(items.nth(0)).toContainText("keep.png");
+  await expect(items.nth(1)).toContainText("remove.png");
+  await expect(page.locator("#converter-status")).toContainText("تم تجاهل 1 ملف");
+  await page.getByRole("button", { name: "حذف remove.png" }).click();
   await expect(items).toHaveCount(1);
   await expect(items.first()).toContainText("keep.png");
-  await expect(page.locator("#converter-status")).toContainText("تم تجاهل 1 ملف");
   await page.getByRole("button", { name: "حذف keep.png" }).click();
   await expect(items).toHaveCount(0);
   await expect(page.getByRole("button", { name: "تحويل الصور المحددة" })).toBeDisabled();
