@@ -387,17 +387,13 @@ test("crop controls apply the requested source rectangle", async ({ page }) => {
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
   await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
+  await page.locator(".advanced-fields summary").click();
   await page.locator("#crop-x").fill("1");
-  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#crop-y").fill("0");
-  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#crop-width").fill("1");
-  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#crop-height").fill("1");
-  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#use-crop").click();
   await expect(page.locator("#crop-preview-wrap")).toBeVisible();
-  await page.getByRole("tab", { name: "الأبعاد والاقتصاص" }).click();
   await page.locator("#fit-mode").selectOption("actual");
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
@@ -675,6 +671,7 @@ test("batch queue provides thumbnails, reorder, removal, and status per file", a
   await expect(page.locator("#batch-file-list li")).toHaveCount(3);
   await expect(page.locator(".batch-thumb")).toHaveCount(3);
   await expect(page.locator(".queue-status").first()).toHaveText("بانتظار التحويل");
+  await page.getByRole("button", { name: "تحريك third.png إلى أعلى" }).click();
   await page.getByRole("button", { name: "تحريك third.png إلى أعلى" }).click();
   await expect(page.locator("#batch-file-list li").first()).toContainText("third.png");
   await page.getByRole("button", { name: "حذف second.png من القائمة" }).click();
