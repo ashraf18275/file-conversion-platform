@@ -237,7 +237,8 @@ const labels = { "image/png": "PNG", "image/jpeg": "JPEG", "image/webp": "WebP",
 const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/bmp": "bmp" };
 const allowedInputTypes = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "image/bmp", "image/avif"]);
 const fmtBytes = (bytes) => bytes < 1024 ? bytes + " بايت" : bytes < 1048576 ? (bytes / 1024).toFixed(1) + " كيلوبايت" : (bytes / 1048576).toFixed(2) + " ميجا";
-const safeBase = (name) => name.replace(/\.[^.]+$/, "").replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "image";
+const displayFileName = (name) => name.replace(/^\.trashed-\d+-/i, "").slice(0, 100) || "صورة بدون اسم";
+const safeBase = (name) => displayFileName(name).replace(/\.[^.]+$/, "").replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "image";
 const revoke = (url) => { if (url) URL.revokeObjectURL(url); };
 const validDimension = (value) => Number.isInteger(Number(value)) && Number(value) >= 1 && Number(value) <= 12000;
 const updateCropDefaults = () => {
@@ -447,16 +448,16 @@ const updateBatchQueue = () => {
     const item = document.createElement("li"); item.className = "batch-file-item"; item.dataset.queueIndex = String(index);
     const thumb = document.createElement("img"); thumb.className = "batch-thumb"; thumb.alt = ""; thumb.src = URL.createObjectURL(file); batchThumbUrls.push(thumb.src);
     const details = document.createElement("div"); details.className = "batch-file-details";
-    const name = document.createElement("strong"); name.textContent = file.name;
+    const name = document.createElement("strong"); name.textContent = displayFileName(file.name); name.title = displayFileName(file.name);
     const meta = document.createElement("small"); meta.textContent = fmtBytes(file.size);
     const status = document.createElement("span"); status.className = "queue-status"; status.textContent = "بانتظار التحويل"; status.setAttribute("aria-label","حالة الملف");
     details.append(name, meta, status);
     const controls = document.createElement("div"); controls.className = "queue-controls";
-    const up = document.createElement("button"); up.type="button"; up.className="queue-action"; up.textContent="↑"; up.title="تحريك الملف إلى أعلى"; up.setAttribute("aria-label","تحريك " + file.name + " إلى أعلى"); up.disabled=index===0;
+    const up = document.createElement("button"); up.type="button"; up.className="queue-action"; up.textContent="↑"; up.title="تحريك الملف إلى أعلى"; up.setAttribute("aria-label","تحريك " + displayFileName(file.name) + " إلى أعلى"); up.disabled=index===0;
     up.addEventListener("click",()=>{[queuedFiles[index-1],queuedFiles[index]]=[queuedFiles[index],queuedFiles[index-1]];updateBatchQueue();});
-    const down = document.createElement("button"); down.type="button"; down.className="queue-action"; down.textContent="↓"; down.title="تحريك الملف إلى أسفل"; down.setAttribute("aria-label","تحريك " + file.name + " إلى أسفل"); down.disabled=index===queuedFiles.length-1;
+    const down = document.createElement("button"); down.type="button"; down.className="queue-action"; down.textContent="↓"; down.title="تحريك الملف إلى أسفل"; down.setAttribute("aria-label","تحريك " + displayFileName(file.name) + " إلى أسفل"); down.disabled=index===queuedFiles.length-1;
     down.addEventListener("click",()=>{[queuedFiles[index+1],queuedFiles[index]]=[queuedFiles[index],queuedFiles[index+1]];updateBatchQueue();});
-    const remove = document.createElement("button"); remove.type="button"; remove.className="queue-action remove"; remove.textContent="×"; remove.title="حذف من القائمة"; remove.setAttribute("aria-label","حذف " + file.name + " من القائمة");
+    const remove = document.createElement("button"); remove.type="button"; remove.className="queue-action remove"; remove.textContent="×"; remove.title="حذف من القائمة"; remove.setAttribute("aria-label","حذف " + displayFileName(file.name) + " من القائمة");
     remove.addEventListener("click",()=>{queuedFiles.splice(index,1);const transfer=new DataTransfer();queuedFiles.forEach(f=>transfer.items.add(f));fileInput.files=transfer.files;updateBatchQueue();});
     controls.append(up,down,remove); item.append(thumb,details,controls); batchFileList.append(item);
   });
