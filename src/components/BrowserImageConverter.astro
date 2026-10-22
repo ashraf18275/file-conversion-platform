@@ -141,7 +141,7 @@ const config = conversionMap[tool.slug];
       remove.textContent = "حذف";
       remove.setAttribute("aria-label", "حذف " + file.name);
       remove.disabled = busy;
-      remove.addEventListener("click", () => { files.splice(index, 1); renderList(); status.textContent = files.length ? "تم تحديث قائمة الملفات." : "لم يتم اختيار ملفات بعد."; });
+      remove.addEventListener("click", () => { files.splice(index, 1); clearResults(); renderList(); status.textContent = files.length ? "تم حذف الملف وتحديث القائمة؛ أعد التحويل لتوليد النتائج من القائمة الحالية." : "تم حذف آخر ملف؛ لم يتم اختيار ملفات بعد."; });
       controls.append(moveUp, moveDown, remove);
       item.append(meta, controls);
       list.append(item);
