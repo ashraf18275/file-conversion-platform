@@ -346,6 +346,10 @@ const finishCropDrag = () => {
 };
 cropOverlay.addEventListener("pointerup", finishCropDrag);
 cropOverlay.addEventListener("pointercancel", finishCropDrag);
+// Pointer capture can be interrupted by browser/OS gestures on touch devices;
+// finalize at window level as a safe fallback. The handler is idempotent.
+window.addEventListener("pointerup", finishCropDrag);
+window.addEventListener("pointercancel", finishCropDrag);
 window.addEventListener("resize", syncCropOverlay);
 const refreshCropPreview = () => {
   if (!sourceDimensions.width || !sourceDimensions.height || previewWrap.hidden) { cropPreviewWrap.hidden = true; return; }
