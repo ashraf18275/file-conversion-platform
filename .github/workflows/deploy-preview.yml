@@ -12,9 +12,10 @@ permissions:
   pages: write
   id-token: write
 
+# Never cancel an in-progress production deployment.
 concurrency:
-  group: github-pages-preview
-  cancel-in-progress: true
+  group: github-pages
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
@@ -34,6 +35,10 @@ jobs:
         run: |
           npm test
           npm run check
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+      - name: Run end-to-end browser tests
+        run: npm run test:e2e
       - name: Build static site
         run: npm run build
       - name: Configure GitHub Pages
