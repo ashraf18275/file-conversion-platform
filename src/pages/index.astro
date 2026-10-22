@@ -2,13 +2,13 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 const base = import.meta.env.BASE_URL;
 ---
-<BaseLayout title="محوّل الملفات — أدوات الصور" description="حوّل صورك وعدّلها واضغطها داخل المتصفح مع أولوية لخصوصية ملفاتك.">
+<BaseLayout title="تحويل الصور وضغطها وتغيير حجمها مجانًا أونلاين" description="أدوات صور مجانية أونلاين: تحويل JPG إلى PNG وWebP، ضغط الصور، تغيير حجم الصورة واقتصاصها وتدويرها مباشرة من المتصفح.">
 <section class="home-hero">
   <div class="hero-copy">
     <span class="eyebrow"><span class="status-dot"></span> أدوات ملفات بسيطة وخصوصية أوّلًا</span>
     <h1>كل أدوات صورك،<br /><span>في مكان واحد.</span></h1>
     <p class="lead">حوّل الصيغ، واضبط الأبعاد، واقتصص الصور، وجهّز ملفاتك للتنزيل بخطوات واضحة. نُعالج ملفاتك داخل المتصفح كلما أمكن، دون رفعها إلى خادم التحويل.</p>
-    <div class="hero-actions"><a class="button" href={`${base}convert/`}>ابدأ بتحويل صورة <span aria-hidden="true">←</span></a><a class="button secondary" href={`${base}guide/`}>كيف تعمل الأدوات؟</a></div>
+    <div class="hero-actions"><a class="button hero-primary" href={`${base}convert/`}><span aria-hidden="true">⇄</span> ابدأ تحويل الصور الآن <span aria-hidden="true">←</span></a><a class="button hero-secondary" href={`${base}convert/`}><span aria-hidden="true">▣</span> افتح مساحة الصور</a></div>
     <div class="trust-line"><span aria-hidden="true">✓</span> لا حاجة إلى إنشاء حساب <span class="trust-separator">•</span> معالجة محلية في الأدوات المدعومة</div>
   </div>
   <div class="hero-art product-preview" aria-label="معاينة توضيحية لمساحة تحويل الصور">
@@ -28,7 +28,8 @@ const base = import.meta.env.BASE_URL;
   <div class="value-item"><span class="value-icon">⌁</span><div><strong>خصوصية أولًا</strong><small>معالجة محلية للأدوات المدعومة</small></div></div>
   <div class="value-item"><span class="value-icon">▣</span><div><strong>معاينة قبل التنزيل</strong><small>راجع النتيجة قبل حفظها</small></div></div>
 </section>
-<section class="section-heading"><div><span class="eyebrow">ماذا تريد أن تفعل؟</span><h2>اختر الأداة المناسبة</h2><p class="muted">ابدأ بالمهمة التي تحتاجها، وستجد إعداداتها في مكان واحد.</p></div><a class="text-link" href={`${base}convert/`}>عرض أدوات الصور <span aria-hidden="true">←</span></a></section>
+<section class="section-heading"><div><span class="eyebrow">ماذا تريد أن تفعل؟</span><h2>اختر الأداة المناسبة</h2><p class="muted">ابدأ بالمهمة التي تحتاجها، وستجد إعداداتها في مكان واحد.</p></div><a class="button section-cta" href={`${base}convert/`}>عرض أدوات الصور <span aria-hidden="true">←</span></a></section>
+<aside class="ad-slot ad-slot-top" aria-label="مساحة إعلانية"><span class="ad-label">إعلان</span><span class="ad-placeholder">مساحة إعلانية متاحة مستقبلًا</span></aside>
 <div class="tool-filters" aria-label="البحث وتصنيف الأدوات">
   <label class="tool-search"><span aria-hidden="true">⌕</span><input id="tool-search" type="search" placeholder="ابحث باسم الأداة أو الصيغة…" aria-label="ابحث باسم الأداة أو الصيغة" /></label>
   <div class="category-filters" role="group" aria-label="تصنيف الأدوات">
@@ -48,6 +49,7 @@ const base = import.meta.env.BASE_URL;
   <a class="tool-card" data-category="edit" data-search="تحسين الصور سطوع إضاءة تباين ألوان تشبع تحسين enhance photo" href={`${base}convert/#panel-enhance`}><span class="tool-icon icon-violet" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="4.2"/></svg></span><span class="tool-card-title">تحسين الصور</span><span class="tool-card-description">اضبط السطوع والتباين وتشبع الألوان، وراجع النتيجة قبل التنزيل.</span><span class="tool-card-action">تحسين الصورة <span aria-hidden="true">←</span></span></a>
   <a class="tool-card" data-category="edit" data-search="تدوير الصور قلب أفقي رأسي rotate flip" href={`${base}convert/#panel-transform`}><span class="tool-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5M5.6 9A7 7 0 0 1 18 6l2 6M4 12l2 6a7 7 0 0 0 12.4-3"/></svg></span><span class="tool-card-title">التدوير والقلب</span><span class="tool-card-description">دوّر الصورة أو اقلبها أفقيًا ورأسيًا قبل التصدير.</span><span class="tool-card-action">فتح أدوات التدوير <span aria-hidden="true">←</span></span></a>
 </section>
+<aside class="ad-slot ad-slot-bottom" aria-label="مساحة إعلانية"><span class="ad-label">إعلان</span><span class="ad-placeholder">مساحة إعلانية متاحة مستقبلًا</span></aside>
   <section class="privacy-strip"><span class="privacy-icon" aria-hidden="true">⌑</span><div><h2>اعرف كيف تُعالج ملفاتك</h2><p>معالجة الصور في المحرر تتم داخل المتصفح. راجع طلبات الشبكة في أدوات المطور للتحقق من عدم إرسال ملف الصورة إلى خادم.</p></div><a href={`${base}privacy/`}>اقرأ سياسة الخصوصية</a></section>
 <section class="home-bottom"><div><h2>مصممة لتكون سهلة من البداية</h2><p class="muted">واجهة عربية واضحة، ومعاينة مناسبة لحجم الشاشة، ونتيجة يمكنك مراجعتها قبل التنزيل.</p></div><a class="button" href={`${base}convert/`}>افتح محرر الصور</a></section>
 <script>
@@ -178,5 +180,27 @@ for (const button of categoryButtons) button.addEventListener("click", () => {
 .privacy-strip{background:#f1faf5;border-color:#d6ebdf}
 @media(max-width:760px){.tool-grid{gap:14px}.tool-card{padding:17px;min-height:205px}}
 @media(max-width:480px){.tool-grid{grid-template-columns:1fr;gap:12px}.tool-card{min-height:0;padding:18px}.tool-card-action{width:100%;justify-content:space-between}.section-heading{margin-bottom:14px}}
+
+
+/* Utility-first home page: actions before explanations */
+.home-hero .hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:11px;max-width:510px}
+.home-hero .hero-actions .button{min-height:56px;padding:13px 16px;font-size:1rem;font-weight:850;justify-content:center;box-shadow:0 6px 16px #3659b82b}
+.home-hero .hero-actions .hero-primary{background:#2857c5;color:#fff;border-color:#2857c5}
+.home-hero .hero-actions .hero-primary:hover{background:#1e469f}
+.home-hero .hero-actions .hero-secondary{background:#eaf0ff;border:1px solid #c7d5fa;color:#244a9e;box-shadow:none}
+.home-hero .hero-actions .hero-secondary:hover{background:#dce7ff}
+.section-heading{align-items:center}
+.section-heading .section-cta{min-height:48px;padding:11px 17px;background:#2857c5;color:#fff;border-color:#2857c5;box-shadow:0 5px 13px #2857c52b;white-space:nowrap}
+.section-heading .section-cta:hover{background:#1e469f;color:#fff}
+.ad-slot{position:relative;display:flex;align-items:center;justify-content:center;gap:14px;min-height:96px;margin:18px 0 22px;padding:14px;border:1px dashed #c8d1e1;border-radius:14px;background:#f0f3f9;color:#8791a3;text-align:center}
+.ad-slot-top{min-height:90px}
+.ad-slot-bottom{min-height:110px;margin-top:26px}
+.ad-label{position:absolute;top:7px;right:10px;font-size:.68rem;color:#8a94a6}
+.ad-placeholder{font-size:.82rem}
+.tool-card-action{background:#2857c5;color:#fff;padding:10px 13px;border-radius:10px}
+.tool-card:hover .tool-card-action{background:#1e469f;color:#fff}
+.tool-card{border-color:#dbe3f0}
+.tool-card-description{font-size:.86rem}
+@media(max-width:600px){.home-hero .hero-actions{grid-template-columns:1fr;max-width:none}.home-hero .hero-actions .button{width:100%;min-height:54px}.section-heading .section-cta{width:100%;justify-content:center}.ad-slot{min-height:82px;margin:14px 0}.ad-slot-bottom{min-height:96px}}
 
 </style>
