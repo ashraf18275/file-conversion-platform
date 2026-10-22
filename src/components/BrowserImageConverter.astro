@@ -149,8 +149,14 @@ const config = conversionMap[tool.slug];
     convertButton.disabled = busy || files.length === 0;
     clearButton.disabled = busy || files.length === 0;
     cancelButton.disabled = !busy;
+    input.disabled = busy;
+    dropZone.setAttribute("aria-disabled", String(busy));
   };
   const addFiles = (selected) => {
+    if (busy) {
+      status.textContent = "انتظر انتهاء الدفعة الحالية قبل إضافة ملفات جديدة.";
+      return;
+    }
     const allowed = selected.filter(file => file.type === root.dataset.inputMime);
     const rejected = selected.length - allowed.length;
     const previousCount = files.length;
