@@ -608,9 +608,10 @@ test("selects a crop region directly by dragging over the image preview", async 
   await expect(overlay).toBeVisible();
   const box = await overlay.boundingBox();
   if (!box) throw new Error("Crop overlay has no visible bounds");
-  await page.mouse.move(box.x + box.width * 0.15, box.y + box.height * 0.15);
+  // Keep the drag well inside the visible image, away from edge handles.
+  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.2);
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8, { steps: 4 });
+  await page.mouse.move(box.x + box.width * 0.7, box.y + box.height * 0.7, { steps: 4 });
   await page.mouse.up();
   await expect(page.locator("#crop-width")).not.toHaveValue("200");
   await expect(page.locator("#crop-height")).not.toHaveValue("120");
