@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+const activeConverterSlugs = new Set(["webp-to-jpg", "webp-to-png", "png-to-jpg", "jpg-to-png", "png-to-webp", "jpg-to-webp"]);
+
 const toolSlugs = [
   "heic-to-jpg", "webp-to-jpg", "webp-to-png", "png-to-jpg", "jpg-to-png",
   "png-to-webp", "jpg-to-webp", "avif-to-jpg", "png-to-ico", "svg-to-png",
@@ -15,8 +17,13 @@ test("publishes each requested task route without a nonfunctional upload control
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.locator("h1")).toHaveCount(1);
-    await expect(page.locator('input[type="file"]')).toHaveCount(0);
-    await expect(page.getByRole("note")).toContainText("لا ترفع ملفات هنا");
+    if (activeConverterSlugs.has(slug)) {
+      await expect(page.locator('input[type="file"]')).toHaveCount(1);
+      await expect(page.getByRole("heading", { name: "حوّل ملفاتك داخل المتصفح" })).toBeVisible();
+    } else {
+      await expect(page.locator('input[type="file"]')).toHaveCount(0);
+      await expect(page.getByRole("note")).toContainText("لا ترفع ملفات هنا");
+    }
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://ashraf18275.github.io/${slug}/`);
   }
 });
