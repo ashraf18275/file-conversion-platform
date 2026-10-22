@@ -179,3 +179,29 @@ test("browser image conversion does not upload selected image contents", async (
   await expect(page.locator(".result-card")).toHaveCount(1);
   expect(externalRequests, "Conversion should stay in the browser and not upload image data").toHaveLength(0);
 });
+
+
+test("removing a selected file clears outdated conversion results and ZIP download", async ({ page }) => {
+  await page.goto("/png-to-webp/");
+  const png = await page.evaluate(async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 2; canvas.height = 2;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#2674d9";
+    context.fillRect(0, 0, 2, 2);
+    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error("Could not create test image")), "image/png"));
+    return Array.from(new Uint8Array(await blob.arrayBuffer()));
+  });
+  await page.locator("#tool-files").setInputFiles([
+    { name: "first.png", mimeType: "image/png", buffer: Buffer.from(png) },
+    { name: "second.png", mimeType: "image/png", buffer: Buffer.from(png) }
+  ]);
+  await page.getByRole("button", { name: "تحويل الصور المحددة" }).click();
+  await expect(page.locator("#converter-results .result-card")).toHaveCount(2);
+  await expect(page.locator("#download-zip")).toBeVisible();
+  await page.getByRole("button", { name: "حذف first.png" }).click();
+  await expect(page.locator("#converter-file-list li")).toHaveCount(1);
+  await expect(page.locator("#converter-results .result-card")).toHaveCount(0);
+  await expect(page.locator("#download-zip")).toBeHidden();
+});
