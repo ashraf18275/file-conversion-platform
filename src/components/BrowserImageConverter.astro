@@ -48,6 +48,7 @@ const config = conversionMap[tool.slug];
     <button id="convert-files" class="button" type="button" disabled>تحويل الصور المحددة</button>
     <button id="clear-files" class="button secondary" type="button" disabled>مسح القائمة</button>
     <button id="cancel-conversion" class="button secondary" type="button" disabled>إيقاف الدفعة</button>
+    <button id="download-zip" class="button secondary" type="button" hidden>تنزيل النتائج كملف ZIP</button>
   </div>
   <progress id="conversion-progress" class="conversion-progress" max="100" value="0" aria-label="تقدم التحويل" hidden></progress>
   <p id="converter-status" class="status" role="status" aria-live="polite">لم يتم اختيار ملفات بعد.</p>
@@ -63,6 +64,7 @@ const config = conversionMap[tool.slug];
   const convertButton = document.querySelector("#convert-files");
   const clearButton = document.querySelector("#clear-files");
   const cancelButton = document.querySelector("#cancel-conversion");
+  const zipButton = document.querySelector("#download-zip");
   const progress = document.querySelector("#conversion-progress");
   const status = document.querySelector("#converter-status");
   const list = document.querySelector("#converter-file-list");
@@ -79,10 +81,16 @@ const config = conversionMap[tool.slug];
   let files = [];
   let busy = false;
   let cancelRequested = false;
+  let successfulResults = [];
+  let zipUrl = null;
   const objectUrls = new Set();
   const clearResults = () => {
     objectUrls.forEach(url => URL.revokeObjectURL(url));
     objectUrls.clear();
+    if (zipUrl) URL.revokeObjectURL(zipUrl);
+    zipUrl = null;
+    successfulResults = [];
+    zipButton.hidden = true;
     results.replaceChildren();
   };
   const formatSize = (bytes) => bytes < 1024 * 1024
@@ -154,6 +162,81 @@ const config = conversionMap[tool.slug];
     cancelButton.disabled = true;
     status.textContent = "سيتم إيقاف الدفعة بعد انتهاء معالجة الملف الحالي.";
   });
+  const createStoredZip = async (entries) => {
+    const encoder = new TextEncoder();
+    const crcTable = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let value = n;
+      for (let k = 0; k < 8; k++) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+      crcTable[n] = value >>> 0;
+    }
+    const crc32 = bytes => {
+      let crc = 0xffffffff;
+      for (const byte of bytes) crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+      return (crc ^ 0xffffffff) >>> 0;
+    };
+    const chunks = [];
+    const central = [];
+    let offset = 0;
+    const dosTime = new Date();
+    const dosDateTime = ((dosTime.getHours() << 11) | (dosTime.getMinutes() << 5) | Math.floor(dosTime.getSeconds() / 2));
+    const dosDate = (((dosTime.getFullYear() - 1980) << 9) | ((dosTime.getMonth() + 1) << 5) | dosTime.getDate());
+    for (const entry of entries) {
+      const name = encoder.encode(entry.name);
+      const data = new Uint8Array(await entry.blob.arrayBuffer());
+      const crc = crc32(data);
+      const local = new Uint8Array(30 + name.length);
+      const lv = new DataView(local.buffer);
+      lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true);
+      lv.setUint16(6, 0x0800, true); lv.setUint16(8, 0, true);
+      lv.setUint16(10, dosTime.getHours() << 11 | dosTime.getMinutes() << 5 | Math.floor(dosTime.getSeconds() / 2), true);
+      lv.setUint16(12, dosDate, true); lv.setUint32(14, crc, true);
+      lv.setUint32(18, data.length, true); lv.setUint32(22, data.length, true);
+      lv.setUint16(26, name.length, true); lv.setUint16(28, 0, true);
+      local.set(name, 30);
+      chunks.push(local, data);
+      const record = new Uint8Array(46 + name.length);
+      const cv = new DataView(record.buffer);
+      cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+      cv.setUint16(8, 0x0800, true); cv.setUint16(10, 0, true);
+      cv.setUint16(12, lv.getUint16(10, true), true); cv.setUint16(14, dosDate, true);
+      cv.setUint32(16, crc, true); cv.setUint32(20, data.length, true); cv.setUint32(24, data.length, true);
+      cv.setUint16(28, name.length, true); cv.setUint16(30, 0, true); cv.setUint16(32, 0, true);
+      cv.setUint16(34, 0, true); cv.setUint16(36, 0, true); cv.setUint32(38, 0, true); cv.setUint32(42, offset, true);
+      record.set(name, 46);
+      central.push(record);
+      offset += local.length + data.length;
+    }
+    const centralSize = central.reduce((sum, part) => sum + part.length, 0);
+    const end = new Uint8Array(22);
+    const ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true); ev.setUint16(4, 0, true); ev.setUint16(6, 0, true);
+    ev.setUint16(8, entries.length, true); ev.setUint16(10, entries.length, true);
+    ev.setUint32(12, centralSize, true); ev.setUint32(16, offset, true); ev.setUint16(20, 0, true);
+    return new Blob([...chunks, ...central, end], { type: "application/zip" });
+  };
+  zipButton.addEventListener("click", async () => {
+    if (!successfulResults.length || zipButton.disabled) return;
+    zipButton.disabled = true;
+    zipButton.textContent = "جارٍ تجهيز ZIP…";
+    try {
+      const blob = await createStoredZip(successfulResults);
+      if (zipUrl) URL.revokeObjectURL(zipUrl);
+      zipUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = zipUrl;
+      link.download = "converted-images.zip";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      status.textContent = "تم تجهيز ملف ZIP يحتوي على " + successfulResults.length + " ملف.";
+    } catch (error) {
+      status.textContent = "تعذّر إنشاء ملف ZIP: " + (error instanceof Error ? error.message : "خطأ غير معروف.");
+    } finally {
+      zipButton.disabled = false;
+      zipButton.textContent = "تنزيل النتائج كملف ZIP";
+    }
+  });
   const canvasBlob = (canvas, mime, q) => new Promise((resolve, reject) => {
     canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("لم يتمكن المتصفح من إنشاء الملف الناتج بهذه الصيغة.")), mime, q);
   });
@@ -202,6 +285,7 @@ const config = conversionMap[tool.slug];
     const snapshot = [...files];
     let completed = 0;
     let attempted = 0;
+    successfulResults = [];
     status.textContent = "بدأ التحويل محليًا: 0 من " + snapshot.length + ".";
     for (const file of snapshot) {
       if (cancelRequested) break;
@@ -209,6 +293,7 @@ const config = conversionMap[tool.slug];
         const converted = await convertOne(file);
         const url = URL.createObjectURL(converted.blob);
         objectUrls.add(url);
+        successfulResults.push({ name: file.name.replace(/\\.[^.]+$/, "") + "." + outputExtension, blob: converted.blob });
         const article = document.createElement("article");
         article.className = "result-card";
         const heading = document.createElement("strong");
@@ -241,6 +326,8 @@ const config = conversionMap[tool.slug];
     }
     busy = false;
     renderList();
+    zipButton.hidden = successfulResults.length === 0;
+    zipButton.disabled = successfulResults.length === 0;
     if (cancelRequested) {
       status.textContent = "أُوقفت الدفعة بعد " + attempted + " ملف؛ اكتمل بنجاح " + completed + ".";
     } else {
