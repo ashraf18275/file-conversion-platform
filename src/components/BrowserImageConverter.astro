@@ -47,7 +47,9 @@ const config = conversionMap[tool.slug];
   <div class="file-actions">
     <button id="convert-files" class="button" type="button" disabled>تحويل الصور المحددة</button>
     <button id="clear-files" class="button secondary" type="button" disabled>مسح القائمة</button>
+    <button id="cancel-conversion" class="button secondary" type="button" disabled>إيقاف الدفعة</button>
   </div>
+  <progress id="conversion-progress" class="conversion-progress" max="100" value="0" aria-label="تقدم التحويل" hidden></progress>
   <p id="converter-status" class="status" role="status" aria-live="polite">لم يتم اختيار ملفات بعد.</p>
   <ul id="converter-file-list" class="file-list" aria-label="الملفات المحددة"></ul>
   <div id="converter-results" class="results" aria-live="polite"></div>
@@ -60,6 +62,8 @@ const config = conversionMap[tool.slug];
   const input = document.querySelector("#tool-files");
   const convertButton = document.querySelector("#convert-files");
   const clearButton = document.querySelector("#clear-files");
+  const cancelButton = document.querySelector("#cancel-conversion");
+  const progress = document.querySelector("#conversion-progress");
   const status = document.querySelector("#converter-status");
   const list = document.querySelector("#converter-file-list");
   const results = document.querySelector("#converter-results");
@@ -74,6 +78,7 @@ const config = conversionMap[tool.slug];
   const outputExtension = root.dataset.outputExtension;
   let files = [];
   let busy = false;
+  let cancelRequested = false;
   const formatSize = (bytes) => bytes < 1024 * 1024
     ? (bytes / 1024).toFixed(1) + " كيلوبايت"
     : (bytes / (1024 * 1024)).toFixed(2) + " ميجابايت";
@@ -100,6 +105,7 @@ const config = conversionMap[tool.slug];
     });
     convertButton.disabled = busy || files.length === 0;
     clearButton.disabled = busy || files.length === 0;
+    cancelButton.disabled = !busy;
   };
   const addFiles = (selected) => {
     const allowed = selected.filter(file => file.type === root.dataset.inputMime);
@@ -125,6 +131,12 @@ const config = conversionMap[tool.slug];
   dropZone.addEventListener("drop", event => addFiles(Array.from(event.dataTransfer?.files || [])));
   if (quality) quality.addEventListener("input", () => { qualityValue.textContent = quality.value + "%"; });
   clearButton.addEventListener("click", () => { files = []; results.replaceChildren(); renderList(); status.textContent = "تم مسح القائمة."; });
+  cancelButton.addEventListener("click", () => {
+    if (!busy) return;
+    cancelRequested = true;
+    cancelButton.disabled = true;
+    status.textContent = "سيتم إيقاف الدفعة بعد انتهاء معالجة الملف الحالي.";
+  });
   const canvasBlob = (canvas, mime, q) => new Promise((resolve, reject) => {
     canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("لم يتمكن المتصفح من إنشاء الملف الناتج بهذه الصيغة.")), mime, q);
   });
@@ -165,12 +177,17 @@ const config = conversionMap[tool.slug];
   convertButton.addEventListener("click", async () => {
     if (busy || !files.length) return;
     busy = true;
+    cancelRequested = false;
     results.replaceChildren();
+    progress.hidden = false;
+    progress.value = 0;
     renderList();
     const snapshot = [...files];
     let completed = 0;
+    let attempted = 0;
     status.textContent = "بدأ التحويل محليًا: 0 من " + snapshot.length + ".";
     for (const file of snapshot) {
+      if (cancelRequested) break;
       try {
         const converted = await convertOne(file);
         const url = URL.createObjectURL(converted.blob);
@@ -200,15 +217,21 @@ const config = conversionMap[tool.slug];
         message.textContent = "تعذّر تحويل " + file.name + ": " + (error instanceof Error ? error.message : "خطأ غير معروف.");
         results.append(message);
       }
-      status.textContent = "اكتمل " + completed + " من " + snapshot.length + " ملف بنجاح.";
+      attempted++;
+      progress.value = Math.round((attempted / snapshot.length) * 100);
+      status.textContent = "تقدم التحويل: " + attempted + " من " + snapshot.length + "؛ نجح " + completed + ".";
     }
     busy = false;
     renderList();
-    status.textContent += completed === snapshot.length ? " انتهى التحويل." : " انتهى التحويل مع بعض الأخطاء؛ راجع الرسائل بجوار الملفات.";
+    if (cancelRequested) {
+      status.textContent = "أُوقفت الدفعة بعد " + attempted + " ملف؛ اكتمل بنجاح " + completed + ".";
+    } else {
+      status.textContent = "انتهى التحويل: نجح " + completed + " من " + snapshot.length + " ملف." + (completed === snapshot.length ? "" : " راجع رسائل الأخطاء بجوار النتائج.");
+    }
   });
 })();
 </script>
 <style>
-.browser-converter{margin:26px 0;padding:clamp(18px,3vw,30px);border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 6px 22px #18243b08}.browser-converter h2{margin:0 0 7px;font-size:1.45rem}.browser-converter .intro{color:var(--muted);margin:0 0 18px;line-height:1.8}.drop-zone{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px;text-align:center;border:2px dashed #a9b9d4;border-radius:16px;background:#f8faff;cursor:pointer}.drop-zone:focus-within,.drop-zone:hover,.drop-zone.dragging{border-color:var(--primary);background:#e8eeff;box-shadow:inset 0 0 0 2px #c7d5ff}.upload-icon{display:grid;place-items:center;width:54px;height:54px;border-radius:16px;background:#e7edff;color:var(--primary);font-size:2rem;font-weight:800}.drop-zone strong{font-size:1.05rem}.drop-zone>span:not(.upload-icon):not(.choose-button){color:var(--muted);font-size:.94rem}.choose-button{display:inline-flex;align-items:center;justify-content:center;margin-top:7px;min-height:46px;padding:9px 23px;border-radius:10px;background:var(--primary);color:#fff;font-weight:800}.file-input{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important}.file-input:focus-visible+.converter-options{outline:3px solid var(--focus)}.converter-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px}.converter-options .field{margin:0}.check-option{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;align-self:center}.check-option input{width:19px;min-height:19px;flex:0 0 19px}.converter-options small{color:var(--muted);line-height:1.6}.file-actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 8px}.status{min-height:1.7em;color:var(--muted)}.file-list{display:grid;gap:8px;list-style:none;padding:0;margin:14px 0}.file-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#fbfcff}.file-description{display:grid;min-width:0;gap:2px}.file-description strong{overflow-wrap:anywhere}.file-description small{color:var(--muted)}.remove-file{border:1px solid #e5c8c8;background:#fff7f7;color:#9b2c2c;border-radius:8px;padding:7px 12px;cursor:pointer}.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}.result-card{min-width:0;border:1px solid var(--line);border-radius:13px;padding:14px;display:flex;flex-direction:column;gap:8px}.result-card p{margin:0;color:var(--muted);font-size:.9rem}.result-card img{width:100%;height:190px;object-fit:contain;background:#f5f7fb;border-radius:9px}.result-card .button{margin-top:auto}.error{color:#9b2c2c;background:#fff5f5;border:1px solid #f0caca;border-radius:10px;padding:12px}.privacy-proof{font-size:.88rem;color:var(--muted);line-height:1.8;border-top:1px solid var(--line);padding-top:14px;margin:20px 0 0}@media(max-width:540px){.drop-zone{min-height:190px;padding:17px}.file-actions .button{flex:1 1 100%}.file-list li{align-items:flex-start}.result-card img{height:150px}}
+.browser-converter{margin:26px 0;padding:clamp(18px,3vw,30px);border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 6px 22px #18243b08}.browser-converter h2{margin:0 0 7px;font-size:1.45rem}.browser-converter .intro{color:var(--muted);margin:0 0 18px;line-height:1.8}.drop-zone{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px;text-align:center;border:2px dashed #a9b9d4;border-radius:16px;background:#f8faff;cursor:pointer}.drop-zone:focus-within,.drop-zone:hover,.drop-zone.dragging{border-color:var(--primary);background:#e8eeff;box-shadow:inset 0 0 0 2px #c7d5ff}.upload-icon{display:grid;place-items:center;width:54px;height:54px;border-radius:16px;background:#e7edff;color:var(--primary);font-size:2rem;font-weight:800}.drop-zone strong{font-size:1.05rem}.drop-zone>span:not(.upload-icon):not(.choose-button){color:var(--muted);font-size:.94rem}.choose-button{display:inline-flex;align-items:center;justify-content:center;margin-top:7px;min-height:46px;padding:9px 23px;border-radius:10px;background:var(--primary);color:#fff;font-weight:800}.file-input{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important}.file-input:focus-visible+.converter-options{outline:3px solid var(--focus)}.converter-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px}.converter-options .field{margin:0}.check-option{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;align-self:center}.check-option input{width:19px;min-height:19px;flex:0 0 19px}.converter-options small{color:var(--muted);line-height:1.6}.file-actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 8px}.status{min-height:1.7em;color:var(--muted)}.conversion-progress{display:block;width:100%;height:12px;margin:12px 0;accent-color:var(--primary)}.file-list{display:grid;gap:8px;list-style:none;padding:0;margin:14px 0}.file-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#fbfcff}.file-description{display:grid;min-width:0;gap:2px}.file-description strong{overflow-wrap:anywhere}.file-description small{color:var(--muted)}.remove-file{border:1px solid #e5c8c8;background:#fff7f7;color:#9b2c2c;border-radius:8px;padding:7px 12px;cursor:pointer}.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}.result-card{min-width:0;border:1px solid var(--line);border-radius:13px;padding:14px;display:flex;flex-direction:column;gap:8px}.result-card p{margin:0;color:var(--muted);font-size:.9rem}.result-card img{width:100%;height:190px;object-fit:contain;background:#f5f7fb;border-radius:9px}.result-card .button{margin-top:auto}.error{color:#9b2c2c;background:#fff5f5;border:1px solid #f0caca;border-radius:10px;padding:12px}.privacy-proof{font-size:.88rem;color:var(--muted);line-height:1.8;border-top:1px solid var(--line);padding-top:14px;margin:20px 0 0}@media(max-width:540px){.drop-zone{min-height:190px;padding:17px}.file-actions .button{flex:1 1 100%}.file-list li{align-items:flex-start}.result-card img{height:150px}}
 </style>
 }
