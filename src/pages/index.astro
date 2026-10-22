@@ -80,8 +80,12 @@ function filterTools() {
     card.hidden = !(matchesCategory && matchesQuery);
     if (!card.hidden) visible++;
   }
-  if (toolResults) toolResults.textContent = visible + (visible === 1 ? " أداة في الدليل" : " أداة في الدليل");
+  if (toolResults) {
+    const label = visible === 0 ? "لا توجد أدوات مطابقة" : visible === 1 ? "أداة واحدة في الدليل" : visible === 2 ? "أداتان في الدليل" : visible <= 10 ? visible + " أدوات في الدليل" : visible + " أداة في الدليل";
+    toolResults.textContent = label;
+  }
 }
+filterTools();
 toolSearch?.addEventListener("input", filterTools);
 for (const button of categoryButtons) button.addEventListener("click", () => {
   activeCategory = button.dataset.category || "all";
