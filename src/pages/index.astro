@@ -39,25 +39,25 @@ const base = import.meta.env.BASE_URL;
 <section class="privacy-strip"><span class="privacy-icon" aria-hidden="true">⌑</span><div><h2>ملفاتك تبقى على جهازك</h2><p>أدوات التحويل الأساسية تعمل داخل المتصفح. بعض الميزات قد تحتاج إلى تنزيل مكتبة أو نموذج في أول استخدام؛ نوضح ذلك قبل بدء المعالجة.</p></div><a href={`${base}privacy/`}>اقرأ سياسة الخصوصية</a></section>
 <section class="home-bottom"><div><h2>مصممة لتكون سهلة من البداية</h2><p class="muted">واجهة عربية واضحة، ومعاينة مناسبة لحجم الشاشة، ونتيجة يمكنك مراجعتها قبل التنزيل.</p></div><a class="button" href={`${base}convert/`}>افتح محرر الصور</a></section>
 <script>
-const toolSearch = document.querySelector("#tool-search");
-const toolCards = [...document.querySelectorAll("#tool-grid .tool-card")];
-const categoryButtons = [...document.querySelectorAll(".category-filter")];
-const toolResults = document.querySelector("#tool-results");
+const toolSearch = document.querySelector<HTMLInputElement>("#tool-search");
+const toolCards = [...document.querySelectorAll<HTMLElement>("#tool-grid .tool-card")];
+const categoryButtons = [...document.querySelectorAll<HTMLButtonElement>(".category-filter")];
+const toolResults = document.querySelector<HTMLElement>("#tool-results");
 let activeCategory = "all";
 function filterTools() {
   const query = (toolSearch?.value || "").trim().toLocaleLowerCase("ar");
   let visible = 0;
   for (const card of toolCards) {
     const matchesCategory = activeCategory === "all" || card.dataset.category === activeCategory;
-    const matchesQuery = !query || (card.dataset.search + " " + card.innerText).toLocaleLowerCase("ar").includes(query);
+    const matchesQuery = !query || ((card.dataset.search || "") + " " + card.innerText).toLocaleLowerCase("ar").includes(query);
     card.hidden = !(matchesCategory && matchesQuery);
     if (!card.hidden) visible++;
   }
-  toolResults.textContent = visible + (visible === 1 ? " أداة متاحة" : " أدوات متاحة");
+  if (toolResults) toolResults.textContent = visible + (visible === 1 ? " أداة متاحة" : " أدوات متاحة");
 }
 toolSearch?.addEventListener("input", filterTools);
 for (const button of categoryButtons) button.addEventListener("click", () => {
-  activeCategory = button.dataset.category;
+  activeCategory = button.dataset.category || "all";
   for (const item of categoryButtons) {
     const active = item === button;
     item.classList.toggle("active", active);
