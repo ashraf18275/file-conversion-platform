@@ -663,7 +663,8 @@ test("crop selection exposes eight resize handles and supports resizing", async 
     const transfer=new DataTransfer();transfer.items.add(new File([blob],"handles.png",{type:"image/png"}));input.files=transfer.files;input.dispatchEvent(new Event("change",{bubbles:true}));
   });
   await expect(page.locator("#convert")).toBeEnabled();
-  const overlay=page.locator("#crop-overlay"), box=await overlay.boundingBox();if(!box)throw new Error("overlay missing");
+  const overlay=page.locator("#crop-overlay");
+  const box=await overlay.evaluate(element=>{const r=element.getBoundingClientRect();return{x:r.left,y:r.top,width:r.width,height:r.height};});
   await page.mouse.move(box.x+box.width*.2,box.y+box.height*.2);await page.mouse.down();
   await page.mouse.move(box.x+box.width*.7,box.y+box.height*.7,{steps:4});await page.mouse.up();
   await expect(page.locator("#crop-width")).not.toHaveValue("200");
@@ -671,8 +672,7 @@ test("crop selection exposes eight resize handles and supports resizing", async 
   await expect(page.locator("#crop-info")).toContainText("تم تحديد مساحة الاقتصاص");
   await expect(page.locator("[data-crop-handle]")).toHaveCount(8);
   const oldWidth=await page.locator("#crop-width").inputValue();
-  await page.locator("[data-crop-handle='se']").hover();
-  const handle=await page.locator("[data-crop-handle='se']").boundingBox();if(!handle)throw new Error("resize handle missing");
+  const handle=await page.locator("[data-crop-handle='se']").evaluate(element=>{const r=element.getBoundingClientRect();return{x:r.left,y:r.top,width:r.width,height:r.height};});
   await page.mouse.move(handle.x+handle.width/2,handle.y+handle.height/2);await page.mouse.down();
   await page.mouse.move(handle.x+handle.width+20,handle.y+handle.height+12,{steps:3});await page.mouse.up();
   await expect(page.locator("#crop-info")).toContainText("تم تحديد مساحة الاقتصاص");
