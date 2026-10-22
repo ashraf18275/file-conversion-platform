@@ -672,6 +672,7 @@ test("crop selection exposes eight resize handles and supports resizing", async 
   const handle=await page.locator("[data-crop-handle='se']").boundingBox();if(!handle)throw new Error("resize handle missing");
   await page.mouse.move(handle.x+handle.width/2,handle.y+handle.height/2);await page.mouse.down();
   await page.mouse.move(handle.x+handle.width+20,handle.y+handle.height+12,{steps:3});await page.mouse.up();
+  await expect(page.locator("#crop-info")).toContainText("تم تحديد مساحة الاقتصاص");
   await expect(page.locator("#crop-width")).not.toHaveValue(oldWidth);
 });
 

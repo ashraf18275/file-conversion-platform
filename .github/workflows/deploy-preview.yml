@@ -3,6 +3,8 @@ name: Deploy prototype preview
 on:
   push:
     branches: [phase-1-prototype]
+    paths-ignore:
+      - '**.md'
   workflow_dispatch:
 
 permissions:
