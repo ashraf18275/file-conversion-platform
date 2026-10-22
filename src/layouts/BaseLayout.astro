@@ -56,6 +56,18 @@ footer{margin-top:20px;background:#fff;border-top-color:#e4e9f1}
 .footer-inner{padding-block:4px}
 @media(max-width:640px){.nav{min-height:0;padding:10px 0 7px}.brand-mark{width:39px;height:39px;flex-basis:39px}.links a{min-height:42px}main{padding-top:18px}.tool-panel{padding:15px;margin:12px 0}.button{width:auto;min-height:48px}}
 
+
+/* Mobile overflow guard: keep wide tool content inside the viewport */
+html{max-width:100%;overflow-x:clip}
+body{max-width:100%;overflow-x:clip}
+.wrap{min-width:0;max-width:100%}
+@media(max-width:640px){
+  .nav{min-width:0;width:100%;max-width:100%;flex-wrap:wrap}
+  .brand{min-width:0;max-width:100%}
+  .links{min-width:0;max-width:100%;width:100%}
+  .links a{max-width:100%}
+}
+
 </style>
 </head>
 <body>
