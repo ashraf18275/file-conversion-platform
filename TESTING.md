@@ -7,10 +7,10 @@
 - `npm run test:e2e` — اختبارات Chromium عبر Playwright.
 
 ## آخر نتيجة آلية
-- آخر commit تم التحقق منه: `6b55bbc9bb70977a842853e3b2826b800d7398e8`.
-- فحص الجودة: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39705625339 — ناجح.
-- النتيجة: `npm test` و`npm run check` والبناء ناجحة، و**33 اختبار Chromium ناجحًا من 33**.
-- نشر المعاينة: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39705619591 — ناجح.
+- آخر commit تم التحقق منه: `426fbd9eea700b1a3d98b3b23556c7f0cd78e563`.
+- فحص الجودة: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39705893663 — ناجح.
+- النتيجة: `npm test` و`npm run check` والبناء ناجحة، و**35 اختبار Chromium ناجحًا من 35**.
+- نشر المعاينة: https://github.com/ashraf18275/file-conversion-platform/actions/runs/39705888095 — ناجح.
 - رابط المعاينة المنشورة: https://ashraf18275.github.io/file-conversion-platform/
 
 ## قائمة الاختبار اليدوي

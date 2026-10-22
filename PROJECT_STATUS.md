@@ -7,10 +7,10 @@
 - المستودع: `ashraf18275/file-conversion-platform`.
 - فرع التطوير: `phase-1-prototype`.
 - طلب الدمج: [PR #1](https://github.com/ashraf18275/file-conversion-platform/pull/1) — مسودة، لم تُدمج إلى `main`.
-- آخر commit اجتاز التحقق الكامل: `6b55bbc9bb70977a842853e3b2826b800d7398e8`.
-- نتيجة الجودة: **33/33 اختبار Chromium ناجح**، مع نجاح `npm test` و`npm run check` والبناء. [سجل الجودة](https://github.com/ashraf18275/file-conversion-platform/actions/runs/39705625339).
-- معاينة GitHub Pages لنفس النسخة نُشرت بنجاح: [رابط المعاينة](https://ashraf18275.github.io/file-conversion-platform/). [سجل النشر](https://github.com/ashraf18275/file-conversion-platform/actions/runs/39705619591).
-- اجتاز آخر commit فحص الجودة واختبارات Chromium، ونُشرت معاينته بنجاح. تغييرات التوثيق اللاحقة لا تغيّر كود المنتج، وتُتجاهل في تشغيلات CI والنشر لتقليل التشغيلات غير الضرورية.
+- آخر commit اجتاز التحقق الكامل: `426fbd9eea700b1a3d98b3b23556c7f0cd78e563`.
+- نتيجة الجودة: **35/35 اختبار Chromium ناجح**، مع نجاح `npm test` و`npm run check` والبناء. [سجل الجودة](https://github.com/ashraf18275/file-conversion-platform/actions/runs/39705893663).
+- معاينة GitHub Pages لنفس النسخة نُشرت بنجاح: [رابط المعاينة](https://ashraf18275.github.io/file-conversion-platform/). [سجل النشر](https://github.com/ashraf18275/file-conversion-platform/actions/runs/39705888095).
+- اجتاز آخر commit فحص الجودة واختبارات Chromium (**35/35**)، بما فيها اختبار مسارات الأدوات الـ21 والتخطيط على شاشة هاتف 390 بكسل. نُشرت المعاينة بنجاح.
 
 ## ما أُنجز في القالب وخريطة الأدوات
 
