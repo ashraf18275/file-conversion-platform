@@ -493,10 +493,8 @@ test("organizes tools into accessible tabs without resetting editor values", asy
   await expect(page.getByRole("tab", { name: "الأبعاد والاقتصاص" })).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#panel-size #width")).toBeVisible();
   await page.locator("#panel-size #width").fill("900");
-  await page.getByRole("tab", { name: "إزالة الخلفية" }).click();
-  await expect(page.locator("#panel-background")).toBeVisible();
-  await expect(page.locator("#panel-background")).toContainText("صور الأشخاص");
-  await expect(page.locator("#remove-background")).toBeDisabled();
+  await expect(page.getByRole("tab", { name: "إزالة الخلفية" })).toHaveCount(0);
+  await expect(page.locator("#panel-background")).toBeHidden();
   await page.getByRole("tab", { name: "تحويل الصيغ" }).click();
   await expect(page.locator("#panel-export #format")).toBeVisible();
   await page.getByRole("tab", { name: "التدوير والقلب" }).click();
@@ -508,83 +506,10 @@ test("organizes tools into accessible tabs without resetting editor values", asy
 });
 
 
-test("keeps background model downloads lazy until the user starts removal", async ({ page }) => {
-  const externalRequests: string[] = [];
-  page.on("request", request => {
-    if (/huggingface\.co|cdn\.jsdelivr\.net|unpkg\.com/i.test(request.url())) externalRequests.push(request.url());
-  });
+test("does not expose background removal before its real model is verified", async ({ page }) => {
   await page.goto("/convert/");
-  await page.getByRole("tab", { name: "إزالة الخلفية" }).click();
-  await expect(page.locator("#remove-background")).toBeDisabled();
-  expect(externalRequests).toHaveLength(0);
-});
-
-
-test("applies a mocked local background-removal result and can restore the original", async ({ page }) => {
-  const externalRequests: string[] = [];
-  page.on("request", request => {
-    if (/^https?:/i.test(request.url())) externalRequests.push(request.url());
-  });
-  await page.goto("/convert/");
-  await page.locator("#image-file").setInputFiles({
-    name: "portrait-test.png",
-    mimeType: "image/png",
-    buffer: pixel
-  });
-  await expect(page.locator("#remove-background")).toBeEnabled();
-  await page.evaluate(() => {
-    Object.assign(window, {
-      loadLocalBackgroundPipeline: async () => async (_task: string, _model: string, _options: Record<string, unknown>) => async () => [{
-        toBlob: async () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = 2;
-          canvas.height = 2;
-          const context = canvas.getContext("2d");
-          if (!context) throw new Error("Canvas context unavailable");
-          context.fillStyle = "#ff0000";
-          context.fillRect(0, 0, 1, 1);
-          return await new Promise<Blob>((resolve, reject) => {
-            canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Could not create mock cutout")), "image/png");
-          });
-        }
-      }]
-    });
-  });
-  externalRequests.length = 0;
-  await page.getByRole("tab", { name: "إزالة الخلفية" }).click();
-  await page.locator("#remove-background").click();
-  await expect(page.locator("#background-status")).toContainText("اكتملت إزالة الخلفية", { timeout: 10_000 });
-  await expect(page.locator("#restore-original")).toBeVisible();
-  await expect(page.locator("#format")).toHaveValue("image/png");
-  await expect(page.locator("#matte-strength")).toBeEnabled();
-  await expect(page.locator("#preview-wrap")).toHaveCSS("background-image", /linear-gradient/);
-  expect(externalRequests, "The selected image must not be uploaded during local background processing").toHaveLength(0);
-  await page.locator("#matte-strength").evaluate(element => {
-    const slider = element as HTMLInputElement;
-    slider.value = "1.10";
-    slider.dispatchEvent(new Event("input", { bubbles: true }));
-    slider.dispatchEvent(new Event("change", { bubbles: true }));
-  });
-  await expect(page.locator("#background-status")).toContainText("تم تحديث الحواف", { timeout: 10_000 });
-  await page.locator("#convert").click();
-  await expect(page.locator("#result")).toBeVisible();
-  const outputAlpha = await page.locator("#result-preview").evaluate(async element => {
-    const image = element as HTMLImageElement;
-    await image.decode();
-    const canvas = document.createElement("canvas");
-    canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("Canvas context unavailable");
-    context.drawImage(image, 0, 0);
-    const pixels = context.getImageData(0, 0, 2, 2).data;
-    return { subjectAlpha: pixels[3], transparentAlpha: pixels[7] };
-  });
-  expect(outputAlpha.subjectAlpha).toBeGreaterThan(0);
-  expect(outputAlpha.transparentAlpha).toBe(0);
-  await page.getByRole("tab", { name: "إزالة الخلفية" }).click();
-  await page.locator("#restore-original").click();
-  await expect(page.locator("#restore-original")).toBeHidden();
-  await expect(page.locator("#background-status")).toContainText("تمت استعادة الصورة الأصلية");
+  await expect(page.getByRole("tab", { name: "إزالة الخلفية" })).toHaveCount(0);
+  await expect(page.locator("#panel-background")).toBeHidden();
 });
 
 // Drag creation and resize behavior are covered together in the crop-handle regression test below.
@@ -609,8 +534,8 @@ test("converts multiple selected images locally and provides one download per re
 test("tool directory supports Arabic search and category filtering", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("#tool-search")).toBeVisible();
-  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(27);
-  await expect(page.locator("#tool-results")).toHaveText("27 أداة في الدليل");
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(5);
+  await expect(page.locator("#tool-results")).toHaveText("5 أدوات في الدليل");
   await page.getByRole("button", { name: "ضغط الصور" }).click();
   await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(1);
   await expect(page.locator("#tool-results")).toHaveText("أداة واحدة في الدليل");
@@ -621,45 +546,15 @@ test("tool directory supports Arabic search and category filtering", async ({ pa
   await page.locator("#tool-search").fill("تحويل");
   await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(0);
   await page.getByRole("button", { name: "الكل" }).click();
-  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(9);
-  await expect(page.locator("#tool-results")).toHaveText("9 أدوات في الدليل");
-  await expect(page.locator("#tool-grid .planned-tool-card")).toHaveCount(21);
-  await expect(page.locator("#tool-grid .planned-tool-card .tag-coming-soon")).toHaveCount(21);
-});
-
-test("planned tools have stable routes and do not pretend to process files", async ({ page }) => {
-  await page.goto("/tools/pdf-merge/");
-  await expect(page.getByRole("heading", { name: "دمج ملفات PDF" })).toBeVisible();
-  await expect(page.getByText("قريبًا")).toBeVisible();
-  await expect(page.getByText("هذه الأداة لم تُنفّذ بعد.")).toBeVisible();
-  await expect(page.locator("#image-file")).toHaveCount(0);
-  await expect(page.locator("#convert")).toHaveCount(0);
-  await page.getByRole("link", { name: /العودة إلى دليل الأدوات/ }).click();
-  await expect(page).toHaveURL(/\/$/);
-});
-
-test("every planned tool has a working route and honest coming-soon state", async ({ page }) => {
-  await page.goto("/");
-  const hrefs = await page.locator("#tool-grid .planned-tool-card").evaluateAll(links =>
-    links.map(link => (link as HTMLAnchorElement).getAttribute("href")).filter((href): href is string => Boolean(href))
-  );
-  expect(hrefs).toHaveLength(21);
-  expect(new Set(hrefs).size).toBe(21);
-  for (const href of hrefs) {
-    await page.goto(href);
-    await expect(page.locator("h1")).toHaveCount(1);
-    await expect(page.locator(".coming-badge")).toContainText("قريبًا");
-    await expect(page.locator(".planned-note")).toContainText("هذه الأداة لم تُنفّذ بعد");
-    await expect(page.locator("#image-file")).toHaveCount(0);
-    await expect(page.locator("#convert")).toHaveCount(0);
-  }
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(1);
+  await expect(page.locator("#tool-results")).toHaveText("أداة واحدة في الدليل");
 });
 
 test("home tool directory fits a narrow phone viewport without horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page.locator("#tool-search")).toBeVisible();
-  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(27);
+  await expect(page.locator("#tool-grid .tool-card:visible")).toHaveCount(5);
   const hasHorizontalOverflow = await page.evaluate(() =>
     document.documentElement.scrollWidth > document.documentElement.clientWidth
   );
@@ -824,7 +719,7 @@ test("mobile navigation stays compact, scrollable, and free of page overflow", a
       right: link.getBoundingClientRect().right
     }))
   }));
-  expect(measurements.links).toHaveLength(4);
+  expect(measurements.links).toHaveLength(6);
   expect(measurements.scrollWidth).toBeGreaterThanOrEqual(measurements.clientWidth);
   expect(measurements.pageWidth).toBeLessThanOrEqual(measurements.viewportWidth + 1);
   await nav.evaluate(element => { element.scrollLeft = -element.scrollWidth; });
@@ -834,7 +729,7 @@ test("mobile navigation stays compact, scrollable, and free of page overflow", a
 
 test("marks the current page in the primary navigation", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("header nav a[aria-current='page']")).toHaveText("جميع الأدوات");
+  await expect(page.locator("header nav a[aria-current='page']")).toHaveText("الرئيسية");
   await page.goto("/convert/");
   await expect(page.locator("header nav a[aria-current='page']")).toHaveText("محرر الصور");
   await page.goto("/guide/");

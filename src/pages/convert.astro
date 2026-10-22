@@ -13,7 +13,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <div class="editor-tabs" role="tablist" aria-label="أدوات تحرير الصورة">
   <button class="editor-tab active" type="button" role="tab" id="tab-export" aria-selected="true" aria-controls="panel-export" data-editor-tab="export">تحويل الصيغ</button>
   <button class="editor-tab" type="button" role="tab" id="tab-size" aria-selected="false" aria-controls="panel-size" data-editor-tab="size">الأبعاد والاقتصاص</button>
-  <button class="editor-tab" type="button" role="tab" id="tab-background" aria-selected="false" aria-controls="panel-background" data-editor-tab="background">إزالة الخلفية</button>
+  <button class="editor-tab" type="button" role="tab" id="tab-background" aria-selected="false" aria-controls="panel-background" data-editor-tab="background" hidden>إزالة الخلفية</button>
   <button class="editor-tab" type="button" role="tab" id="tab-transform" aria-selected="false" aria-controls="panel-transform" data-editor-tab="transform">التدوير والقلب</button>
   <button class="editor-tab" type="button" role="tab" id="tab-enhance" aria-selected="false" aria-controls="panel-enhance" data-editor-tab="enhance">تحسين الصور</button>
 </div>
@@ -107,7 +107,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <div id="result" class="result" hidden><h2>النتيجة</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التعديل" /><p id="result-info"></p><div id="target-warning" class="warn" hidden></div><a id="download" class="button" download>تنزيل الصورة</a></div>
 </section>
 <script is:inline>
-const editorTabs = Array.from(document.querySelectorAll("[data-editor-tab]"));
+const editorTabs = Array.from(document.querySelectorAll("[data-editor-tab]")).filter(tab => !tab.hidden);
 const editorPanels = Array.from(document.querySelectorAll("[data-editor-panel]"));
 const detailPanels = Array.from(document.querySelectorAll("details.tool-panel"));
 const tabAssignment = ["size", "size", "export", "transform"];
@@ -136,7 +136,6 @@ editorTabs.forEach((tab, index) => {
 });
 activateEditorTab("export");
 if (location.hash === "#crop-panel") activateEditorTab("size");
-if (location.hash === "#panel-background") activateEditorTab("background");
 if (location.hash === "#panel-enhance") activateEditorTab("enhance");
 const fileInput = document.querySelector("#image-file");
 const formatInput = document.querySelector("#format");
