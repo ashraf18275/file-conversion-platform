@@ -664,6 +664,8 @@ test("crop selection exposes eight resize handles and supports resizing", async 
   });
   await expect(page.locator("#convert")).toBeEnabled();
   const overlay=page.locator("#crop-overlay");
+  await expect(overlay).toBeVisible();
+  await overlay.scrollIntoViewIfNeeded();
   const box=await overlay.evaluate(element=>{const r=element.getBoundingClientRect();return{x:r.left,y:r.top,width:r.width,height:r.height};});
   await page.mouse.move(box.x+box.width*.2,box.y+box.height*.2);await page.mouse.down();
   await page.mouse.move(box.x+box.width*.7,box.y+box.height*.7,{steps:4});await page.mouse.up();
