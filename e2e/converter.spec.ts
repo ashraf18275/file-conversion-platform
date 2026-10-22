@@ -845,3 +845,17 @@ test("image guide renders format cards without visible escape characters", async
   const bodyText = await page.locator("body").innerText();
   expect(bodyText).not.toContain("\\n");
 });
+
+
+test("loads the site without requesting remote web fonts", async ({ page }) => {
+  const remoteFontRequests: string[] = [];
+  page.on("request", request => {
+    if (/fonts\\.(googleapis|gstatic)\\.com/i.test(request.url())) remoteFontRequests.push(request.url());
+  });
+  await page.goto("/");
+  await expect(page.locator("main h1")).toBeVisible();
+  expect(remoteFontRequests).toHaveLength(0);
+  await page.goto("/privacy/");
+  await expect(page.getByRole("heading", { name: "الاتصالات الخارجية" })).toBeVisible();
+  await expect(page.locator("body")).toContainText("خطوط النظام");
+});
