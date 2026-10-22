@@ -44,10 +44,7 @@ function filterTools() {
     card.hidden = !(matchesCategory && matchesQuery);
     if (!card.hidden) visible++;
   }
-  if (toolResults) {
-    const label = visible === 0 ? "لا توجد أدوات مطابقة" : visible === 1 ? "أداة واحدة في الدليل" : visible === 2 ? "أداتان في الدليل" : visible <= 10 ? visible + " أدوات في الدليل" : visible + " أداة في الدليل";
-    toolResults.textContent = label;
-  }
+  if (toolResults) toolResults.textContent = "";
 }
 filterTools();
 toolSearch?.addEventListener("input", filterTools);
