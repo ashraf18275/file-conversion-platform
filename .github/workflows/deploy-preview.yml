@@ -1,8 +1,8 @@
-name: Deploy prototype preview
+name: Deploy site to GitHub Pages
 
 on:
   push:
-    branches: [phase-1-prototype]
+    branches: [main]
     paths-ignore:
       - '**.md'
   workflow_dispatch:
@@ -22,7 +22,7 @@ jobs:
       name: github-pages
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout prototype branch
+      - name: Checkout main
         uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -42,6 +42,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-      - name: Deploy preview
+      - name: Deploy site
         id: deployment
         uses: actions/deploy-pages@v5
