@@ -11,17 +11,6 @@ const base = import.meta.env.BASE_URL;
     <div class="hero-actions"><a class="button hero-primary" href={`${base}convert/`}><span aria-hidden="true">⇄</span> ابدأ تحويل الصور الآن <span aria-hidden="true">←</span></a><a class="button hero-secondary" href={`${base}convert/`}><span aria-hidden="true">▣</span> افتح مساحة الصور</a></div>
     <div class="trust-line"><span aria-hidden="true">✓</span> لا حاجة إلى إنشاء حساب <span class="trust-separator">•</span> معالجة محلية في الأدوات المدعومة</div>
   </div>
-  <div class="hero-art product-preview" aria-label="معاينة توضيحية لمساحة تحويل الصور">
-    <div class="workspace-window">
-      <div class="workspace-topbar"><span class="window-dots"><i></i><i></i><i></i></span><span class="workspace-title">مساحة تحويل الصور</span><span class="workspace-state"><i></i> معالجة محلية</span></div>
-      <div class="workspace-body">
-        <div class="workspace-file"><div class="workspace-image"><div class="workspace-sun"></div><div class="workspace-hill hill-back"></div><div class="workspace-hill hill-front"></div></div><div class="workspace-file-meta"><strong>معاينة توضيحية</strong><span>مثال بصري للواجهة</span></div></div>
-        <div class="workspace-convert"><span class="convert-step">صيغة الإخراج</span><div class="format-options"><span class="format-option">PNG</span><span class="format-option selected">WebP <b>✓</b></span><span class="format-option">JPG</span></div><div class="workspace-setting"><span>جودة الصورة</span><strong>حسب الحاجة</strong></div><div class="quality-track"><span></span></div><div class="workspace-result"><span class="result-check">✓</span><span><strong>راجع النتيجة</strong><small>المعاينة رسم توضيحي</small></span></div></div>
-      </div>
-      <div class="workspace-footer"><span><i></i> ملفاتك لا تغادر جهازك</span><span class="workspace-export">تصدير الصورة <b>↗</b></span></div>
-    </div>
-    <div class="preview-floating-badge"><span>✓</span><div><strong>بخطوات بسيطة</strong><small>من الصورة إلى النتيجة</small></div></div>
-  </div>
 </section>
 <section class="value-strip" aria-label="مميزات المنصة">
   <div class="value-item"><span class="value-icon">↗</span><div><strong>أدوات واضحة</strong><small>إعدادات في مكان واحد</small></div></div>
@@ -202,5 +191,33 @@ for (const button of categoryButtons) button.addEventListener("click", () => {
 .tool-card{border-color:#dbe3f0}
 .tool-card-description{font-size:.86rem}
 @media(max-width:600px){.home-hero .hero-actions{grid-template-columns:1fr;max-width:none}.home-hero .hero-actions .button{width:100%;min-height:54px}.section-heading .section-cta{width:100%;justify-content:center}.ad-slot{min-height:82px;margin:14px 0}.ad-slot-bottom{min-height:96px}}
+
+
+/* Homepage simplification: prioritize the task and reveal tools sooner */
+.home-hero{
+  grid-template-columns:minmax(0,1fr);
+  min-height:0;
+  margin:0 0 24px;
+  padding:clamp(22px,3.2vw,38px);
+  gap:0;
+  border-radius:20px;
+}
+.home-hero .hero-copy{max-width:820px;margin-inline:auto;width:100%}
+.home-hero h1{font-size:clamp(2rem,4vw,3.35rem);margin:12px 0}
+.home-hero .lead{max-width:760px}
+.home-hero .hero-actions{max-width:560px}
+.value-strip{margin:0 0 32px}
+.section-heading{margin-top:0}
+@media(max-width:760px){
+  .home-hero{padding:22px 20px 20px;margin-bottom:22px;gap:0}
+  .home-hero h1{font-size:clamp(2rem,7vw,2.8rem)}
+  .home-hero .hero-actions{grid-template-columns:1fr 1fr}
+  .value-strip{margin:0 0 26px}
+}
+@media(max-width:600px){
+  .home-hero{padding:20px 16px 18px}
+  .home-hero .hero-actions{grid-template-columns:1fr}
+  .home-hero .hero-actions .button{width:100%;min-height:50px}
+}
 
 </style>
