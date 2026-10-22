@@ -850,7 +850,7 @@ test("image guide renders format cards without visible escape characters", async
 test("loads the site without requesting remote web fonts", async ({ page }) => {
   const remoteFontRequests: string[] = [];
   page.on("request", request => {
-    if (/fonts\\.(googleapis|gstatic)\\.com/i.test(request.url())) remoteFontRequests.push(request.url());
+    if (/fonts\.(googleapis|gstatic)\.com/i.test(request.url())) remoteFontRequests.push(request.url());
   });
   await page.goto("/");
   await expect(page.locator("main h1")).toBeVisible();
