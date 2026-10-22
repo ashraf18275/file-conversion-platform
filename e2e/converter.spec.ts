@@ -750,3 +750,31 @@ test("image enhancement controls update preview and are applied to exported pixe
   expect(pixel[2]).toBeGreaterThan(130);
 });
 
+test("clears the selected image and resets the preview safely", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.locator("#image-file").setInputFiles({
+    name: "selected.png",
+    mimeType: "image/png",
+    buffer: pixel
+  });
+  await expect(page.locator("#preview-wrap")).toBeVisible();
+  await expect(page.locator("#remove-selected")).toBeEnabled();
+  await page.locator("#remove-selected").click();
+  await expect(page.locator("#image-file")).toHaveValue("");
+  await expect(page.locator("#preview-wrap")).toBeHidden();
+  await expect(page.locator("#convert")).toBeDisabled();
+  await expect(page.locator("#remove-selected")).toBeDisabled();
+  await expect(page.locator("#source-info")).toContainText("لم يتم اختيار صورة");
+});
+
+test("shows all selected files in the multi-image queue", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.locator("#image-file").setInputFiles([
+    { name: "first.png", mimeType: "image/png", buffer: pixel },
+    { name: "second.png", mimeType: "image/png", buffer: pixel }
+  ]);
+  await expect(page.locator("#batch-panel")).toBeVisible();
+  await expect(page.locator("#batch-count")).toContainText("2 ملفات محددة");
+  await expect(page.locator("#batch-file-list li")).toHaveCount(2);
+  await expect(page.locator("#batch-convert")).toBeEnabled();
+});
