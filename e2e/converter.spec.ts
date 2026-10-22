@@ -824,3 +824,15 @@ test("mobile navigation stays compact, scrollable, and free of page overflow", a
   await nav.evaluate(element => { element.scrollLeft = -element.scrollWidth; });
   await expect(nav.getByRole("link", { name: "الخصوصية" })).toBeInViewport();
 });
+
+
+test("marks the current page in the primary navigation", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("header nav a[aria-current='page']")).toHaveText("جميع الأدوات");
+  await page.goto("/convert/");
+  await expect(page.locator("header nav a[aria-current='page']")).toHaveText("محرر الصور");
+  await page.goto("/guide/");
+  await expect(page.locator("header nav a[aria-current='page']")).toHaveText("دليل الاستخدام");
+  await page.goto("/privacy/");
+  await expect(page.locator("header nav a[aria-current='page']")).toHaveText("الخصوصية");
+});
