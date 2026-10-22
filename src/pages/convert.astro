@@ -283,7 +283,10 @@ const syncCropOverlay = () => {
 };
 let cropDragStart = null;
 const cropPoint = event => {
-  const rect = preview.getBoundingClientRect();
+  // Use the interactive overlay's own bounds so pointer coordinates always map
+  // to the exact region the user can see and drag, including responsive layouts.
+  const rect = cropOverlay.getBoundingClientRect();
+  if (!rect.width || !rect.height) return { x: 0, y: 0 };
   return {
     x: Math.max(0, Math.min(sourceDimensions.width, Math.round((event.clientX - rect.left) / rect.width * sourceDimensions.width))),
     y: Math.max(0, Math.min(sourceDimensions.height, Math.round((event.clientY - rect.top) / rect.height * sourceDimensions.height)))
