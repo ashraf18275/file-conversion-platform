@@ -79,6 +79,12 @@ const config = conversionMap[tool.slug];
   let files = [];
   let busy = false;
   let cancelRequested = false;
+  const objectUrls = new Set();
+  const clearResults = () => {
+    objectUrls.forEach(url => URL.revokeObjectURL(url));
+    objectUrls.clear();
+    results.replaceChildren();
+  };
   const formatSize = (bytes) => bytes < 1024 * 1024
     ? (bytes / 1024).toFixed(1) + " كيلوبايت"
     : (bytes / (1024 * 1024)).toFixed(2) + " ميجابايت";
@@ -120,6 +126,17 @@ const config = conversionMap[tool.slug];
     addFiles(Array.from(input.files || []));
     input.value = "";
   });
+  document.addEventListener("paste", event => {
+    if (busy) return;
+    const pastedFiles = Array.from(event.clipboardData?.items || [])
+      .filter(item => item.kind === "file" && item.type.startsWith("image/"))
+      .map(item => item.getAsFile())
+      .filter(Boolean);
+    if (pastedFiles.length) {
+      addFiles(pastedFiles);
+      status.textContent = "تمت إضافة " + pastedFiles.length + " صورة من الحافظة. " + status.textContent;
+    }
+  });
   ["dragenter", "dragover"].forEach(eventName => dropZone.addEventListener(eventName, event => {
     event.preventDefault();
     dropZone.classList.add("dragging");
@@ -130,7 +147,7 @@ const config = conversionMap[tool.slug];
   }));
   dropZone.addEventListener("drop", event => addFiles(Array.from(event.dataTransfer?.files || [])));
   if (quality) quality.addEventListener("input", () => { qualityValue.textContent = quality.value + "%"; });
-  clearButton.addEventListener("click", () => { files = []; results.replaceChildren(); renderList(); status.textContent = "تم مسح القائمة."; });
+  clearButton.addEventListener("click", () => { files = []; clearResults(); renderList(); status.textContent = "تم مسح القائمة."; });
   cancelButton.addEventListener("click", () => {
     if (!busy) return;
     cancelRequested = true;
@@ -178,7 +195,7 @@ const config = conversionMap[tool.slug];
     if (busy || !files.length) return;
     busy = true;
     cancelRequested = false;
-    results.replaceChildren();
+    clearResults();
     progress.hidden = false;
     progress.value = 0;
     renderList();
@@ -191,6 +208,7 @@ const config = conversionMap[tool.slug];
       try {
         const converted = await convertOne(file);
         const url = URL.createObjectURL(converted.blob);
+        objectUrls.add(url);
         const article = document.createElement("article");
         article.className = "result-card";
         const heading = document.createElement("strong");
@@ -229,6 +247,7 @@ const config = conversionMap[tool.slug];
       status.textContent = "انتهى التحويل: نجح " + completed + " من " + snapshot.length + " ملف." + (completed === snapshot.length ? "" : " راجع رسائل الأخطاء بجوار النتائج.");
     }
   });
+  window.addEventListener("pagehide", clearResults, { once: true });
 })();
 </script>
 <style>
