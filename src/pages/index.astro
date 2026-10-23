@@ -5,7 +5,8 @@ const base = import.meta.env.BASE_URL;
 <BaseLayout title="تحويل الصور وضغطها وتغيير حجمها مجانًا أونلاين" description="أدوات صور مجانية أونلاين: تحويل JPG إلى PNG وWebP، ضغط الصور، تغيير حجم الصورة واقتصاصها وتدويرها مباشرة من المتصفح.">
 
 
-<section class="section-heading" id="tools"><div><h2>اختر الأداة المناسبة</h2></div></section>
+<div class="wrap">
+
 <aside class="ad-slot ad-slot-top" aria-label="مساحة إعلانية"><span class="ad-label">إعلان</span><span class="ad-placeholder">مساحة إعلانية متاحة مستقبلًا</span></aside>
 <div class="tool-filters" aria-label="البحث وتصنيف الأدوات">
   <label class="tool-search"><span aria-hidden="true">⌕</span><input id="tool-search" type="search" placeholder="ابحث باسم الأداة أو الصيغة…" aria-label="ابحث باسم الأداة أو الصيغة" /></label>
@@ -19,15 +20,18 @@ const base = import.meta.env.BASE_URL;
   </div>
 
 </div>
+
 <section class="tool-grid" id="tool-grid" aria-label="أدوات المنصة">
-  <a class="tool-card featured" data-category="convert" data-search="تحويل صيغ الصور png jpeg jpg webp bmp تحويل صيغة" href={`${base}convert/#format-panel`}><span class="tool-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"/></svg></span><span class="tool-card-title">تحويل صيغ الصور</span><span class="tool-card-description">حوّل إلى PNG أو JPEG أو WebP أو BMP، مع توضيح خصائص كل صيغة.</span><span class="tool-card-action">ابدأ التحويل <span aria-hidden="true">←</span></span><span class="tool-tag">الأداة الأساسية</span></a>
-  <a class="tool-card" data-category="advanced" data-search="اقتصاص قص تغيير الأبعاد المقاس الحجم crop resize" href={`${base}convert/#crop-panel`}><span class="tool-icon icon-violet" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M8 8h8v8H8z"/></svg></span><span class="tool-card-title">اقتصاص وتغيير الأبعاد</span><span class="tool-card-description">حدّد الجزء المطلوب، واضبط مقاس الصورة قبل التصدير.</span><span class="tool-card-action">فتح المحرر <span aria-hidden="true">←</span></span></a>
-  <a class="tool-card" data-category="compress" data-search="ضغط الصور تقليل الحجم الجودة jpeg webp compress" href={`${base}convert/#quality`}><span class="tool-icon icon-green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h12M4 17h8"/><circle cx="18" cy="12" r="2"/><circle cx="14" cy="17" r="2"/></svg></span><span class="tool-card-title">ضغط الصور</span><span class="tool-card-description">اضبط جودة JPEG وWebP وقارن حجم الملف الناتج بالأصل.</span><span class="tool-card-action">تقليل الحجم <span aria-hidden="true">←</span></span></a>
-  <a class="tool-card" data-category="edit" data-search="تحسين الصور سطوع إضاءة تباين ألوان تشبع تحسين enhance photo" href={`${base}convert/#panel-enhance`}><span class="tool-icon icon-violet" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="4.2"/></svg></span><span class="tool-card-title">تحسين الصور</span><span class="tool-card-description">اضبط السطوع والتباين وتشبع الألوان، وراجع النتيجة قبل التنزيل.</span><span class="tool-card-action">تحسين الصورة <span aria-hidden="true">←</span></span></a>
-  <a class="tool-card" data-category="edit" data-search="تدوير الصور قلب أفقي رأسي rotate flip" href={`${base}convert/#panel-transform`}><span class="tool-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5M5.6 9A7 7 0 0 1 18 6l2 6M4 12l2 6a7 7 0 0 0 12.4-3"/></svg></span><span class="tool-card-title">التدوير والقلب</span><span class="tool-card-description">دوّر الصورة أو اقلبها أفقيًا ورأسيًا قبل التصدير.</span><span class="tool-card-action">فتح أدوات التدوير <span aria-hidden="true">←</span></span></a>
+  <a class="tool-card featured" data-category="convert" data-search="تحويل صيغ الصور png jpeg jpg webp bmp تحويل صيغة" href={`${base}convert/?tool=convert`}><span class="tool-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"/></svg></span><span class="tool-card-title">تحويل صيغ الصور</span><span class="tool-card-description">حوّل إلى PNG أو JPEG أو WebP أو BMP، مع توضيح خصائص كل صيغة.</span><span class="tool-card-action">ابدأ التحويل <span aria-hidden="true">←</span></span></a>
+  <a class="tool-card" data-category="advanced" data-search="اقتصاص قص تغيير الأبعاد المقاس الحجم crop resize" href={`${base}convert/?tool=crop`}><span class="tool-icon icon-violet" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M8 8h8v8H8z"/></svg></span><span class="tool-card-title">اقتصاص الصور</span><span class="tool-card-description">حدّد الجزء الذي تريد الاحتفاظ به من الصورة قبل التنزيل.</span><span class="tool-card-action">فتح المحرر <span aria-hidden="true">←</span></span></a>
+    <a class="tool-card" data-category="advanced" data-search="تغيير أبعاد الصور تغيير الحجم العرض الارتفاع resize dimensions" href={`${base}convert/?tool=resize`}><span class="tool-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5M8 8h8v8H8z"/></svg></span><span class="tool-card-title">تغيير أبعاد الصور</span><span class="tool-card-description">اضبط العرض والارتفاع دون قص الصورة، مع الحفاظ على تناسبها عند الحاجة.</span><span class="tool-card-action">تغيير الأبعاد <span aria-hidden="true">←</span></span></a>
+  <a class="tool-card" data-category="edit" data-search="إزالة خلفية الصور خلفية شفافة background removal" href={`${base}convert/?tool=background`}><span class="tool-icon icon-violet" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 16l5-5 4 4 3-3 4 4"/><circle cx="9" cy="8" r="1.5"/></svg></span><span class="tool-card-title">إزالة خلفية الصور</span><span class="tool-card-description">جرّب إزالة الخلفية محليًا داخل المتصفح وراجع الحواف قبل التنزيل.</span><span class="tool-card-action">إزالة الخلفية <span aria-hidden="true">←</span></span></a>
+<a class="tool-card" data-category="compress" data-search="ضغط الصور تقليل الحجم الجودة jpeg webp compress" href={`${base}convert/?tool=compress`}><span class="tool-icon icon-green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h12M4 17h8"/><circle cx="18" cy="12" r="2"/><circle cx="14" cy="17" r="2"/></svg></span><span class="tool-card-title">ضغط الصور</span><span class="tool-card-description">اضبط جودة JPEG وWebP وقارن حجم الملف الناتج بالأصل.</span><span class="tool-card-action">تقليل الحجم <span aria-hidden="true">←</span></span></a>
+  <a class="tool-card" data-category="edit" data-search="تحسين الصور سطوع إضاءة تباين ألوان تشبع تحسين enhance photo" href={`${base}convert/?tool=enhance`}><span class="tool-icon icon-violet" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="4.2"/></svg></span><span class="tool-card-title">تحسين الصور</span><span class="tool-card-description">اضبط السطوع والتباين وتشبع الألوان، وراجع النتيجة قبل التنزيل.</span><span class="tool-card-action">تحسين الصورة <span aria-hidden="true">←</span></span></a>
+  <a class="tool-card" data-category="edit" data-search="تدوير الصور قلب أفقي رأسي rotate flip" href={`${base}convert/?tool=transform`}><span class="tool-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5M5.6 9A7 7 0 0 1 18 6l2 6M4 12l2 6a7 7 0 0 0 12.4-3"/></svg></span><span class="tool-card-title">التدوير والقلب</span><span class="tool-card-description">دوّر الصورة أو اقلبها أفقيًا ورأسيًا قبل التصدير.</span><span class="tool-card-action">فتح أدوات التدوير <span aria-hidden="true">←</span></span></a>
 </section>
 <aside class="ad-slot ad-slot-bottom" aria-label="مساحة إعلانية"><span class="ad-label">إعلان</span><span class="ad-placeholder">مساحة إعلانية متاحة مستقبلًا</span></aside>
-  <section class="privacy-strip"><span class="privacy-icon" aria-hidden="true">⌑</span><div><h2>اعرف كيف تُعالج ملفاتك</h2><p>معالجة الصور في المحرر تتم داخل المتصفح. راجع طلبات الشبكة في أدوات المطور للتحقق من عدم إرسال ملف الصورة إلى خادم.</p></div><a href={`${base}privacy/`}>اقرأ سياسة الخصوصية</a></section>
+
 
 <script>
 const toolSearch = document.querySelector<HTMLInputElement>("#tool-search");
@@ -44,7 +48,13 @@ function filterTools() {
     card.hidden = !(matchesCategory && matchesQuery);
     if (!card.hidden) visible++;
   }
-  if (toolResults) toolResults.textContent = "";
+  if (toolResults) {
+    toolResults.textContent = visible === 0
+      ? "لا توجد أدوات مطابقة"
+      : visible === 1
+        ? "أداة واحدة في الدليل"
+        : `${visible} أدوات في الدليل`;
+  }
 }
 filterTools();
 toolSearch?.addEventListener("input", filterTools);
@@ -58,6 +68,7 @@ for (const button of categoryButtons) button.addEventListener("click", () => {
   filterTools();
 });
 </script>
+</div>
 </BaseLayout>
 
 <style>
@@ -263,5 +274,70 @@ for (const button of categoryButtons) button.addEventListener("click", () => {
  .home-hero .hero-actions{max-width:100%}
  .home-hero .hero-actions .button{width:100%;min-width:0}
 }
+
+
+/* Exact calm-green reference palette; visual styles only */
+.home-hero{background:#f4f8f4;border-color:#d8e7dc;box-shadow:none;border-radius:14px}
+.home-hero:after{border-color:#d8e7dc;box-shadow:0 0 0 35px #e7f1e966,0 0 0 70px #e7f1e93d}
+.home-hero .eyebrow{border-color:#d8e7dc;background:#fffefa;color:#315a45}
+.home-hero h1,.section-heading h2,.home-bottom h2{color:#183b2d}
+.home-hero h1 span{color:#167a54}
+.home-hero .lead{color:#536b5c}
+.status-dot{background:#167a54;box-shadow:0 0 0 4px #167a5418}
+.art-glow{background:radial-gradient(circle,#e0efe4 0%,#edf5ef 57%,#f4f8f4 72%)}
+.file-card{border-color:#d8e7dc;box-shadow:0 20px 50px #244b3310}
+.file-line{background:#e7efe8}
+.convert-arrow{background:#167a54;box-shadow:0 10px 24px #167a5430}
+.file-png{background:#e2f1e7;color:#166a49}
+.file-webp,.floating-check{background:#e0f1e5;color:#167a54}
+.floating-check{border-color:#f4f8f4;box-shadow:0 10px 24px #167a541b}
+.tool-filters{border-color:#d8e7dc;border-radius:14px;background:#fffefa;box-shadow:none}
+.tool-search{border-color:#d8e7dc;background:#f7faf7;color:#63796c;border-radius:11px}
+.tool-search input{color:#183b2d}
+.category-filter{border-color:#d8e7dc;border-radius:8px;background:#fffefa;color:#42634f}
+.category-filter:hover{border-color:#9dc8ac;color:#167a54}
+.category-filter.active{background:#e2f1e7;border-color:#c4e1cd;color:#176847}
+.tool-card,.tool-grid .tool-card{border-color:#d8e7dc;border-radius:14px;background:#fffefa;box-shadow:0 5px 18px #244b3308}
+.tool-card:hover,.tool-card.featured{border-color:#a9d4b7;background:#f7fbf7}
+.tool-icon{background:#e1f2e6;color:#167a54}
+.tool-card:nth-child(2) .tool-icon,.tool-card:nth-child(4) .tool-icon{background:#e1f2e6;color:#167a54}
+.tool-card h3,.tool-card h2{color:#183b2d}
+.tool-card p,.tool-card .description{color:#536b5c}
+.tool-card .button,.tool-card .tool-link{background:#167a54;border-color:#167a54;color:#fff}
+.tool-card .button:hover,.tool-card .tool-link:hover{background:#116442}
+.tool-results{color:#63796c}
+.ad-slot{border-color:#c9dfcf;background:#eff5ef;color:#81968a}
+@media(max-width:760px){.tool-filters{background:#fffefa}}
+
+
+/* Button colors only: align all homepage controls with the calm-green theme */
+.button,.button.primary,.hero-actions .button,.home-hero .hero-actions .button{
+  background:#167a54;
+  border-color:#167a54;
+  color:#fff;
+  box-shadow:0 4px 10px #167a5418;
+}
+.button:hover,.button.primary:hover,.hero-actions .button:hover,.home-hero .hero-actions .button:hover{
+  background:#116442;
+  border-color:#116442;
+}
+.button.secondary,.hero-actions .button.secondary,.home-hero .hero-actions .button.secondary{
+  background:#edf5ef;
+  border-color:#d8e7dc;
+  color:#315a45;
+  box-shadow:none;
+}
+.button.secondary:hover,.hero-actions .button.secondary:hover,.home-hero .hero-actions .button.secondary:hover{
+  background:#e2f1e7;
+  border-color:#c4e1cd;
+}
+.category-filter{background:#fffefa;border-color:#d8e7dc;color:#42634f}
+.category-filter:hover,.category-filter.active{
+  background:#e2f1e7;
+  border-color:#c4e1cd;
+  color:#176847;
+}
+.tool-card-action{background:#e2f1e7;color:#176847}
+.tool-card:hover .tool-card-action{background:#167a54;color:#fff}
 
 </style>

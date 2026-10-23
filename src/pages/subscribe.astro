@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+<BaseLayout title="الاشتراك المدفوع" description="معلومات الاشتراك المدفوع في محوّل الملفات.">
+<section class="card subscription-card" dir="rtl">
+  <span class="subscription-mark" aria-hidden="true">✦</span>
+  <h1>الاشتراك المدفوع</h1>
+  <p>استهلكت مرات التنزيل الجماعي المجانية العشر. يمكنك متابعة تنزيل الصور المحوّلة واحدةً واحدة من القائمة.</p>
+  <div class="subscription-note" role="status">
+    <strong>الاشتراكات قيد الإعداد</strong>
+    <span>نظام العضويات والدفع غير متاح حاليًا، لذلك لا يمكن تفعيل مزايا مدفوعة بعد.</span>
+  </div>
+  <a class="button" href="/convert/?tool=convert">العودة إلى تحويل الصور</a>
+</section>
+<style>
+.subscription-card{max-width:680px;margin:48px auto;text-align:center;padding:clamp(24px,5vw,48px)}
+.subscription-mark{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 16px;border-radius:18px;background:#edf4ff;color:#3157c8;font-size:1.8rem}
+.subscription-card h1{margin:0 0 12px;font-size:clamp(1.5rem,4vw,2rem)}
+.subscription-card>p{max-width:480px;margin:0 auto 22px;color:#5f6c80;line-height:1.9}
+.subscription-note{display:flex;flex-direction:column;gap:6px;margin:0 auto 24px;padding:16px;border:1px solid #e6ddbd;border-radius:14px;background:#fbf8ed;color:#665b3a;line-height:1.7}
+.subscription-note strong{color:#4f452c}
+.subscription-card .button{display:inline-flex;justify-content:center;min-height:48px;padding:12px 22px;text-decoration:none}
+@media(max-width:480px){.subscription-card{margin:24px 0}}
+</style>
+</BaseLayout>

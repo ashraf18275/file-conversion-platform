@@ -2,13 +2,16 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 <BaseLayout title="محرر الصور" description="حوّل صور PNG وJPEG وWebP، وغيّر أبعادها واقتصصها واضغطها محليًا داخل المتصفح.">
-<section class="hero editor-hero"><span class="eyebrow"><span class="status-dot"></span> مساحة عمل الصور</span><h1>حوّل صورك وعدّلها <span>بسهولة.</span></h1><p class="lead">اختر صورة، حدّد التعديلات التي تحتاجها، ثم راجع النتيجة قبل التنزيل. تبقى ملفاتك على جهازك أثناء التحويل المحلي.</p></section>
 <section class="card">
-<div class="notice privacy-notice"><span aria-hidden="true">✓</span><span><strong>خصوصيتك أولًا</strong><br />تتم معالجة الصورة داخل المتصفح في الأدوات المحلية؛ لا تُرفع إلى خادم التحويل.</span></div>
-<div class="upload-zone" id="upload-zone"><span class="upload-symbol" aria-hidden="true">↑</span><div class="upload-copy"><strong>أضف صورة لبدء العمل</strong><span>اسحب الصور إلى هنا أو اخترها من جهازك</span></div><label class="button upload-button" for="image-file">اختيار صورة أو عدة صور</label><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" multiple /></div>
-<div class="source-toolbar"><div id="source-info" class="file-meta muted" aria-live="polite">لم يتم اختيار صورة بعد.</div><button id="remove-selected" class="button secondary remove-selected" type="button" disabled>حذف الصورة المختارة</button></div>
-<div id="batch-panel" class="batch-panel" hidden><div class="batch-heading"><strong id="batch-count">0 ملفات محددة</strong><button id="batch-convert" class="button" type="button">تحويل جميع الملفات</button></div><ul id="batch-file-list" class="batch-file-list"></ul><p id="batch-status" class="muted" role="status" aria-live="polite"></p><div id="batch-results" class="batch-results"></div></div>
-<div id="preview-wrap" class="preview-stage" hidden><img id="preview" class="preview" alt="معاينة الصورة الأصلية" /><div id="crop-overlay" class="crop-overlay" aria-label="اسحب لتحديد مساحة الاقتصاص"><div id="crop-selection" class="crop-selection"><span class="crop-handle handle-nw" data-crop-handle="nw" aria-label="تغيير الزاوية العلوية اليسرى"></span><span class="crop-handle handle-n" data-crop-handle="n" aria-label="تغيير الحافة العلوية"></span><span class="crop-handle handle-ne" data-crop-handle="ne" aria-label="تغيير الزاوية العلوية اليمنى"></span><span class="crop-handle handle-e" data-crop-handle="e" aria-label="تغيير الحافة اليمنى"></span><span class="crop-handle handle-se" data-crop-handle="se" aria-label="تغيير الزاوية السفلية اليمنى"></span><span class="crop-handle handle-s" data-crop-handle="s" aria-label="تغيير الحافة السفلية"></span><span class="crop-handle handle-sw" data-crop-handle="sw" aria-label="تغيير الزاوية السفلية اليسرى"></span><span class="crop-handle handle-w" data-crop-handle="w" aria-label="تغيير الحافة اليسرى"></span></div></div><div class="preview-tip">يمكنك سحب المؤشر على الصورة لتحديد الجزء المطلوب</div></div>
+<h1 class="editor-page-title visually-hidden">محرر الصور</h1>
+<div id="preview-wrap" class="preview-stage upload-zone is-empty" role="region" aria-label="منطقة الصور">
+<div id="upload-placeholder" class="upload-placeholder"><span class="upload-symbol" aria-hidden="true">↑</span><div class="upload-copy"><strong>أفلت الصور هنا</strong><span>PNG وJPG وWebP وغيرها؛ يمكنك اختيار عدة صور</span></div><label class="button upload-button" for="image-file">تحميل</label><p id="upload-status" class="upload-status" role="status" aria-live="polite"></p></div>
+<input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" multiple />
+<img id="preview" class="preview" alt="معاينة الصورة الأصلية" hidden /><div id="crop-overlay" class="crop-overlay" aria-label="اسحب لتحديد مساحة الاقتصاص"><div id="crop-selection" class="crop-selection"><span class="crop-handle handle-nw" data-crop-handle="nw" aria-label="تغيير الزاوية العلوية اليسرى"></span><span class="crop-handle handle-n" data-crop-handle="n" aria-label="تغيير الحافة العلوية"></span><span class="crop-handle handle-ne" data-crop-handle="ne" aria-label="تغيير الزاوية العلوية اليمنى"></span><span class="crop-handle handle-e" data-crop-handle="e" aria-label="تغيير الحافة اليمنى"></span><span class="crop-handle handle-se" data-crop-handle="se" aria-label="تغيير الزاوية السفلية اليمنى"></span><span class="crop-handle handle-s" data-crop-handle="s" aria-label="تغيير الحافة السفلية"></span><span class="crop-handle handle-sw" data-crop-handle="sw" aria-label="تغيير الزاوية السفلية اليسرى"></span><span class="crop-handle handle-w" data-crop-handle="w" aria-label="تغيير الحافة اليسرى"></span></div></div><div id="preview-tip" class="preview-tip" hidden>يمكنك سحب المؤشر على الصورة لتحديد الجزء المطلوب</div></div>
+<div id="source-toolbar" class="source-toolbar" hidden><div id="source-info" class="file-meta muted" aria-live="polite">لم يتم اختيار صورة بعد.</div><div class="source-actions"><label id="add-images" class="button secondary add-images" for="image-file">إضافة صور</label><button id="remove-selected" class="button secondary remove-selected" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5" /></svg><span>حذف الصورة</span></button></div></div>
+<div id="batch-panel" class="batch-panel" hidden><div class="batch-heading"><strong id="batch-count">0 ملفات محددة</strong><button id="batch-convert" class="button batch-convert-action" type="button" disabled hidden>تحويل جميع الملفات</button></div><ul id="batch-file-list" class="batch-file-list"></ul><p id="batch-status" class="muted" role="status" aria-live="polite"></p><button id="download-all" class="button premium-download" type="button" hidden aria-label="تحميل كل الصور المحولة"><span class="bulk-download-label">تحميل الكل</span><small id="bulk-download-note"><span id="bulk-download-prefix">المتبقي </span><strong id="bulk-download-count">10</strong><span id="bulk-download-suffix"> من 10</span></small></button><div id="batch-results" class="batch-results"></div></div>
+
+
 
 <div class="editor-tabs" role="tablist" aria-label="أدوات تحرير الصورة">
   <button class="editor-tab active" type="button" role="tab" id="tab-export" aria-selected="true" aria-controls="panel-export" data-editor-tab="export">تحويل الصيغ</button>
@@ -54,7 +57,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </div>
 </div>
 
-<details class="tool-panel" open>
+<details id="resize-panel" class="tool-panel" open>
 <summary>الأبعاد والمقاس</summary>
 <div class="grid fields-grid">
 <div class="field"><label for="width">العرض النهائي (بكسل)</label><input id="width" type="number" min="1" max="12000" inputmode="numeric" value="1200" /></div>
@@ -91,7 +94,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <div class="field"><label for="target-kb">الحجم المستهدف (كيلوبايت)</label><input id="target-kb" type="number" min="1" max="100000" step="1" value="200" inputmode="numeric" disabled /><small class="muted">سيبحث المحرر عن أعلى جودة ممكنة ضمن الحجم المستهدف. قد يتعذر بلوغ الحجم المطلوب مع بعض الصور أو عند استخدام PNG.</small></div>
 </details>
 
-<details class="tool-panel" open>
+<details id="transform-panel" class="tool-panel" open>
 <summary>التدوير والقلب</summary>
 <div class="button-row">
 <button id="rotate-left" class="button secondary" type="button" disabled>تدوير 90° لليسار</button>
@@ -102,9 +105,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <p class="muted hint">يمكنك تجربة التدوير والقلب قبل إنشاء الملف النهائي. تبقى الصورة الأصلية محفوظة.</p>
 </details>
 
-<button id="convert" class="button" disabled>تطبيق التعديلات وتحويل الصورة</button>
+<div class="conversion-actions"><button id="convert" class="button" disabled>تحويل</button><a id="download" class="button download-action" download hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 18v3h14v-3" /></svg><span>تحميل</span></a></div>
 <p id="status" role="status" aria-live="polite" class="muted"></p>
-<div id="result" class="result" hidden><h2>النتيجة</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التعديل" /><p id="result-info"></p><div id="target-warning" class="warn" hidden></div><a id="download" class="button" download>تنزيل الصورة</a></div>
+<div id="result" class="result" hidden><h2>النتيجة</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التعديل" /><p id="result-info"></p><div id="target-warning" class="warn" hidden></div></div>
 </section>
 <script is:inline>
 const editorTabs = Array.from(document.querySelectorAll("[data-editor-tab]")).filter(tab => !tab.hidden);
@@ -137,16 +140,75 @@ editorTabs.forEach((tab, index) => {
 activateEditorTab("export");
 if (location.hash === "#crop-panel") activateEditorTab("size");
 if (location.hash === "#panel-enhance") activateEditorTab("enhance");
+
+/* Focus the shared editor on one selected tool when opened from the tools directory. */
+const toolModes = {
+  convert: { title: "تحويل صيغ الصور", tab: "export", details: ["format-panel"] },
+  compress: { title: "ضغط الصور", tab: "export", details: ["format-panel"] },
+  resize: { title: "تغيير أبعاد الصور", tab: "size", details: ["resize-panel"] },
+  crop: { title: "اقتصاص الصور", tab: "size", details: ["crop-panel"] },
+  transform: { title: "التدوير والقلب", tab: "transform", details: ["transform-panel"] },
+  enhance: { title: "تحسين الصور", tab: "enhance", details: [] },
+  background: { title: "إزالة خلفية الصور", tab: "background", details: [] }
+};
+const requestedTool = new URLSearchParams(location.search).get("tool");
+const selectedTool = toolModes[requestedTool];
+const isConvertWindow = requestedTool === "convert";
+document.documentElement.classList.toggle("convert-window", isConvertWindow);
+if (selectedTool) {
+  document.title = selectedTool.title + " | محوّل الملفات";
+  const heading = document.querySelector(".editor-page-title");
+  if (heading) { heading.textContent = selectedTool.title; heading.classList.remove("visually-hidden"); }
+  editorTabs.forEach(tab => { tab.hidden = tab.dataset.editorTab !== selectedTool.tab; });
+  editorPanels.forEach(panel => {
+    panel.hidden = panel.dataset.editorPanel !== selectedTool.tab;
+  });
+  detailPanels.forEach(panel => {
+    const panelId = panel.id || (panel.querySelector("summary")?.textContent.includes("الأبعاد") ? "resize-panel" :
+      panel.querySelector("summary")?.textContent.includes("التدوير") ? "transform-panel" : "");
+    panel.hidden = !selectedTool.details.includes(panelId);
+  });
+  activateEditorTab(selectedTool.tab);
+  document.querySelector(".editor-tabs")?.setAttribute("aria-label", selectedTool.title);
+  document.querySelector(".editor-tabs")?.setAttribute("hidden", "");
+} else {
+  detailPanels.forEach(panel => { panel.hidden = false; });
+}
 const fileInput = document.querySelector("#image-file");
 const formatInput = document.querySelector("#format");
 const qualityInput = document.querySelector("#quality");
 const qualityValue = document.querySelector("#quality-value");
 const convertButton = document.querySelector("#convert");
+convertButton.hidden = isConvertWindow;
 const status = document.querySelector("#status");
 const sourceInfo = document.querySelector("#source-info");
 const removeSelectedButton = document.querySelector("#remove-selected");
 const previewWrap = document.querySelector("#preview-wrap");
 const preview = document.querySelector("#preview");
+const uploadPlaceholder = document.querySelector("#upload-placeholder");
+const uploadStatus = document.querySelector("#upload-status");
+const previewTip = document.querySelector("#preview-tip");
+const sourceToolbar = document.querySelector("#source-toolbar");
+const addImagesLabel = document.querySelector("#add-images");
+const setWorkspaceHasImage = hasImage => {
+  const showInlinePreview = hasImage && !isConvertWindow;
+  previewWrap.classList.toggle("is-empty", !showInlinePreview);
+  previewWrap.classList.toggle("has-image", showInlinePreview);
+  uploadPlaceholder.hidden = showInlinePreview;
+  preview.hidden = !showInlinePreview;
+  previewTip.hidden = !showInlinePreview;
+  sourceToolbar.hidden = isConvertWindow || !hasImage;
+  if (isConvertWindow) {
+    const copy = uploadPlaceholder.querySelector(".upload-copy strong");
+    const hint = uploadPlaceholder.querySelector(".upload-copy span");
+    const button = uploadPlaceholder.querySelector(".upload-button");
+    if (copy) copy.textContent = hasImage ? "أضف صورًا أخرى أو اسحبها هنا" : "أفلت الصور هنا";
+    if (hint) hint.textContent = hasImage ? "تظهر الصور في القائمة أسفل المنطقة" : "PNG وJPG وWebP وغيرها؛ يمكنك اختيار عدة صور";
+    if (button) button.textContent = hasImage ? "إضافة صور" : "تحميل";
+  }
+  if (!hasImage) previewWrap.classList.remove("crop-mode");
+};
+setWorkspaceHasImage(false);
 const result = document.querySelector("#result");
 const resultPreview = document.querySelector("#result-preview");
 const resultInfo = document.querySelector("#result-info");
@@ -169,10 +231,28 @@ const cropPreviewWrap = document.querySelector("#crop-preview-wrap");
 const cropPreview = document.querySelector("#crop-preview");
 const cropOverlay = document.querySelector("#crop-overlay");
 const cropSelection = document.querySelector("#crop-selection");
-const uploadZone = document.querySelector("#upload-zone");
+const uploadZone = previewWrap;
 const batchPanel = document.querySelector("#batch-panel");
 const batchCount = document.querySelector("#batch-count");
 const batchConvertButton = document.querySelector("#batch-convert");
+const downloadAllButton = document.querySelector("#download-all");
+const bulkDownloadCount = document.querySelector("#bulk-download-count");
+const bulkDownloadNote = document.querySelector("#bulk-download-note");
+const bulkDownloadPrefix = document.querySelector("#bulk-download-prefix");
+const bulkDownloadSuffix = document.querySelector("#bulk-download-suffix");
+const BULK_DOWNLOAD_LIMIT = 10;
+const BULK_DOWNLOAD_KEY = "file-conversion-bulk-downloads-left";
+const readBulkDownloadsLeft = () => {
+  try { const stored = localStorage.getItem(BULK_DOWNLOAD_KEY); if (stored === null) return BULK_DOWNLOAD_LIMIT; const value = Number(stored); return Number.isInteger(value) ? Math.max(0, Math.min(BULK_DOWNLOAD_LIMIT, value)) : BULK_DOWNLOAD_LIMIT; }
+  catch { return BULK_DOWNLOAD_LIMIT; }
+};
+let bulkDownloadsLeft = readBulkDownloadsLeft();
+const renderBulkDownloadCount = () => {
+  if (bulkDownloadCount) bulkDownloadCount.textContent = String(bulkDownloadsLeft);
+  if (bulkDownloadPrefix) bulkDownloadPrefix.textContent = "المتبقي ";
+  if (bulkDownloadSuffix) bulkDownloadSuffix.textContent = bulkDownloadsLeft > 0 ? " من " + BULK_DOWNLOAD_LIMIT : " من " + BULK_DOWNLOAD_LIMIT + " · انتهت المرات المجانية، اضغط للاشتراك";
+};
+renderBulkDownloadCount();
 const batchFileList = document.querySelector("#batch-file-list");
 const batchStatus = document.querySelector("#batch-status");
 const batchResults = document.querySelector("#batch-results");
@@ -180,6 +260,13 @@ let queuedFiles = [];
 let batchResultUrls = [];
 let batchThumbUrls = [];
 let isBatchProcessing = false;
+let addingFilesToQueue = false;
+if (isConvertWindow) {
+  const actions = document.querySelector(".conversion-actions");
+  actions?.append(batchConvertButton);
+  const formatSummary = document.querySelector("#format-panel > summary");
+  if (formatSummary) formatSummary.textContent = "التنسيق والجودة";
+}
 const targetEnabled = document.querySelector("#target-enabled");
 const targetKb = document.querySelector("#target-kb");
 const rotateLeft = document.querySelector("#rotate-left");
@@ -428,7 +515,8 @@ uploadZone.addEventListener("drop", event => {
   uploadZone.classList.remove("drag-over");
   const files = Array.from(event.dataTransfer?.files || []);
   const images = files.filter(file => allowedInputTypes.has(file.type));
-  if (!images.length) { sourceInfo.textContent = "لم نعثر على صورة مدعومة ضمن الملفات المسحوبة."; return; }
+  if (!images.length) { uploadStatus.textContent = "لم نعثر على صورة مدعومة ضمن الملفات المسحوبة."; return; }
+  if (isConvertWindow && queuedFiles.length) addingFilesToQueue = true;
   const transfer = new DataTransfer(); images.forEach(image => transfer.items.add(image));
   fileInput.files = transfer.files;
   fileInput.dispatchEvent(new Event("change", { bubbles: true }));
@@ -441,7 +529,10 @@ const updateBatchQueue = () => {
   batchResults.replaceChildren();
   batchStatus.textContent = "";
   batchPanel.hidden = queuedFiles.length === 0;
-  batchConvertButton.disabled = queuedFiles.length < 2;
+  batchConvertButton.hidden = isConvertWindow ? queuedFiles.length === 0 : queuedFiles.length < 2;
+  batchConvertButton.disabled = queuedFiles.length === 0 || isBatchProcessing;
+  batchConvertButton.textContent = queuedFiles.length === 1 ? "تحويل الصورة" : "تحويل جميع الملفات";
+  downloadAllButton.hidden = true;
   batchCount.textContent = queuedFiles.length + " " + (queuedFiles.length === 1 ? "ملف محدد" : "ملفات محددة");
   queuedFiles.forEach((file, index) => {
     const item = document.createElement("li"); item.className = "batch-file-item"; item.dataset.queueIndex = String(index);
@@ -456,8 +547,8 @@ const updateBatchQueue = () => {
     up.addEventListener("click",()=>{[queuedFiles[index-1],queuedFiles[index]]=[queuedFiles[index],queuedFiles[index-1]];updateBatchQueue();});
     const down = document.createElement("button"); down.type="button"; down.className="queue-action"; down.textContent="↓"; down.title="تحريك الملف إلى أسفل"; down.setAttribute("aria-label","تحريك " + displayFileName(file.name) + " إلى أسفل"); down.disabled=index===queuedFiles.length-1;
     down.addEventListener("click",()=>{[queuedFiles[index+1],queuedFiles[index]]=[queuedFiles[index],queuedFiles[index+1]];updateBatchQueue();});
-    const remove = document.createElement("button"); remove.type="button"; remove.className="queue-action remove"; remove.textContent="×"; remove.title="حذف من القائمة"; remove.setAttribute("aria-label","حذف " + displayFileName(file.name) + " من القائمة");
-    remove.addEventListener("click",()=>{queuedFiles.splice(index,1);const transfer=new DataTransfer();queuedFiles.forEach(f=>transfer.items.add(f));fileInput.files=transfer.files;updateBatchQueue();});
+    const remove = document.createElement("button"); remove.type="button"; remove.className="queue-action remove"; remove.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>'; remove.title="حذف من القائمة"; remove.setAttribute("aria-label","حذف " + displayFileName(file.name) + " من القائمة"); remove.disabled=isBatchProcessing;
+    remove.addEventListener("click",()=>{if(isBatchProcessing)return;queuedFiles.splice(index,1);const transfer=new DataTransfer();queuedFiles.forEach(f=>transfer.items.add(f));fileInput.files=transfer.files;updateBatchQueue();});
     controls.append(up,down,remove); item.append(thumb,details,controls); batchFileList.append(item);
   });
 };
@@ -477,12 +568,13 @@ const waitFor = async (predicate, timeout = 30000) => {
 };
 batchConvertButton.addEventListener("click", async () => {
   const files = queuedFiles.slice();
-  if (files.length < 2 || batchConvertButton.disabled) return;
+  if (files.length < 1 || batchConvertButton.disabled) return;
   const unsupported = files.filter(file => !allowedInputTypes.has(file.type));
   if (unsupported.length) { batchStatus.textContent = "تعذر بدء التحويل؛ توجد ملفات غير مدعومة: " + unsupported.map(file => displayFileName(file.name)).join("، "); return; }
   batchConvertButton.disabled = true;
   isBatchProcessing = true;
   batchResults.replaceChildren();
+  downloadAllButton.hidden = true;
   let completed = 0;
   try {
     for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
@@ -495,7 +587,7 @@ batchConvertButton.addEventListener("click", async () => {
       await waitFor(() => !convertButton.disabled && preview.complete && preview.naturalWidth > 0 && preview.src === sourceUrl && Number(widthInput.value) === preview.naturalWidth, 30000);
       if (!allowedInputTypes.has(file.type)) throw new Error("نوع ملف غير مدعوم: " + displayFileName(file.name));
       convertButton.click();
-      await waitFor(() => !convertButton.disabled && !result.hidden, 60000);
+      await waitFor(() => !convertButton.disabled && Boolean(download.getAttribute("href")), 60000);
       const response = await fetch(download.href);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -503,33 +595,103 @@ batchConvertButton.addEventListener("click", async () => {
       const link = document.createElement("a");
       link.href = url;
       link.download = download.download;
-      link.className = "batch-result-link";
-      link.textContent = "تنزيل " + safeBase(file.name) + " (" + fmtBytes(blob.size) + ")";
-      batchResults.append(link);
+      link.className = isConvertWindow ? "image-download button secondary" : "batch-result-link";
+      link.textContent = "تحميل";
+      link.setAttribute("aria-label", "تحميل " + safeBase(file.name));
+      if (isConvertWindow) {
+        const row = batchFileList.querySelector('[data-queue-index="' + fileIndex + '"] .queue-controls');
+        if (row) row.append(link);
+      } else {
+        link.textContent = "تنزيل " + safeBase(file.name) + " (" + fmtBytes(blob.size) + ")";
+        batchResults.append(link);
+      }
       setBatchItemStatus(fileIndex, "completed", "اكتمل التحويل");
       completed++;
     }
-    batchStatus.textContent = "اكتمل تحويل " + completed + " ملفات. نزّل كل نتيجة من الروابط أدناه.";
+    batchStatus.textContent = isConvertWindow ? "اكتمل تحويل " + completed + (completed === 1 ? " صورة. يمكنك تحميلها من بطاقتها." : " صور. يمكنك تحميل كل صورة من بطاقتها.") : "اكتمل تحويل " + completed + " ملفات. نزّل كل نتيجة من الروابط أدناه.";
+    downloadAllButton.hidden = !isConvertWindow || completed < 2;
+    renderBulkDownloadCount();
   } catch (error) {
     setBatchItemStatus(completed, "failed", "تعذر التحويل");
     batchStatus.textContent = "تعذر تحويل الملف " + (completed + 1) + ": " + (error instanceof Error ? error.message : "حدث خطأ غير متوقع");
   } finally {
     isBatchProcessing = false;
-    batchConvertButton.disabled = false;
+    batchConvertButton.disabled = queuedFiles.length === 0;
   }
 });
+const makeZipBlob = async entries => {
+  const encoder = new TextEncoder(), crcTable = new Uint32Array(256);
+  for (let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xedb88320^(c>>>1):c>>>1;crcTable[n]=c>>>0;}
+  const crc32=bytes=>{let c=0xffffffff;for(const byte of bytes)c=crcTable[(c^byte)&255]^(c>>>8);return(c^0xffffffff)>>>0;};
+  const locals=[],centrals=[];let offset=0;
+  for(const entry of entries){
+    const name=encoder.encode(entry.name),data=new Uint8Array(await entry.blob.arrayBuffer()),crc=crc32(data);
+    const local=new Uint8Array(30+name.length),lv=new DataView(local.buffer);
+    lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint16(6,0x0800,true);lv.setUint16(8,0,true);lv.setUint16(10,0,true);lv.setUint16(12,0x21,true);lv.setUint32(14,crc,true);lv.setUint32(18,data.length,true);lv.setUint32(22,data.length,true);lv.setUint16(26,name.length,true);lv.setUint16(28,0,true);local.set(name,30);locals.push(local,data);
+    const central=new Uint8Array(46+name.length),cv=new DataView(central.buffer);
+    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,0x0800,true);cv.setUint16(10,0,true);cv.setUint16(12,0,true);cv.setUint16(14,0x21,true);cv.setUint32(16,crc,true);cv.setUint32(20,data.length,true);cv.setUint32(24,data.length,true);cv.setUint16(28,name.length,true);cv.setUint16(30,0,true);cv.setUint16(32,0,true);cv.setUint16(34,0,true);cv.setUint16(36,0,true);cv.setUint32(38,0,true);cv.setUint32(42,offset,true);central.set(name,46);centrals.push(central);offset+=local.length+data.length;
+  }
+  const centralSize=centrals.reduce((sum,part)=>sum+part.length,0),end=new Uint8Array(22),ev=new DataView(end.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(4,0,true);ev.setUint16(6,0,true);ev.setUint16(8,entries.length,true);ev.setUint16(10,entries.length,true);ev.setUint32(12,centralSize,true);ev.setUint32(16,offset,true);ev.setUint16(20,0,true);
+  return new Blob([...locals,...centrals,end],{type:"application/zip"});
+};
+downloadAllButton.addEventListener("click", async () => {
+  if(bulkDownloadsLeft<=0){location.href=new URL("/subscribe/",location.href).href;return;}
+  const links=Array.from(batchFileList.querySelectorAll(".image-download"));if(links.length<2)return;
+  downloadAllButton.disabled=true;
+  try{
+    const seen=new Map(),entries=await Promise.all(links.map(async link=>{
+      const response=await fetch(link.href);if(!response.ok)throw new Error("تعذر تجهيز إحدى الصور للتحميل.");
+      const original=link.download||"image",count=seen.get(original)||0;seen.set(original,count+1);const dot=original.lastIndexOf(".");
+      const name=count?(dot>0?original.slice(0,dot)+" ("+(count+1)+")"+original.slice(dot):original+" ("+(count+1)+")"):original;
+      return{name,blob:await response.blob()};
+    }));
+    const zipBlob=await makeZipBlob(entries),url=URL.createObjectURL(zipBlob),anchor=document.createElement("a");anchor.href=url;anchor.download="converted-images.zip";anchor.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
+    bulkDownloadsLeft=Math.max(0,bulkDownloadsLeft-1);try{localStorage.setItem(BULK_DOWNLOAD_KEY,String(bulkDownloadsLeft));}catch{}renderBulkDownloadCount();
+  }catch(error){batchStatus.textContent=error instanceof Error?error.message:"تعذر إنشاء ملف التحميل الجماعي.";}
+  finally{downloadAllButton.disabled=false;}
+});
 removeSelectedButton.addEventListener("click", () => {
-  if (isBatchProcessing) return;
-  fileInput.value = "";
+  if (isBatchProcessing || !selectedFile) return;
+  addingFilesToQueue = false;
+  const remainingFiles = queuedFiles.filter(file => file !== selectedFile);
+  const transfer = new DataTransfer();
+  remainingFiles.forEach(file => transfer.items.add(file));
+  fileInput.files = transfer.files;
   fileInput.dispatchEvent(new Event("change", { bubbles: true }));
 });
+addImagesLabel.addEventListener("click", () => {
+  addingFilesToQueue = true;
+  fileInput.value = "";
+});
+const uploadPicker = uploadPlaceholder.querySelector(".upload-button");
+uploadPicker?.addEventListener("click", () => {
+  if (isConvertWindow && queuedFiles.length) { addingFilesToQueue = true; fileInput.value = ""; }
+});
 fileInput.addEventListener("change", async () => {
+  if (addingFilesToQueue) {
+    addingFilesToQueue = false;
+    const additions = Array.from(fileInput.files || []);
+    const accepted = additions.filter(file => allowedInputTypes.has(file.type));
+    if (accepted.length) {
+      queuedFiles.push(...accepted);
+      updateBatchQueue();
+      sourceInfo.textContent = "أُضيفت " + accepted.length + " صورة إلى القائمة.";
+      uploadStatus.textContent = "";
+    } else if (additions.length) {
+      uploadStatus.textContent = "لم نعثر على صورة مدعومة ضمن الملفات المختارة.";
+    }
+    fileInput.value = "";
+    return;
+  }
   if (!isBatchProcessing) { queuedFiles = Array.from(fileInput.files || []); updateBatchQueue(); }
   selectedFile = fileInput.files?.[0] || null;
   rotation = 0; flipX = false; flipY = false; updatePreviewTransform();
   [flipHorizontal, flipVertical].forEach(button => button.setAttribute("aria-pressed", "false"));
   status.textContent = "";
   result.hidden = true;
+  download.hidden = true;
+  download.removeAttribute("href");
   targetWarning.hidden = true;
   revoke(resultUrl); resultUrl = null;
   revoke(sourceUrl); sourceUrl = null;
@@ -543,12 +705,13 @@ fileInput.addEventListener("change", async () => {
   backgroundRemovalBusy = false;
   rotation = 0; flipX = false; flipY = false;
   [rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(button => { button.disabled = !selectedFile; button.setAttribute("aria-pressed", "false"); });
-  if (!selectedFile) { convertButton.disabled = true; removeSelectedButton.disabled = true; sourceInfo.textContent = "لم يتم اختيار صورة."; previewWrap.hidden = true; preview.removeAttribute("src"); return; }
-  if (!allowedInputTypes.has(selectedFile.type)) { convertButton.disabled = true; removeSelectedButton.disabled = false; sourceInfo.textContent = "نوع الصورة غير مدعوم. اختر PNG أو JPEG أو WebP أو GIF أو BMP أو AVIF."; previewWrap.hidden = true; return; }
+  if (!selectedFile) { convertButton.disabled = true; removeSelectedButton.disabled = true; sourceInfo.textContent = "لم يتم اختيار صورة."; uploadStatus.textContent = ""; setWorkspaceHasImage(false); preview.removeAttribute("src"); return; }
+  if (!allowedInputTypes.has(selectedFile.type)) { const message = "نوع الصورة غير مدعوم. اختر PNG أو JPEG أو WebP أو GIF أو BMP أو AVIF."; convertButton.disabled = true; removeSelectedButton.disabled = false; sourceInfo.textContent = message; uploadStatus.textContent = message; setWorkspaceHasImage(false); return; }
   sourceUrl = URL.createObjectURL(selectedFile);
   originalSourceUrl = sourceUrl;
   preview.src = sourceUrl;
-  previewWrap.hidden = false;
+  uploadStatus.textContent = "";
+  setWorkspaceHasImage(true);
   sourceInfo.textContent = "حجم الملف: " + fmtBytes(selectedFile.size);
   removeSelectedButton.disabled = false;
   try {
@@ -567,7 +730,9 @@ fileInput.addEventListener("change", async () => {
   } catch {
     convertButton.disabled = true;
     sourceInfo.textContent = "تعذرت قراءة الصورة. جرّب ملف صورة آخر.";
-    previewWrap.hidden = true;
+    uploadStatus.textContent = sourceInfo.textContent;
+    setWorkspaceHasImage(false);
+    preview.removeAttribute("src");
   }
 });
 
@@ -757,6 +922,7 @@ convertButton.addEventListener("click", async () => {
   [fileInput, formatInput, qualityInput, widthInput, heightInput, keepRatio, fitMode, backgroundInput, backgroundMode, targetEnabled, targetKb, useCropButton, resetCropButton, cropX, cropY, cropWidth, cropHeight, rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(el => el.disabled = true);
   status.textContent = "جارٍ تطبيق التعديلات داخل المتصفح…";
   result.hidden = true;
+  download.hidden = true;
   targetWarning.hidden = true;
   let canvas;
   try {
@@ -815,6 +981,7 @@ convertButton.addEventListener("click", async () => {
     const deltaText = delta < 0 ? "أصغر بمقدار " + fmtBytes(-delta) : delta > 0 ? "أكبر بمقدار " + fmtBytes(delta) : "بالحجم نفسه تقريبًا";
     resultInfo.textContent = "التنسيق: " + labels[blob.type] + " — الحجم: " + fmtBytes(blob.size) + " — " + deltaText + ". الأبعاد النهائية: " + canvas.width + " × " + canvas.height + " بكسل." + (encoded.quality ? " الجودة المستخدمة: " + encoded.quality.toFixed(2) + "." : "");
     download.href = resultUrl;
+    download.hidden = false;
     download.download = safeBase(selectedFile.name) + "." + ext[blob.type];
     if (targetEnabled.checked && !encoded.metTarget) {
       targetWarning.textContent = mime === "image/png" ? "لم يُطبّق حد الحجم المستهدف؛ صيغة PNG لا تدعم التحكم في الجودة عبر هذا المحرر. جرّب WebP أو JPEG أو أبعادًا أصغر." : mime === "image/bmp" ? "ملفات BMP غير مضغوطة في هذه الأداة؛ جرّب WebP أو JPEG إذا أردت حجمًا أصغر." : "تعذر الوصول إلى الحجم المستهدف حتى عند أقل جودة متاحة. جرّب أبعادًا أصغر أو تنسيقًا آخر.";
@@ -823,7 +990,8 @@ convertButton.addEventListener("click", async () => {
       targetWarning.textContent = mime === "image/png" ? "حجم الملف ضمن الهدف المحدد، لكن PNG لا يدعم التحكم في الجودة عبر هذا المحرر." : mime === "image/bmp" ? "حجم ملف BMP ضمن الهدف المحدد؛ صيغة BMP غير مضغوطة في هذه الأداة." : "تم بلوغ الحجم المستهدف باستخدام أعلى جودة عُثر عليها ضمن محاولات الضبط.";
       targetWarning.hidden = false;
     }
-    result.hidden = false;
+    result.hidden = isConvertWindow;
+    download.hidden = isConvertWindow;
     status.textContent = "اكتمل التعديل. راجع المعاينة قبل التنزيل.";
   } catch (error) {
     status.textContent = error instanceof Error ? error.message : "حدث خطأ غير متوقع أثناء تعديل الصورة.";
@@ -840,7 +1008,8 @@ window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl)
 </script>
 
 <style>
-.editor-hero{padding:8px 0 22px}.editor-hero h1 span{color:#3157c8}.privacy-notice{display:flex;gap:12px;align-items:center;margin-bottom:22px}.privacy-notice>span:first-child{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:11px;background:#d9f5e4;color:#18794e;font-weight:900}.privacy-notice strong{color:#24583a}.upload-zone{position:relative;display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:30px;border:2px dashed #aabce0;border-radius:20px;background:linear-gradient(120deg,#f4f7ff,#fff);transition:border-color .15s,background .15s;min-height:150px}.upload-zone.drag-over{border-color:#3157c8;background:#eef3ff}.upload-symbol{display:grid;place-items:center;flex:0 0 54px;height:54px;border-radius:16px;background:#e8efff;color:#3157c8;font-size:2rem;font-weight:500}.upload-copy{display:flex;flex:1 1 180px;flex-direction:column;gap:3px}.upload-copy strong{font-size:1.02rem}.upload-copy span{font-size:.9rem;color:#64748b}.upload-button{cursor:pointer;white-space:nowrap}.upload-zone input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.file-meta{font-size:.9rem;margin:12px 2px 16px;min-height:1.6em}.preview-stage{position:relative;display:flex;justify-content:center;align-items:center;height:clamp(280px,42vw,420px);min-height:280px;padding:18px;background:#f8faff;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden}.preview-stage #preview{display:block;max-width:100%;max-height:min(330px,calc(42vh - 28px));width:auto;height:auto;object-fit:contain;user-select:none;-webkit-user-drag:none;flex:0 1 auto}.crop-overlay{position:absolute;left:22px;top:22px;right:auto;bottom:auto;display:none;touch-action:none;cursor:crosshair}.preview-stage.crop-mode .crop-overlay{display:block}.crop-selection{position:absolute;left:0;top:0;width:100%;height:100%;border:2px solid #fff;box-shadow:0 0 0 9999px #0f172a40,inset 0 0 0 1px #3157c8;pointer-events:auto;cursor:move}.crop-handle{position:absolute;display:block;width:14px;height:14px;border:2px solid #3157c8;background:#fff;border-radius:4px;z-index:2;touch-action:none}.handle-nw{top:-7px;left:-7px;cursor:nwse-resize}.handle-n{top:-7px;left:calc(50% - 7px);cursor:ns-resize}.handle-ne{top:-7px;right:-7px;cursor:nesw-resize}.handle-e{top:calc(50% - 7px);right:-7px;cursor:ew-resize}.handle-se{bottom:-7px;right:-7px;cursor:nwse-resize}.handle-s{bottom:-7px;left:calc(50% - 7px);cursor:ns-resize}.handle-sw{bottom:-7px;left:-7px;cursor:nesw-resize}.handle-w{top:calc(50% - 7px);left:-7px;cursor:ew-resize}.preview-tip{position:absolute;bottom:9px;right:12px;left:12px;text-align:center;font-size:.78rem;color:#526176;pointer-events:none}.source-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 18px}.source-toolbar .file-meta{margin:0;flex:1 1 180px}.remove-selected{min-height:42px;padding:9px 14px}.editor-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:24px 0 14px}.editor-tab{font:inherit;font-weight:750;line-height:1.45;padding:13px 10px;border:1px solid #d7dfec;border-radius:13px;background:#fff;color:#4a5870;cursor:pointer;transition:background .15s,border-color .15s}.editor-tab.active{background:#3157c8;border-color:#3157c8;color:#fff;box-shadow:0 7px 16px #3157c82b}.editor-tab-panel[hidden]{display:none}.editor-tab-panel .tool-panel{margin-top:12px}.tool-panel{scroll-margin-top:95px}.tool-panel summary{font-size:1.02rem}.button-row .button{min-height:46px}.button#convert{width:100%;min-height:56px;font-size:1.05rem;margin-top:12px}.result{margin-top:20px;padding:22px;border:1px solid #d7e2f4;border-radius:18px;background:#f8faff}.result h2{margin-top:0}.result-info{line-height:1.8}.result .button{margin-top:8px}#preview-wrap,#result-preview{background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}#crop-preview{display:block;max-width:100%;height:auto;border:1px solid #cbd5e1;border-radius:8px;background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}
+[hidden]{display:none!important}
+.editor-hero{padding:8px 0 22px}.editor-hero h1 span{color:#3157c8}.privacy-notice{display:flex;gap:12px;align-items:center;margin-bottom:22px}.privacy-notice>span:first-child{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:11px;background:#d9f5e4;color:#18794e;font-weight:900}.privacy-notice strong{color:#24583a}.upload-zone{position:relative;display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:30px;border:2px dashed #aabce0;border-radius:20px;background:linear-gradient(120deg,#f4f7ff,#fff);transition:border-color .15s,background .15s;min-height:150px}.upload-zone.drag-over{border-color:#3157c8;background:#eef3ff}.upload-symbol{display:grid;place-items:center;flex:0 0 54px;height:54px;border-radius:16px;background:#e8efff;color:#3157c8;font-size:2rem;font-weight:500}.upload-copy{display:flex;flex:1 1 180px;flex-direction:column;gap:3px}.upload-copy strong{font-size:1.02rem}.upload-copy span{font-size:.9rem;color:#64748b}.upload-button{cursor:pointer;white-space:nowrap}.upload-zone input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.file-meta{font-size:.9rem;margin:12px 2px 16px;min-height:1.6em}.preview-stage{position:relative;display:flex;justify-content:center;align-items:center;height:clamp(280px,42vw,420px);min-height:280px;padding:18px;background:#f8faff;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden}.preview-stage #preview{display:block;max-width:100%;max-height:min(330px,calc(42vh - 28px));width:auto;height:auto;object-fit:contain;user-select:none;-webkit-user-drag:none;flex:0 1 auto}.crop-overlay{position:absolute;left:22px;top:22px;right:auto;bottom:auto;display:none;touch-action:none;cursor:crosshair}.preview-stage.crop-mode .crop-overlay{display:block}.crop-selection{position:absolute;left:0;top:0;width:100%;height:100%;border:2px solid #fff;box-shadow:0 0 0 9999px #0f172a40,inset 0 0 0 1px #3157c8;pointer-events:auto;cursor:move}.crop-handle{position:absolute;display:block;width:14px;height:14px;border:2px solid #3157c8;background:#fff;border-radius:4px;z-index:2;touch-action:none}.handle-nw{top:-7px;left:-7px;cursor:nwse-resize}.handle-n{top:-7px;left:calc(50% - 7px);cursor:ns-resize}.handle-ne{top:-7px;right:-7px;cursor:nesw-resize}.handle-e{top:calc(50% - 7px);right:-7px;cursor:ew-resize}.handle-se{bottom:-7px;right:-7px;cursor:nwse-resize}.handle-s{bottom:-7px;left:calc(50% - 7px);cursor:ns-resize}.handle-sw{bottom:-7px;left:-7px;cursor:nesw-resize}.handle-w{top:calc(50% - 7px);left:-7px;cursor:ew-resize}.preview-tip{position:absolute;bottom:9px;right:12px;left:12px;text-align:center;font-size:.78rem;color:#526176;pointer-events:none}.source-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 18px}.source-toolbar .file-meta{margin:0;flex:1 1 180px}.remove-selected{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:9px 14px;border-color:#e4c8c4;background:#fff;color:#a13c33;font-weight:700;white-space:nowrap}.remove-selected svg{width:17px;height:17px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.remove-selected:hover:not(:disabled){border-color:#d99b94;background:#fff4f2;color:#8c2f27}.remove-selected:focus-visible{outline:3px solid #d99b94;outline-offset:2px}.editor-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:24px 0 14px}.editor-tab{font:inherit;font-weight:750;line-height:1.45;padding:13px 10px;border:1px solid #d7dfec;border-radius:13px;background:#fff;color:#4a5870;cursor:pointer;transition:background .15s,border-color .15s}.editor-tab.active{background:#3157c8;border-color:#3157c8;color:#fff;box-shadow:0 7px 16px #3157c82b}.editor-tab-panel[hidden]{display:none}.editor-tab-panel .tool-panel{margin-top:12px}.tool-panel{scroll-margin-top:95px}.tool-panel summary{font-size:1.02rem}.button-row .button{min-height:46px}.button#convert{width:100%;min-height:56px;font-size:1.05rem;margin-top:12px}.result{margin-top:20px;padding:22px;border:1px solid #d7e2f4;border-radius:18px;background:#f8faff}.result h2{margin-top:0}.result-info{line-height:1.8}.result .button{margin-top:8px}#preview-wrap,#result-preview{background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}#crop-preview{display:block;max-width:100%;height:auto;border:1px solid #cbd5e1;border-radius:8px;background-color:#fff;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}
 .preview-stage[hidden],.batch-panel[hidden]{display:none}.help-details{margin:14px 0;padding:12px 14px;border:1px solid #e2e8f0;border-radius:12px;background:#fbfcff}.help-details summary{font-weight:750;cursor:pointer;color:#43516a}.help-details p{margin:10px 0 0;color:#64748b;font-size:.9rem}.background-summary{display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#fff8ef;border:1px solid #f3e0c8}.background-summary .tool-icon{flex:0 0 49px}.background-summary p{margin:2px 0 0;font-size:.9rem}.batch-panel{margin:16px 0;padding:18px;border:1px solid #dbe4f2;border-radius:16px;background:#f8faff}.batch-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.batch-file-list{display:grid;gap:6px;padding:0;list-style:none;margin:14px 0}.batch-file-list li{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#fff;border:1px solid #e4eaf3;border-radius:12px;overflow-wrap:anywhere}.batch-thumb{width:54px;height:54px;object-fit:contain;flex:0 0 54px;border-radius:8px;background-color:#f5f7fb;background-image:linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8),linear-gradient(45deg,#d9e0e8 25%,transparent 25%,transparent 75%,#d9e0e8 75%,#d9e0e8);background-position:0 0,8px 8px;background-size:16px 16px}.batch-file-details{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}.batch-file-details strong{font-size:.9rem;overflow-wrap:anywhere}.batch-file-list small{color:#64748b}.queue-status{font-size:.8rem;color:#64748b}.batch-file-item[data-state="running"] .queue-status{color:#3157c8}.batch-file-item[data-state="completed"] .queue-status{color:#16804a}.batch-file-item[data-state="failed"] .queue-status{color:#b42318}.queue-controls{display:flex;gap:5px;flex:0 0 auto}.queue-action{width:38px;height:38px;border:1px solid #dbe3ef;border-radius:9px;background:#fff;color:#43516a;font-size:1.2rem;cursor:pointer}.queue-action:disabled{opacity:.35;cursor:not-allowed}.queue-action.remove{color:#b42318}.queue-action:focus-visible,.category-filter:focus-visible{outline:3px solid #8ba7ff;outline-offset:2px}.batch-results{display:grid;gap:8px}.batch-result-link{display:block;padding:11px 14px;border-radius:10px;background:#e8efff;font-weight:750}.batch-result-link:hover{background:#dce6ff;text-decoration:none}
 @media(max-width:720px){.editor-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.preview-stage{height:300px;min-height:260px}.preview-stage #preview{max-height:230px}.upload-zone{padding:22px;min-height:140px}.editor-tab{font-size:.94rem;padding:12px 7px}.upload-zone{padding:17px;gap:12px}.upload-button{width:100%}.preview-stage{padding:14px;min-height:150px}.crop-overlay{left:14px;top:14px;right:auto;bottom:auto}.preview-tip{font-size:.72rem}.tool-panel{padding:16px}.button-row .button{flex:1 1 45%}}
 
@@ -867,6 +1036,257 @@ window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl)
 .background-summary{gap:11px;padding:12px;border-radius:12px}
 @media(max-width:720px){.editor-hero{padding-bottom:10px}.upload-zone{padding:15px;gap:10px}.preview-stage{height:260px;min-height:220px;padding:10px}.preview-stage #preview{max-height:220px}.editor-tabs{gap:6px;margin:12px 0 8px}.editor-tab{min-height:44px;padding:9px 6px;font-size:.9rem}.tool-panel{padding:13px}.button-row .button{flex:1 1 44%}}
 @media(max-width:420px){.editor-hero h1{font-size:1.75rem}.upload-copy{flex-basis:140px}.upload-button{width:100%}.preview-stage{height:230px;min-height:200px}.editor-tab{font-size:.84rem}.result{padding:13px}}
+
+
+/* Calm-green reference tokens applied consistently; no content or behavior changes */
+.editor-hero h1 span{color:#167a54}
+.privacy-notice{background:#edf6ef;border-color:#cfe5d5}
+.privacy-notice>span:first-child{background:#e0f1e5;color:#167a54}
+.privacy-notice strong{color:#285c40}
+.upload-zone{border-color:#c2dcc9;background:#f7faf7}
+.upload-zone.drag-over{border-color:#167a54;background:#edf6ef}
+.upload-symbol{background:#e0f1e5;color:#167a54}
+.preview-stage{background:#f1f6f1;border-color:#d8e7dc}
+.crop-selection{box-shadow:0 0 0 9999px #183b2d40,inset 0 0 0 1px #167a54}
+.crop-handle{border-color:#167a54}
+.editor-tab{border-color:#d8e7dc;background:#fffefa;color:#42634f;border-radius:9px}
+.editor-tab.active{background:#167a54;border-color:#167a54;color:#fff;box-shadow:0 5px 12px #167a5420}
+.editor-tab:hover:not(.active){background:#edf5ef;border-color:#b8d8c2}
+.result{border-color:#cfe4d5;background:#f1f7f1}
+.help-details{border-color:#d8e7dc;background:#f9fcf9}
+.help-details summary{color:#315a45}
+.batch-panel{border-color:#d8e7dc;background:#f1f7f1}
+.batch-file-item[data-state="running"] .queue-status{color:#167a54}
+.batch-file-item[data-state="completed"] .queue-status{color:#167a54}
+.queue-action:focus-visible,.category-filter:focus-visible{outline-color:#6eaa86}
+.batch-result-link{background:#e0f1e5;color:#166a49}
+.batch-result-link:hover{background:#cfe8d6}
+.upload-zone:focus-within{border-color:#167a54}
+.button,.button.primary,#convert{background:#167a54;border-color:#167a54;color:#fff}
+.button:hover,.button.primary:hover,#convert:hover{background:#116442;border-color:#116442}
+.button.secondary,.button-row .button.secondary{background:#fffefa;border-color:#d8e7dc;color:#315a45}
+.button.secondary:hover,.button-row .button.secondary:hover{background:#edf5ef}
+input,select,textarea{border-color:#d8e7dc}
+input:hover,select:hover,textarea:hover{border-color:#b8d8c2}
+input:focus,select:focus,textarea:focus{border-color:#6eaa86;box-shadow:0 0 0 3px #167a5417}
+input[type=checkbox],input[type=radio],input[type=range]{accent-color:#167a54}
+:focus-visible{outline-color:#6eaa86}
+.result h2,.tool-panel summary{color:#315a45}
+.background-summary{background:#f7faf7;border-color:#d8e7dc}
+
+
+/* One sizing rule for the original-image preview. The selected File remains untouched for conversion and download. */
+#preview-wrap.preview-stage {
+  display: flex;
+  width: min(100%, 800px);
+  max-width: 800px;
+  height: auto;
+  max-height: 450px;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  box-sizing: border-box;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  margin-inline: auto;
+}
+#preview-wrap #preview {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  flex: 0 1 auto;
+}
+
+/* JavaScript-created batch rows need global styles in Astro. Without :global(),
+   thumbnail IMG elements keep their intrinsic pixel size and overflow the page. */
+:global(.batch-file-list > .batch-file-item) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e4eaf3;
+  border-radius: 12px;
+  overflow: hidden;
+}
+:global(.batch-file-item .batch-thumb) {
+  display: block;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  min-height: 54px;
+  max-width: 54px;
+  max-height: 54px;
+  object-fit: contain;
+}
+:global(.batch-file-item .batch-file-details) {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+:global(.batch-file-item .batch-file-details strong) {
+  overflow-wrap: anywhere;
+}
+:global(.batch-file-item .queue-controls) {
+  display: flex;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+
+
+/* The drop surface is the image stage itself, so it changes from upload prompt to preview in place. */
+#preview-wrap.preview-stage.upload-zone {
+  position: relative;
+  display: flex;
+  width: min(100%, 800px);
+  max-width: 800px;
+  height: auto;
+  max-height: 450px;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  box-sizing: border-box;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  margin-inline: auto;
+  border-radius: 16px;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+#preview-wrap.preview-stage.is-empty {
+  border: 2px dashed #b8d8c2;
+  background: linear-gradient(135deg, #fbfdfb, #edf5ef);
+}
+#preview-wrap.preview-stage.is-empty.drag-over {
+  border-color: #167a54;
+  background: #e8f3eb;
+  box-shadow: inset 0 0 0 3px #167a5412;
+}
+#preview-wrap.preview-stage.has-image {
+  border: 1px solid #d8e7dc;
+  background: #f1f6f1;
+}
+#upload-placeholder {
+  display: flex;
+  width: min(100%, 520px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px;
+  text-align: center;
+}
+#upload-placeholder .upload-symbol {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #e0f1e5;
+  color: #167a54;
+  font-size: 1.8rem;
+}
+#upload-placeholder .upload-copy {
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+#upload-placeholder .upload-copy strong {
+  color: #285c40;
+  font-size: 1.12rem;
+}
+#upload-placeholder .upload-copy span {
+  color: #647668;
+  line-height: 1.6;
+}
+#upload-placeholder .upload-button {
+  min-width: 168px;
+}
+#upload-placeholder .upload-status {
+  margin: 0;
+  color: #a33;
+  font-size: .9rem;
+}
+#upload-placeholder .upload-status:empty {
+  display: none;
+}
+#preview-wrap input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.source-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.add-images {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+@media(max-width:480px) {
+  #preview-wrap.preview-stage.upload-zone { padding: 8px; }
+  #upload-placeholder { gap: 10px; padding: 12px; }
+  #upload-placeholder .upload-copy strong { font-size: 1rem; }
+}
+
+
+/* Clear conversion controls, readable output settings, and contained result preview. */
+.conversion-actions{display:flex;align-items:stretch;gap:12px;margin:18px 0 8px}
+.conversion-actions #convert{flex:1 1 auto;width:auto;min-height:54px;margin:0;font-size:1.05rem;font-weight:800}
+.download-action{display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;gap:8px;min-width:136px;min-height:54px;padding:12px 20px;border:1px solid #167a54;border-radius:12px;background:#fff;color:#167a54;font-size:1rem;font-weight:800;text-decoration:none;box-sizing:border-box}
+.download-action svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#format-panel{padding:18px 20px;border-radius:16px}
+#format-panel>summary{font-size:1.12rem;font-weight:800;line-height:1.5}
+#format-panel .field>label{display:block;margin-bottom:8px;font-size:1rem;font-weight:750;line-height:1.5;color:#243b2d}
+#format{display:block;width:100%;min-height:52px;padding:12px 44px 12px 14px;border:1px solid #b8cbbd;border-radius:12px;background-color:#fff;font-size:1rem;font-weight:700;color:#203b2a}
+#format-panel .field>small{display:block;margin-top:7px;font-size:.84rem;line-height:1.65;color:#647668}
+#result{margin-top:20px;padding:18px;border:1px solid #d8e7dc;border-radius:16px;background:#fff}
+#result h2{margin:0 0 12px;font-size:1.2rem;line-height:1.4}
+#result #result-preview{display:block;width:auto;height:auto;max-width:min(100%,800px)!important;max-height:450px!important;object-fit:contain;margin:0 auto 12px}
+#result-info{font-size:.92rem;line-height:1.75;color:#45584a}
+html.convert-window #status{display:none}
+@media(max-width:480px){.conversion-actions{gap:8px}.download-action{min-width:112px;padding-inline:12px}.conversion-actions #convert{font-size:.98rem}#format-panel{padding:15px}}
+
+
+/* Conversion-only multi-image workspace. */
+html.convert-window #batch-status:empty{display:none}
+html.convert-window .batch-convert-action{display:block;width:min(100%,440px);min-height:58px;margin:8px auto 0;font-size:1.12rem;font-weight:850}
+#convert[hidden],#download[hidden]{display:none!important}
+html.convert-window .conversion-actions:has(.batch-convert-action:not([hidden])) #convert{display:none}
+html.convert-window .image-download{display:inline-flex;align-items:center;justify-content:center;min-width:110px;min-height:38px;padding:7px 16px;border-radius:10px;font-weight:800;text-decoration:none}
+html.convert-window #batch-panel .premium-download{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin:12px auto;padding:10px 18px;border:1px solid #d5c693;border-radius:12px;background:#faf7eb;color:#77652f}
+html.convert-window .premium-download small{font-size:.78rem;font-weight:650}
+html.convert-window .premium-download strong{font-size:1rem;font-weight:900}
+html.convert-window #batch-panel .batch-heading{margin-bottom:10px}
+html.convert-window #batch-file-list{margin-top:10px}
+html.convert-window .batch-file-item{min-width:0}
+html.convert-window .batch-file-details{display:flex;flex:1 1 auto;min-width:0;flex-direction:column;gap:3px}
+html.convert-window .batch-file-details strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.convert-window .queue-controls{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+html.convert-window .queue-action{display:grid;place-items:center;width:34px;height:34px;border:1px solid #dce5ef;border-radius:9px;background:#fff;color:#42536a;font:inherit;font-weight:800;cursor:pointer}
+html.convert-window .queue-action:disabled{opacity:.4;cursor:not-allowed}
+html.convert-window .queue-action.remove{color:#a13c33;border-color:#ecd2ce}
+html.convert-window .queue-action svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+html.convert-window .premium-lock{font-size:.9rem}
+#status{font-size:.9rem;line-height:1.65}
+html.convert-window #status{display:none}
+@media(max-width:480px){
+  html.convert-window .batch-file-item{gap:8px;padding:8px}
+  html.convert-window .batch-thumb{width:44px;height:44px;flex-basis:44px}
+  html.convert-window .queue-controls{gap:3px}
+  html.convert-window .queue-action{width:30px;height:30px}
+  html.convert-window .batch-convert-action{min-height:54px;font-size:1rem}
+}
+
 </style>
 <script src="../scripts/background-removal.js"></script>
 </BaseLayout>
