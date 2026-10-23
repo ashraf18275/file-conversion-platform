@@ -4,10 +4,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <BaseLayout title="محرر الصور" description="حوّل صور PNG وJPEG وWebP، وغيّر أبعادها واقتصصها واضغطها محليًا داخل المتصفح.">
 <section class="card">
 <h1 class="editor-page-title visually-hidden">محرر الصور</h1>
-<div class="upload-zone" id="upload-zone"><span class="upload-symbol" aria-hidden="true">↑</span><div class="upload-copy"><strong>أضف صورة لبدء العمل</strong><span>اسحب الصور إلى هنا أو اخترها من جهازك</span></div><label class="button upload-button" for="image-file">اختيار صورة أو عدة صور</label><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" multiple /></div>
-<div class="source-toolbar"><div id="source-info" class="file-meta muted" aria-live="polite">لم يتم اختيار صورة بعد.</div><button id="remove-selected" class="button secondary remove-selected" type="button" disabled>حذف الصورة المختارة</button></div>
+<div id="preview-wrap" class="preview-stage upload-zone is-empty" role="region" aria-label="منطقة الصور">
+<div id="upload-placeholder" class="upload-placeholder"><span class="upload-symbol" aria-hidden="true">↑</span><div class="upload-copy"><strong>أفلت الصور هنا</strong><span>PNG وJPG وWebP وغيرها؛ يمكنك اختيار عدة صور</span></div><label class="button upload-button" for="image-file">استعراض الصور</label><p id="upload-status" class="upload-status" role="status" aria-live="polite"></p></div>
+<input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" multiple />
+<img id="preview" class="preview" alt="معاينة الصورة الأصلية" hidden /><div id="crop-overlay" class="crop-overlay" aria-label="اسحب لتحديد مساحة الاقتصاص"><div id="crop-selection" class="crop-selection"><span class="crop-handle handle-nw" data-crop-handle="nw" aria-label="تغيير الزاوية العلوية اليسرى"></span><span class="crop-handle handle-n" data-crop-handle="n" aria-label="تغيير الحافة العلوية"></span><span class="crop-handle handle-ne" data-crop-handle="ne" aria-label="تغيير الزاوية العلوية اليمنى"></span><span class="crop-handle handle-e" data-crop-handle="e" aria-label="تغيير الحافة اليمنى"></span><span class="crop-handle handle-se" data-crop-handle="se" aria-label="تغيير الزاوية السفلية اليمنى"></span><span class="crop-handle handle-s" data-crop-handle="s" aria-label="تغيير الحافة السفلية"></span><span class="crop-handle handle-sw" data-crop-handle="sw" aria-label="تغيير الزاوية السفلية اليسرى"></span><span class="crop-handle handle-w" data-crop-handle="w" aria-label="تغيير الحافة اليسرى"></span></div></div><div id="preview-tip" class="preview-tip" hidden>يمكنك سحب المؤشر على الصورة لتحديد الجزء المطلوب</div></div>
+<div id="source-toolbar" class="source-toolbar" hidden><div id="source-info" class="file-meta muted" aria-live="polite">لم يتم اختيار صورة بعد.</div><div class="source-actions"><label id="add-images" class="button secondary add-images" for="image-file">إضافة صور</label><button id="remove-selected" class="button secondary remove-selected" type="button" disabled>حذف الصورة المختارة</button></div></div>
 <div id="batch-panel" class="batch-panel" hidden><div class="batch-heading"><strong id="batch-count">0 ملفات محددة</strong><button id="batch-convert" class="button" type="button">تحويل جميع الملفات</button></div><ul id="batch-file-list" class="batch-file-list"></ul><p id="batch-status" class="muted" role="status" aria-live="polite"></p><div id="batch-results" class="batch-results"></div></div>
-<div id="preview-wrap" class="preview-stage" hidden><img id="preview" class="preview" alt="معاينة الصورة الأصلية" /><div id="crop-overlay" class="crop-overlay" aria-label="اسحب لتحديد مساحة الاقتصاص"><div id="crop-selection" class="crop-selection"><span class="crop-handle handle-nw" data-crop-handle="nw" aria-label="تغيير الزاوية العلوية اليسرى"></span><span class="crop-handle handle-n" data-crop-handle="n" aria-label="تغيير الحافة العلوية"></span><span class="crop-handle handle-ne" data-crop-handle="ne" aria-label="تغيير الزاوية العلوية اليمنى"></span><span class="crop-handle handle-e" data-crop-handle="e" aria-label="تغيير الحافة اليمنى"></span><span class="crop-handle handle-se" data-crop-handle="se" aria-label="تغيير الزاوية السفلية اليمنى"></span><span class="crop-handle handle-s" data-crop-handle="s" aria-label="تغيير الحافة السفلية"></span><span class="crop-handle handle-sw" data-crop-handle="sw" aria-label="تغيير الزاوية السفلية اليسرى"></span><span class="crop-handle handle-w" data-crop-handle="w" aria-label="تغيير الحافة اليسرى"></span></div></div><div class="preview-tip">يمكنك سحب المؤشر على الصورة لتحديد الجزء المطلوب</div></div>
+
 
 <div class="editor-tabs" role="tablist" aria-label="أدوات تحرير الصورة">
   <button class="editor-tab active" type="button" role="tab" id="tab-export" aria-selected="true" aria-controls="panel-export" data-editor-tab="export">تحويل الصيغ</button>
@@ -177,6 +180,21 @@ const sourceInfo = document.querySelector("#source-info");
 const removeSelectedButton = document.querySelector("#remove-selected");
 const previewWrap = document.querySelector("#preview-wrap");
 const preview = document.querySelector("#preview");
+const uploadPlaceholder = document.querySelector("#upload-placeholder");
+const uploadStatus = document.querySelector("#upload-status");
+const previewTip = document.querySelector("#preview-tip");
+const sourceToolbar = document.querySelector("#source-toolbar");
+const addImagesLabel = document.querySelector("#add-images");
+const setWorkspaceHasImage = hasImage => {
+  previewWrap.classList.toggle("is-empty", !hasImage);
+  previewWrap.classList.toggle("has-image", hasImage);
+  uploadPlaceholder.hidden = hasImage;
+  preview.hidden = !hasImage;
+  previewTip.hidden = !hasImage;
+  sourceToolbar.hidden = !hasImage;
+  if (!hasImage) previewWrap.classList.remove("crop-mode");
+};
+setWorkspaceHasImage(false);
 const result = document.querySelector("#result");
 const resultPreview = document.querySelector("#result-preview");
 const resultInfo = document.querySelector("#result-info");
@@ -199,7 +217,7 @@ const cropPreviewWrap = document.querySelector("#crop-preview-wrap");
 const cropPreview = document.querySelector("#crop-preview");
 const cropOverlay = document.querySelector("#crop-overlay");
 const cropSelection = document.querySelector("#crop-selection");
-const uploadZone = document.querySelector("#upload-zone");
+const uploadZone = previewWrap;
 const batchPanel = document.querySelector("#batch-panel");
 const batchCount = document.querySelector("#batch-count");
 const batchConvertButton = document.querySelector("#batch-convert");
@@ -210,6 +228,7 @@ let queuedFiles = [];
 let batchResultUrls = [];
 let batchThumbUrls = [];
 let isBatchProcessing = false;
+let addingFilesToQueue = false;
 const targetEnabled = document.querySelector("#target-enabled");
 const targetKb = document.querySelector("#target-kb");
 const rotateLeft = document.querySelector("#rotate-left");
@@ -458,7 +477,7 @@ uploadZone.addEventListener("drop", event => {
   uploadZone.classList.remove("drag-over");
   const files = Array.from(event.dataTransfer?.files || []);
   const images = files.filter(file => allowedInputTypes.has(file.type));
-  if (!images.length) { sourceInfo.textContent = "لم نعثر على صورة مدعومة ضمن الملفات المسحوبة."; return; }
+  if (!images.length) { uploadStatus.textContent = "لم نعثر على صورة مدعومة ضمن الملفات المسحوبة."; return; }
   const transfer = new DataTransfer(); images.forEach(image => transfer.items.add(image));
   fileInput.files = transfer.files;
   fileInput.dispatchEvent(new Event("change", { bubbles: true }));
@@ -550,10 +569,30 @@ batchConvertButton.addEventListener("click", async () => {
 });
 removeSelectedButton.addEventListener("click", () => {
   if (isBatchProcessing) return;
+  addingFilesToQueue = false;
   fileInput.value = "";
   fileInput.dispatchEvent(new Event("change", { bubbles: true }));
 });
+addImagesLabel.addEventListener("click", () => {
+  addingFilesToQueue = true;
+  fileInput.value = "";
+});
 fileInput.addEventListener("change", async () => {
+  if (addingFilesToQueue) {
+    addingFilesToQueue = false;
+    const additions = Array.from(fileInput.files || []);
+    const accepted = additions.filter(file => allowedInputTypes.has(file.type));
+    if (accepted.length) {
+      queuedFiles.push(...accepted);
+      updateBatchQueue();
+      sourceInfo.textContent = "أُضيفت " + accepted.length + " صورة إلى القائمة.";
+      uploadStatus.textContent = "";
+    } else if (additions.length) {
+      uploadStatus.textContent = "لم نعثر على صورة مدعومة ضمن الملفات المختارة.";
+    }
+    fileInput.value = "";
+    return;
+  }
   if (!isBatchProcessing) { queuedFiles = Array.from(fileInput.files || []); updateBatchQueue(); }
   selectedFile = fileInput.files?.[0] || null;
   rotation = 0; flipX = false; flipY = false; updatePreviewTransform();
@@ -573,12 +612,13 @@ fileInput.addEventListener("change", async () => {
   backgroundRemovalBusy = false;
   rotation = 0; flipX = false; flipY = false;
   [rotateLeft, rotateRight, flipHorizontal, flipVertical].forEach(button => { button.disabled = !selectedFile; button.setAttribute("aria-pressed", "false"); });
-  if (!selectedFile) { convertButton.disabled = true; removeSelectedButton.disabled = true; sourceInfo.textContent = "لم يتم اختيار صورة."; previewWrap.hidden = true; preview.removeAttribute("src"); return; }
-  if (!allowedInputTypes.has(selectedFile.type)) { convertButton.disabled = true; removeSelectedButton.disabled = false; sourceInfo.textContent = "نوع الصورة غير مدعوم. اختر PNG أو JPEG أو WebP أو GIF أو BMP أو AVIF."; previewWrap.hidden = true; return; }
+  if (!selectedFile) { convertButton.disabled = true; removeSelectedButton.disabled = true; sourceInfo.textContent = "لم يتم اختيار صورة."; uploadStatus.textContent = ""; setWorkspaceHasImage(false); preview.removeAttribute("src"); return; }
+  if (!allowedInputTypes.has(selectedFile.type)) { const message = "نوع الصورة غير مدعوم. اختر PNG أو JPEG أو WebP أو GIF أو BMP أو AVIF."; convertButton.disabled = true; removeSelectedButton.disabled = false; sourceInfo.textContent = message; uploadStatus.textContent = message; setWorkspaceHasImage(false); return; }
   sourceUrl = URL.createObjectURL(selectedFile);
   originalSourceUrl = sourceUrl;
   preview.src = sourceUrl;
-  previewWrap.hidden = false;
+  uploadStatus.textContent = "";
+  setWorkspaceHasImage(true);
   sourceInfo.textContent = "حجم الملف: " + fmtBytes(selectedFile.size);
   removeSelectedButton.disabled = false;
   try {
@@ -597,7 +637,9 @@ fileInput.addEventListener("change", async () => {
   } catch {
     convertButton.disabled = true;
     sourceInfo.textContent = "تعذرت قراءة الصورة. جرّب ملف صورة آخر.";
-    previewWrap.hidden = true;
+    uploadStatus.textContent = sourceInfo.textContent;
+    setWorkspaceHasImage(false);
+    preview.removeAttribute("src");
   }
 });
 
@@ -1000,6 +1042,106 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:#167a54}
   gap: 5px;
   flex: 0 0 auto;
 }
+
+
+/* The drop surface is the image stage itself, so it changes from upload prompt to preview in place. */
+#preview-wrap.preview-stage.upload-zone {
+  position: relative;
+  display: flex;
+  width: min(100%, 800px);
+  max-width: 800px;
+  height: auto;
+  max-height: 450px;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  box-sizing: border-box;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  margin-inline: auto;
+  border-radius: 16px;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+#preview-wrap.preview-stage.is-empty {
+  border: 2px dashed #b8d8c2;
+  background: linear-gradient(135deg, #fbfdfb, #edf5ef);
+}
+#preview-wrap.preview-stage.is-empty.drag-over {
+  border-color: #167a54;
+  background: #e8f3eb;
+  box-shadow: inset 0 0 0 3px #167a5412;
+}
+#preview-wrap.preview-stage.has-image {
+  border: 1px solid #d8e7dc;
+  background: #f1f6f1;
+}
+#upload-placeholder {
+  display: flex;
+  width: min(100%, 520px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px;
+  text-align: center;
+}
+#upload-placeholder .upload-symbol {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #e0f1e5;
+  color: #167a54;
+  font-size: 1.8rem;
+}
+#upload-placeholder .upload-copy {
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+#upload-placeholder .upload-copy strong {
+  color: #285c40;
+  font-size: 1.12rem;
+}
+#upload-placeholder .upload-copy span {
+  color: #647668;
+  line-height: 1.6;
+}
+#upload-placeholder .upload-button {
+  min-width: 168px;
+}
+#upload-placeholder .upload-status {
+  margin: 0;
+  color: #a33;
+  font-size: .9rem;
+}
+#upload-placeholder .upload-status:empty {
+  display: none;
+}
+#preview-wrap input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.source-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.add-images {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+@media(max-width:480px) {
+  #preview-wrap.preview-stage.upload-zone { padding: 8px; }
+  #upload-placeholder { gap: 10px; padding: 12px; }
+  #upload-placeholder .upload-copy strong { font-size: 1rem; }
+}
+
 </style>
 <script src="../scripts/background-removal.js"></script>
 </BaseLayout>
