@@ -1228,7 +1228,7 @@ html.convert-window #status{display:none}
 .convert-preview-remove:disabled{opacity:.5;cursor:not-allowed}
 html.convert-window #batch-panel .batch-heading,html.convert-window #batch-panel .batch-file-list{display:none}
 html.convert-window #batch-panel{margin-top:12px;padding:0;border:0;background:transparent}
-html.convert-window html.convert-window #batch-status:empty{display:none}
+html.convert-window #batch-status:empty{display:none}
 html.convert-window .batch-convert-action{display:block;width:min(100%,440px);min-height:58px;margin:8px auto 0;font-size:1.12rem;font-weight:850}
 #convert[hidden],#download[hidden]{display:none!important}
 html.convert-window .conversion-actions:has(.batch-convert-action:not([hidden])) #convert{display:none}
@@ -1237,6 +1237,7 @@ html.convert-window #batch-panel .premium-download{display:flex;align-items:cent
 html.convert-window .premium-download small{font-size:.78rem;font-weight:650}
 html.convert-window .premium-lock{font-size:.9rem}
 #status{font-size:.9rem;line-height:1.65}
+html.convert-window #status{display:none}
 @media(max-width:480px){
   .multi-preview-grid{inset:8px;gap:6px}
   .multi-preview-grid[data-count="3"]{grid-template-columns:repeat(2,minmax(0,1fr))}
