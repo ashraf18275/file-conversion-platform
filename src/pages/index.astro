@@ -5,7 +5,7 @@ const base = import.meta.env.BASE_URL;
 <BaseLayout title="تحويل الصور وضغطها وتغيير حجمها مجانًا أونلاين" description="أدوات صور مجانية أونلاين: تحويل JPG إلى PNG وWebP، ضغط الصور، تغيير حجم الصورة واقتصاصها وتدويرها مباشرة من المتصفح.">
 
 
-<main id="main-content" class="wrap">
+<div class="wrap">
 <h1 class="visually-hidden">أدوات تحويل الصور</h1>
 <aside class="ad-slot ad-slot-top" aria-label="مساحة إعلانية"><span class="ad-label">إعلان</span><span class="ad-placeholder">مساحة إعلانية متاحة مستقبلًا</span></aside>
 <div class="tool-filters" aria-label="البحث وتصنيف الأدوات">
@@ -46,7 +46,13 @@ function filterTools() {
     card.hidden = !(matchesCategory && matchesQuery);
     if (!card.hidden) visible++;
   }
-  if (toolResults) toolResults.textContent = "";
+  if (toolResults) {
+    toolResults.textContent = visible === 0
+      ? "لا توجد أدوات مطابقة"
+      : visible === 1
+        ? "أداة واحدة في الدليل"
+        : `${visible} أدوات في الدليل`;
+  }
 }
 filterTools();
 toolSearch?.addEventListener("input", filterTools);
@@ -60,7 +66,7 @@ for (const button of categoryButtons) button.addEventListener("click", () => {
   filterTools();
 });
 </script>
-</main>
+</div>
 </BaseLayout>
 
 <style>
