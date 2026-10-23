@@ -2,7 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 <BaseLayout title="محرر الصور" description="حوّل صور PNG وJPEG وWebP، وغيّر أبعادها واقتصصها واضغطها محليًا داخل المتصفح.">
-<section class="card">
+<section class="card">\n<h1 class="editor-page-title visually-hidden">محرر الصور</h1>
 <div class="upload-zone" id="upload-zone"><span class="upload-symbol" aria-hidden="true">↑</span><div class="upload-copy"><strong>أضف صورة لبدء العمل</strong><span>اسحب الصور إلى هنا أو اخترها من جهازك</span></div><label class="button upload-button" for="image-file">اختيار صورة أو عدة صور</label><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" multiple /></div>
 <div class="source-toolbar"><div id="source-info" class="file-meta muted" aria-live="polite">لم يتم اختيار صورة بعد.</div><button id="remove-selected" class="button secondary remove-selected" type="button" disabled>حذف الصورة المختارة</button></div>
 <div id="batch-panel" class="batch-panel" hidden><div class="batch-heading"><strong id="batch-count">0 ملفات محددة</strong><button id="batch-convert" class="button" type="button">تحويل جميع الملفات</button></div><ul id="batch-file-list" class="batch-file-list"></ul><p id="batch-status" class="muted" role="status" aria-live="polite"></p><div id="batch-results" class="batch-results"></div></div>
@@ -135,6 +135,36 @@ editorTabs.forEach((tab, index) => {
 activateEditorTab("export");
 if (location.hash === "#crop-panel") activateEditorTab("size");
 if (location.hash === "#panel-enhance") activateEditorTab("enhance");
+
+/* Focus the shared editor on one selected tool when opened from the tools directory. */
+const toolModes = {
+  convert: { title: "تحويل صيغ الصور", tab: "export", details: ["format-panel"] },
+  compress: { title: "ضغط الصور", tab: "export", details: ["format-panel"] },
+  resize: { title: "تغيير أبعاد الصور", tab: "size", details: ["resize-panel"] },
+  crop: { title: "اقتصاص الصور", tab: "size", details: ["crop-panel"] },
+  transform: { title: "التدوير والقلب", tab: "transform", details: ["transform-panel"] },
+  enhance: { title: "تحسين الصور", tab: "enhance", details: [] }
+};
+const requestedTool = new URLSearchParams(location.search).get("tool");
+const selectedTool = toolModes[requestedTool];
+if (selectedTool) {
+  document.title = selectedTool.title + " | محوّل الملفات";
+  const heading = document.querySelector(".editor-page-title");
+  if (heading) heading.textContent = selectedTool.title;
+  editorTabs.forEach(tab => { tab.hidden = tab.dataset.editorTab !== selectedTool.tab; });
+  editorPanels.forEach(panel => {
+    panel.hidden = panel.dataset.editorPanel !== selectedTool.tab;
+  });
+  detailPanels.forEach(panel => {
+    const panelId = panel.id || (panel.querySelector("summary")?.textContent.includes("الأبعاد") ? "resize-panel" :
+      panel.querySelector("summary")?.textContent.includes("التدوير") ? "transform-panel" : "");
+    panel.hidden = !selectedTool.details.includes(panelId);
+  });
+  activateEditorTab(selectedTool.tab);
+  document.querySelector(".editor-tabs")?.setAttribute("aria-label", selectedTool.title);
+} else {
+  detailPanels.forEach(panel => { panel.hidden = false; });
+}
 const fileInput = document.querySelector("#image-file");
 const formatInput = document.querySelector("#format");
 const qualityInput = document.querySelector("#quality");
