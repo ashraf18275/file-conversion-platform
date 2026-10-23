@@ -807,10 +807,11 @@ test("loads the site without requesting remote web fonts", async ({ page }) => {
 });
 
 
-test("contains full-resolution previews while presenting focused conversion controls", async ({ page }) => {
+test("conversion mode keeps full-resolution source images in its grid and attaches downloads per image", async ({ page }) => {
   await page.goto("/convert/?tool=convert");
   await expect(page.locator(".editor-tabs")).toBeHidden();
-  await expect(page.locator("#convert")).toHaveText("تحويل");
+  await expect(page.locator("#convert")).toBeHidden();
+
   await page.evaluate(async () => {
     const source = document.createElement("canvas");
     source.width = 1836;
@@ -830,36 +831,43 @@ test("contains full-resolution previews while presenting focused conversion cont
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
 
-  const preview = page.locator("#preview");
-  const thumbnail = page.locator("#batch-file-list .batch-thumb");
-  await expect(preview).toBeVisible();
-  await expect(preview).toHaveJSProperty("naturalWidth", 1836);
-  await expect(preview).toHaveJSProperty("naturalHeight", 3264);
-  await expect(thumbnail).toBeVisible();
-  await expect(page.locator("#batch-convert")).toBeHidden();
-  await expect(thumbnail).toHaveCSS("width", "54px");
-  await expect(thumbnail).toHaveCSS("height", "54px");
-
+  const tile = page.locator(".convert-preview-tile");
+  const image = tile.locator(".convert-preview-image");
+  await expect(tile).toHaveCount(1);
+  await expect(image).toHaveJSProperty("naturalWidth", 1836);
+  await expect(image).toHaveJSProperty("naturalHeight", 3264);
+  await expect(page.locator("#batch-convert")).toBeEnabled();
+  await expect(page.locator("#batch-convert")).toHaveText("تحويل الصورة");
   const frameBox = await page.locator("#preview-wrap").boundingBox();
-  const imageBox = await preview.boundingBox();
+  const imageBox = await image.boundingBox();
   expect(frameBox).not.toBeNull();
   expect(imageBox).not.toBeNull();
   expect(frameBox!.width).toBeLessThanOrEqual(800);
   expect(frameBox!.height).toBeLessThanOrEqual(450);
   expect(imageBox!.width).toBeLessThanOrEqual(800);
   expect(imageBox!.height).toBeLessThanOrEqual(450);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-    await page.evaluate(() => window.innerWidth) + 1
-  );
 
-  await page.locator("#convert").click();
-  await expect(page.locator("#result")).toBeVisible();
-  await expect(page.locator("#result-info")).toContainText("الأبعاد النهائية: 1836 × 3264 بكسل");
-  await expect(page.locator("#download")).toBeVisible();
-  await expect(page.locator("#download")).toContainText("تحميل");
-  expect(await page.locator("#download").getAttribute("href")).toMatch(/^blob:/);
-  const resultBox = await page.locator("#result-preview").boundingBox();
-  expect(resultBox).not.toBeNull();
-  expect(resultBox!.width).toBeLessThanOrEqual(800);
-  expect(resultBox!.height).toBeLessThanOrEqual(450);
+  await page.locator("#batch-convert").click();
+  await expect(tile.locator(".image-download")).toBeVisible();
+  await expect(tile.locator(".image-download")).toHaveText("تحميل");
+  await expect(page.locator("#result")).toBeHidden();
+  expect(await tile.locator(".image-download").getAttribute("href")).toMatch(/^blob:/);
+  await expect(page.locator("#download-all")).toBeHidden();
+});
+
+test("conversion mode converts every selected image in the preview area", async ({ page }) => {
+  await page.goto("/convert/?tool=convert");
+  await page.locator("#image-file").setInputFiles([
+    { name: "first.png", mimeType: "image/png", buffer: pixel },
+    { name: "second.png", mimeType: "image/png", buffer: pixel }
+  ]);
+  await expect(page.locator(".convert-preview-tile")).toHaveCount(2);
+  await expect(page.locator("#batch-convert")).toBeEnabled();
+  await expect(page.locator("#batch-convert")).toHaveText("تحويل جميع الملفات");
+  await page.locator("#batch-convert").click();
+  await expect(page.locator("#batch-status")).toContainText("اكتمل تحويل 2 صور", { timeout: 30000 });
+  await expect(page.locator(".convert-preview-tile .image-download")).toHaveCount(2);
+  await expect(page.locator("#result")).toBeHidden();
+  await expect(page.locator("#download-all")).toBeVisible();
+  await expect(page.locator("#download-all")).toBeDisabled();
 });
