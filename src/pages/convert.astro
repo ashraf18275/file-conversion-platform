@@ -903,6 +903,13 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:#167a54}
 .result h2,.tool-panel summary{color:#315a45}
 .background-summary{background:#f7faf7;border-color:#d8e7dc}
 
+
+/* Much smaller image preview area; keep the image proportional and editing controls intact */
+.preview-stage{height:220px;min-height:180px;padding:10px}
+.preview-stage #preview{max-width:72%;max-height:175px}
+@media(max-width:720px){.preview-stage{height:190px;min-height:170px;padding:8px}.preview-stage #preview{max-width:82%;max-height:145px}}
+@media(max-width:420px){.preview-stage{height:170px;min-height:150px}.preview-stage #preview{max-height:125px}}
+
 </style>
 <script src="../scripts/background-removal.js"></script>
 </BaseLayout>
