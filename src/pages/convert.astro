@@ -867,6 +867,33 @@ window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl)
 .background-summary{gap:11px;padding:12px;border-radius:12px}
 @media(max-width:720px){.editor-hero{padding-bottom:10px}.upload-zone{padding:15px;gap:10px}.preview-stage{height:260px;min-height:220px;padding:10px}.preview-stage #preview{max-height:220px}.editor-tabs{gap:6px;margin:12px 0 8px}.editor-tab{min-height:44px;padding:9px 6px;font-size:.9rem}.tool-panel{padding:13px}.button-row .button{flex:1 1 44%}}
 @media(max-width:420px){.editor-hero h1{font-size:1.75rem}.upload-copy{flex-basis:140px}.upload-button{width:100%}.preview-stage{height:230px;min-height:200px}.editor-tab{font-size:.84rem}.result{padding:13px}}
+
+/* Calm Green visual identity: styling only; preserve editor content and behavior */
+.editor-hero h1 span{color:#187653}
+.upload-zone{border-color:#b9d9c4;background:linear-gradient(120deg,#f0f7f1,#fffefa)}
+.upload-zone.drag-over{border-color:#187653;background:#eaf5ed}
+.upload-symbol{background:#dff2e5;color:#187653}
+.preview-stage{background:#f0f5f0;border-color:#dce8df}
+.crop-selection{box-shadow:0 0 0 9999px #18352b40,inset 0 0 0 1px #187653}
+.crop-handle{border-color:#187653}
+.editor-tab{border-color:#dce8df;background:#fffefa;color:#496455}
+.editor-tab.active{background:#187653;border-color:#187653;color:#fff;box-shadow:0 7px 16px #1876532b}
+.result{border-color:#cfe4d5;background:#f0f7f1}
+.help-details{border-color:#dce8df;background:#f9fcf9}
+.help-details summary{color:#365b48}
+.batch-panel{border-color:#dce8df;background:#f0f7f1}
+.batch-file-item[data-state="running"] .queue-status{color:#187653}
+.queue-action:focus-visible,.category-filter:focus-visible{outline-color:#4ba87c}
+.batch-result-link{background:#dff2e5;color:#125e41}
+.batch-result-link:hover{background:#cce9d7}
+.preview-stage.crop-mode .crop-overlay .crop-selection{border-color:#fff}
+.editor-tabs .editor-tab:hover:not(.active){background:#edf5ef;border-color:#b9d9c4}
+.upload-zone:focus-within{border-color:#187653}
+.button,.button.primary,#convert{background-color:#187653;border-color:#187653}
+.button:hover,.button.primary:hover,#convert:hover{background-color:#105c40;border-color:#105c40}
+.button.secondary,.button-row .button.secondary{background:#fffefa;border-color:#dce8df;color:#315b47}
+:focus-visible{outline-color:#d98b32}
+
 </style>
 <script src="../scripts/background-removal.js"></script>
 </BaseLayout>
