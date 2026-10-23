@@ -731,7 +731,7 @@ test("marks the current page in the primary navigation", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("header nav a[aria-current='page']")).toHaveCount(0);
   await page.goto("/convert/");
-  await expect(page.locator("header nav a[aria-current='page']")).toHaveText("محرر الصور");
+  await expect(page.locator("header nav a[aria-current='page']")).toHaveText("أدوات الصور");
   await page.goto("/guide/");
   await expect(page.locator("header nav a[aria-current='page']")).toHaveText("دليل الاستخدام");
   await page.goto("/privacy/");
