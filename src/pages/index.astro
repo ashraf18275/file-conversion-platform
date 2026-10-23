@@ -307,4 +307,35 @@ for (const button of categoryButtons) button.addEventListener("click", () => {
 .ad-slot{border-color:#c9dfcf;background:#eff5ef;color:#81968a}
 @media(max-width:760px){.tool-filters{background:#fffefa}}
 
+
+/* Button colors only: align all homepage controls with the calm-green theme */
+.button,.button.primary,.hero-actions .button,.home-hero .hero-actions .button{
+  background:#167a54;
+  border-color:#167a54;
+  color:#fff;
+  box-shadow:0 4px 10px #167a5418;
+}
+.button:hover,.button.primary:hover,.hero-actions .button:hover,.home-hero .hero-actions .button:hover{
+  background:#116442;
+  border-color:#116442;
+}
+.button.secondary,.hero-actions .button.secondary,.home-hero .hero-actions .button.secondary{
+  background:#edf5ef;
+  border-color:#d8e7dc;
+  color:#315a45;
+  box-shadow:none;
+}
+.button.secondary:hover,.hero-actions .button.secondary:hover,.home-hero .hero-actions .button.secondary:hover{
+  background:#e2f1e7;
+  border-color:#c4e1cd;
+}
+.category-filter{background:#fffefa;border-color:#d8e7dc;color:#42634f}
+.category-filter:hover,.category-filter.active{
+  background:#e2f1e7;
+  border-color:#c4e1cd;
+  color:#176847;
+}
+.tool-card-action{background:#e2f1e7;color:#176847}
+.tool-card:hover .tool-card-action{background:#167a54;color:#fff}
+
 </style>
