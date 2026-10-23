@@ -6,10 +6,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <h1 class="editor-page-title visually-hidden">محرر الصور</h1>
 <div id="preview-wrap" class="preview-stage upload-zone is-empty" role="region" aria-label="منطقة الصور">
 <div id="upload-placeholder" class="upload-placeholder"><span class="upload-symbol" aria-hidden="true">↑</span><div class="upload-copy"><strong>أفلت الصور هنا</strong><span>PNG وJPG وWebP وغيرها؛ يمكنك اختيار عدة صور</span></div><label class="button upload-button" for="image-file">تحميل</label><p id="upload-status" class="upload-status" role="status" aria-live="polite"></p></div>
+<div id="convert-preview-grid" class="multi-preview-grid" role="list" aria-label="الصور المحددة للتحويل" hidden></div>
 <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" multiple />
 <img id="preview" class="preview" alt="معاينة الصورة الأصلية" hidden /><div id="crop-overlay" class="crop-overlay" aria-label="اسحب لتحديد مساحة الاقتصاص"><div id="crop-selection" class="crop-selection"><span class="crop-handle handle-nw" data-crop-handle="nw" aria-label="تغيير الزاوية العلوية اليسرى"></span><span class="crop-handle handle-n" data-crop-handle="n" aria-label="تغيير الحافة العلوية"></span><span class="crop-handle handle-ne" data-crop-handle="ne" aria-label="تغيير الزاوية العلوية اليمنى"></span><span class="crop-handle handle-e" data-crop-handle="e" aria-label="تغيير الحافة اليمنى"></span><span class="crop-handle handle-se" data-crop-handle="se" aria-label="تغيير الزاوية السفلية اليمنى"></span><span class="crop-handle handle-s" data-crop-handle="s" aria-label="تغيير الحافة السفلية"></span><span class="crop-handle handle-sw" data-crop-handle="sw" aria-label="تغيير الزاوية السفلية اليسرى"></span><span class="crop-handle handle-w" data-crop-handle="w" aria-label="تغيير الحافة اليسرى"></span></div></div><div id="preview-tip" class="preview-tip" hidden>يمكنك سحب المؤشر على الصورة لتحديد الجزء المطلوب</div></div>
 <div id="source-toolbar" class="source-toolbar" hidden><div id="source-info" class="file-meta muted" aria-live="polite">لم يتم اختيار صورة بعد.</div><div class="source-actions"><label id="add-images" class="button secondary add-images" for="image-file">إضافة صور</label><button id="remove-selected" class="button secondary remove-selected" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5" /></svg><span>حذف الصورة</span></button></div></div>
-<div id="batch-panel" class="batch-panel" hidden><div class="batch-heading"><strong id="batch-count">0 ملفات محددة</strong><button id="batch-convert" class="button" type="button">تحويل جميع الملفات</button></div><ul id="batch-file-list" class="batch-file-list"></ul><p id="batch-status" class="muted" role="status" aria-live="polite"></p><div id="batch-results" class="batch-results"></div></div>
+
 
 
 <div class="editor-tabs" role="tablist" aria-label="أدوات تحرير الصورة">
@@ -86,7 +87,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 </details>
 
 <details id="format-panel" class="tool-panel" open>
-<summary>صيغة الإخراج والجودة</summary>
+<summary>التنسيق والجودة</summary>
 <div class="field"><label for="format">تنسيق الإخراج</label><select id="format"><option value="image/webp">WebP — حجم أصغر غالبًا</option><option value="image/jpeg">JPEG</option><option value="image/png">PNG — يدعم الشفافية</option><option value="image/bmp">BMP — توافق واسع وحجم أكبر</option></select></div>
 <div class="field"><label for="quality">جودة JPEG وWebP: <output id="quality-value">0.85</output></label><input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.85" /><small class="muted">الجودة الأقل تعطي عادةً ملفًا أصغر. هذا الخيار لا يؤثر في PNG.</small></div>
 <label class="check-row"><input id="target-enabled" type="checkbox" /> استهداف حجم ملف محدد</label>
@@ -104,9 +105,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <p class="muted hint">يمكنك تجربة التدوير والقلب قبل إنشاء الملف النهائي. تبقى الصورة الأصلية محفوظة.</p>
 </details>
 
-<div class="conversion-actions"><button id="convert" class="button" disabled>تحويل</button><a id="download" class="button download-action" download hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 18v3h14v-3" /></svg><span>تحميل</span></a></div>
+<div class="conversion-actions"><button id="convert" class="button" disabled>تحويل</button><button id="batch-convert" class="button batch-convert-action" type="button" disabled hidden>تحويل الصورة</button><a id="download" class="button download-action" download hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 18v3h14v-3" /></svg><span>تحميل</span></a></div>
 <p id="status" role="status" aria-live="polite" class="muted"></p>
 <div id="result" class="result" hidden><h2>النتيجة</h2><img id="result-preview" class="preview" alt="معاينة الصورة بعد التعديل" /><p id="result-info"></p><div id="target-warning" class="warn" hidden></div></div>
+<div id="batch-panel" class="batch-panel" hidden><div class="batch-heading"><strong id="batch-count">0 ملفات محددة</strong></div><ul id="batch-file-list" class="batch-file-list"></ul><p id="batch-status" class="muted" role="status" aria-live="polite"></p><button id="download-all" class="button premium-download" type="button" disabled hidden title="يتطلب تفعيل نظام الاشتراك المدفوع"><span>تحميل الكل</span><small>للمشتركين المدفوعين</small><span class="premium-lock" aria-hidden="true">🔒</span></button><div id="batch-results" class="batch-results"></div></div>
 </section>
 <script is:inline>
 const editorTabs = Array.from(document.querySelectorAll("[data-editor-tab]")).filter(tab => !tab.hidden);
@@ -152,6 +154,7 @@ const toolModes = {
 };
 const requestedTool = new URLSearchParams(location.search).get("tool");
 const selectedTool = toolModes[requestedTool];
+const isConvertWindow = requestedTool === "convert";
 if (selectedTool) {
   document.title = selectedTool.title + " | محوّل الملفات";
   const heading = document.querySelector(".editor-page-title");
@@ -176,6 +179,7 @@ const formatInput = document.querySelector("#format");
 const qualityInput = document.querySelector("#quality");
 const qualityValue = document.querySelector("#quality-value");
 const convertButton = document.querySelector("#convert");
+convertButton.hidden = isConvertWindow;
 const status = document.querySelector("#status");
 const sourceInfo = document.querySelector("#source-info");
 const removeSelectedButton = document.querySelector("#remove-selected");
@@ -185,6 +189,7 @@ const uploadPlaceholder = document.querySelector("#upload-placeholder");
 const uploadStatus = document.querySelector("#upload-status");
 const previewTip = document.querySelector("#preview-tip");
 const sourceToolbar = document.querySelector("#source-toolbar");
+const convertPreviewGrid = document.querySelector("#convert-preview-grid");
 const addImagesLabel = document.querySelector("#add-images");
 const setWorkspaceHasImage = hasImage => {
   previewWrap.classList.toggle("is-empty", !hasImage);
@@ -222,6 +227,7 @@ const uploadZone = previewWrap;
 const batchPanel = document.querySelector("#batch-panel");
 const batchCount = document.querySelector("#batch-count");
 const batchConvertButton = document.querySelector("#batch-convert");
+const downloadAllButton = document.querySelector("#download-all");
 const batchFileList = document.querySelector("#batch-file-list");
 const batchStatus = document.querySelector("#batch-status");
 const batchResults = document.querySelector("#batch-results");
@@ -491,8 +497,11 @@ const updateBatchQueue = () => {
   batchResults.replaceChildren();
   batchStatus.textContent = "";
   batchPanel.hidden = queuedFiles.length === 0;
-  batchConvertButton.hidden = queuedFiles.length < 2;
-  batchConvertButton.disabled = queuedFiles.length < 2;
+  batchConvertButton.hidden = isConvertWindow ? queuedFiles.length === 0 : queuedFiles.length < 2;
+  batchConvertButton.disabled = queuedFiles.length === 0 || isBatchProcessing;
+  batchConvertButton.textContent = queuedFiles.length === 1 ? "تحويل الصورة" : "تحويل جميع الصور";
+  downloadAllButton.hidden = true;
+  if (isConvertWindow) renderConvertPreviewGrid();
   batchCount.textContent = queuedFiles.length + " " + (queuedFiles.length === 1 ? "ملف محدد" : "ملفات محددة");
   queuedFiles.forEach((file, index) => {
     const item = document.createElement("li"); item.className = "batch-file-item"; item.dataset.queueIndex = String(index);
@@ -512,6 +521,21 @@ const updateBatchQueue = () => {
     controls.append(up,down,remove); item.append(thumb,details,controls); batchFileList.append(item);
   });
 };
+const renderConvertPreviewGrid = () => {
+  convertPreviewGrid.replaceChildren();
+  const count = queuedFiles.length;
+  convertPreviewGrid.hidden = count === 0;
+  previewWrap.classList.toggle("convert-grid-active", count > 0);
+  convertPreviewGrid.dataset.count = String(count);
+  queuedFiles.forEach((file, index) => {
+    const tile = document.createElement("article"); tile.className = "convert-preview-tile"; tile.dataset.queueIndex = String(index); tile.setAttribute("role", "listitem");
+    const image = document.createElement("img"); image.className = "convert-preview-image"; image.alt = ""; image.src = URL.createObjectURL(file); batchThumbUrls.push(image.src);
+    const name = document.createElement("span"); name.className = "convert-preview-name"; name.textContent = displayFileName(file.name); name.title = displayFileName(file.name);
+    const remove = document.createElement("button"); remove.className = "convert-preview-remove"; remove.type = "button"; remove.textContent = "×"; remove.title = "حذف الصورة"; remove.setAttribute("aria-label", "حذف " + displayFileName(file.name)); remove.disabled = isBatchProcessing;
+    remove.addEventListener("click", () => { if (isBatchProcessing) return; queuedFiles.splice(index, 1); const transfer = new DataTransfer(); queuedFiles.forEach(item => transfer.items.add(item)); fileInput.files = transfer.files; fileInput.dispatchEvent(new Event("change", { bubbles: true })); });
+    tile.append(image, name, remove); convertPreviewGrid.append(tile);
+  });
+};
 const setBatchItemStatus = (index, state, label) => {
   const item = batchFileList.querySelector('[data-queue-index="' + index + '"]');
   if (!item) return;
@@ -528,12 +552,13 @@ const waitFor = async (predicate, timeout = 30000) => {
 };
 batchConvertButton.addEventListener("click", async () => {
   const files = queuedFiles.slice();
-  if (files.length < 2 || batchConvertButton.disabled) return;
+  if (files.length < 1 || batchConvertButton.disabled) return;
   const unsupported = files.filter(file => !allowedInputTypes.has(file.type));
   if (unsupported.length) { batchStatus.textContent = "تعذر بدء التحويل؛ توجد ملفات غير مدعومة: " + unsupported.map(file => displayFileName(file.name)).join("، "); return; }
   batchConvertButton.disabled = true;
   isBatchProcessing = true;
   batchResults.replaceChildren();
+  downloadAllButton.hidden = true;
   let completed = 0;
   try {
     for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
@@ -554,19 +579,29 @@ batchConvertButton.addEventListener("click", async () => {
       const link = document.createElement("a");
       link.href = url;
       link.download = download.download;
-      link.className = "batch-result-link";
-      link.textContent = "تنزيل " + safeBase(file.name) + " (" + fmtBytes(blob.size) + ")";
-      batchResults.append(link);
+      link.className = isConvertWindow ? "image-download button secondary" : "batch-result-link";
+      link.textContent = "تحميل";
+      link.setAttribute("aria-label", "تحميل " + safeBase(file.name));
+      if (isConvertWindow) {
+        const tile = convertPreviewGrid.querySelector('[data-queue-index="' + fileIndex + '"]');
+        if (tile) tile.append(link);
+      } else {
+        link.textContent = "تنزيل " + safeBase(file.name) + " (" + fmtBytes(blob.size) + ")";
+        batchResults.append(link);
+      }
       setBatchItemStatus(fileIndex, "completed", "اكتمل التحويل");
       completed++;
     }
-    batchStatus.textContent = "اكتمل تحويل " + completed + " ملفات. نزّل كل نتيجة من الروابط أدناه.";
+    batchStatus.textContent = isConvertWindow ? "اكتمل تحويل " + completed + (completed === 1 ? " صورة. يمكنك تحميلها من بطاقتها." : " صور. يمكنك تحميل كل صورة من بطاقتها.") : "اكتمل تحويل " + completed + " ملفات. نزّل كل نتيجة من الروابط أدناه.";
+    downloadAllButton.hidden = !isConvertWindow || completed < 2;
+    downloadAllButton.disabled = true;
   } catch (error) {
     setBatchItemStatus(completed, "failed", "تعذر التحويل");
     batchStatus.textContent = "تعذر تحويل الملف " + (completed + 1) + ": " + (error instanceof Error ? error.message : "حدث خطأ غير متوقع");
   } finally {
     isBatchProcessing = false;
-    batchConvertButton.disabled = false;
+    batchConvertButton.disabled = queuedFiles.length === 0;
+    if (isConvertWindow && queuedFiles.length > 0) renderConvertPreviewGrid();
   }
 });
 removeSelectedButton.addEventListener("click", () => {
@@ -904,7 +939,8 @@ convertButton.addEventListener("click", async () => {
       targetWarning.textContent = mime === "image/png" ? "حجم الملف ضمن الهدف المحدد، لكن PNG لا يدعم التحكم في الجودة عبر هذا المحرر." : mime === "image/bmp" ? "حجم ملف BMP ضمن الهدف المحدد؛ صيغة BMP غير مضغوطة في هذه الأداة." : "تم بلوغ الحجم المستهدف باستخدام أعلى جودة عُثر عليها ضمن محاولات الضبط.";
       targetWarning.hidden = false;
     }
-    result.hidden = false;
+    result.hidden = isConvertWindow;
+    download.hidden = isConvertWindow;
     status.textContent = "اكتمل التعديل. راجع المعاينة قبل التنزيل.";
   } catch (error) {
     status.textContent = error instanceof Error ? error.message : "حدث خطأ غير متوقع أثناء تعديل الصورة.";
@@ -1168,6 +1204,40 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:#167a54}
 #result-info{font-size:.92rem;line-height:1.75;color:#45584a}
 #status{font-size:.9rem;line-height:1.65}
 @media(max-width:480px){.conversion-actions{gap:8px}.download-action{min-width:112px;padding-inline:12px}.conversion-actions #convert{font-size:.98rem}#format-panel{padding:15px}}
+
+
+/* Conversion-only multi-image workspace. */
+.multi-preview-grid{position:absolute;inset:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));grid-auto-rows:minmax(0,1fr);gap:10px;overflow:auto;align-content:stretch}
+.multi-preview-grid[hidden]{display:none}
+#preview-wrap.convert-grid-active #preview{display:none!important}
+.convert-preview-tile{position:relative;display:flex;min-width:0;min-height:0;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px;border:1px solid #d8e7dc;border-radius:12px;background:#ffffffed;overflow:hidden}
+.multi-preview-grid[data-count="1"]{grid-template-columns:1fr}
+.multi-preview-grid[data-count="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.multi-preview-grid[data-count="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+.multi-preview-grid[data-count="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.convert-preview-image{display:block;flex:1 1 auto;min-width:0;min-height:0;width:100%;height:100%;object-fit:contain}
+.convert-preview-name{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.78rem;color:#415347}
+.convert-preview-remove{position:absolute;top:5px;inset-inline-end:5px;display:grid;place-items:center;width:28px;height:28px;border:1px solid #d8e7dc;border-radius:50%;background:#fff;color:#8e3b3b;font-size:1.2rem;line-height:1;cursor:pointer}
+.convert-preview-remove:disabled{opacity:.5;cursor:not-allowed}
+#batch-panel .batch-heading,#batch-panel .batch-file-list{display:none}
+#batch-panel{margin-top:12px;padding:0;border:0;background:transparent}
+#batch-status:empty{display:none}
+.batch-convert-action{display:block;width:min(100%,440px);min-height:58px;margin:8px auto 0;font-size:1.12rem;font-weight:850}
+#convert[hidden],#download[hidden]{display:none!important}
+.conversion-actions:has(.batch-convert-action:not([hidden])) #convert{display:none}
+.image-download{display:inline-flex;align-items:center;justify-content:center;min-width:110px;min-height:38px;padding:7px 16px;border-radius:10px;font-weight:800;text-decoration:none}
+#batch-panel .premium-download{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin:12px auto;padding:10px 18px;border:1px solid #d5c693;border-radius:12px;background:#faf7eb;color:#77652f;opacity:.78}
+.premium-download small{font-size:.78rem;font-weight:650}
+.premium-lock{font-size:.9rem}
+#status{font-size:.9rem;line-height:1.65}
+@media(max-width:480px){
+  .multi-preview-grid{inset:8px;gap:6px}
+  .multi-preview-grid[data-count="3"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .convert-preview-tile{padding:6px}
+  .convert-preview-name{font-size:.7rem}
+  .convert-preview-remove{width:25px;height:25px}
+  .batch-convert-action{min-height:54px;font-size:1rem}
+}
 
 </style>
 <script src="../scripts/background-removal.js"></script>
