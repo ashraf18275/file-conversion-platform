@@ -490,7 +490,8 @@ const updateBatchQueue = () => {
   batchFileList.replaceChildren();
   batchResults.replaceChildren();
   batchStatus.textContent = "";
-  batchPanel.hidden = queuedFiles.length < 2;
+  batchPanel.hidden = queuedFiles.length === 0;
+  batchConvertButton.hidden = queuedFiles.length < 2;
   batchConvertButton.disabled = queuedFiles.length < 2;
   batchCount.textContent = queuedFiles.length + " " + (queuedFiles.length === 1 ? "ملف محدد" : "ملفات محددة");
   queuedFiles.forEach((file, index) => {
