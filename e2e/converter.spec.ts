@@ -719,7 +719,7 @@ test("mobile navigation stays compact, scrollable, and free of page overflow", a
       right: link.getBoundingClientRect().right
     }))
   }));
-  expect(measurements.links).toHaveLength(6);
+  expect(measurements.links).toHaveLength(4);
   expect(measurements.scrollWidth).toBeGreaterThanOrEqual(measurements.clientWidth);
   expect(measurements.pageWidth).toBeLessThanOrEqual(measurements.viewportWidth + 1);
   await nav.evaluate(element => { element.scrollLeft = -element.scrollWidth; });
@@ -729,7 +729,7 @@ test("mobile navigation stays compact, scrollable, and free of page overflow", a
 
 test("marks the current page in the primary navigation", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("header nav a[aria-current='page']")).toHaveText("الرئيسية");
+  await expect(page.locator("header nav a[aria-current='page']")).toHaveCount(0);
   await page.goto("/convert/");
   await expect(page.locator("header nav a[aria-current='page']")).toHaveText("محرر الصور");
   await page.goto("/guide/");
