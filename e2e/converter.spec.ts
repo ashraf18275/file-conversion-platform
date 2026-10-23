@@ -729,7 +729,7 @@ test("mobile navigation stays compact, scrollable, and free of page overflow", a
 
 test("marks the current page in the primary navigation", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("header nav a[aria-current='page']")).toHaveCount(0);
+  await expect(page.locator("header nav a[aria-current='page']")).toHaveText("الرئيسية");
   await page.goto("/convert/");
   await expect(page.locator("header nav a[aria-current='page']")).toHaveText("أدوات الصور");
   await page.goto("/guide/");
