@@ -9,7 +9,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" multiple />
 <img id="preview" class="preview" alt="معاينة الصورة الأصلية" hidden /><div id="crop-overlay" class="crop-overlay" aria-label="اسحب لتحديد مساحة الاقتصاص"><div id="crop-selection" class="crop-selection"><span class="crop-handle handle-nw" data-crop-handle="nw" aria-label="تغيير الزاوية العلوية اليسرى"></span><span class="crop-handle handle-n" data-crop-handle="n" aria-label="تغيير الحافة العلوية"></span><span class="crop-handle handle-ne" data-crop-handle="ne" aria-label="تغيير الزاوية العلوية اليمنى"></span><span class="crop-handle handle-e" data-crop-handle="e" aria-label="تغيير الحافة اليمنى"></span><span class="crop-handle handle-se" data-crop-handle="se" aria-label="تغيير الزاوية السفلية اليمنى"></span><span class="crop-handle handle-s" data-crop-handle="s" aria-label="تغيير الحافة السفلية"></span><span class="crop-handle handle-sw" data-crop-handle="sw" aria-label="تغيير الزاوية السفلية اليسرى"></span><span class="crop-handle handle-w" data-crop-handle="w" aria-label="تغيير الحافة اليسرى"></span></div></div><div id="preview-tip" class="preview-tip" hidden>يمكنك سحب المؤشر على الصورة لتحديد الجزء المطلوب</div></div>
 <div id="source-toolbar" class="source-toolbar" hidden><div id="source-info" class="file-meta muted" aria-live="polite">لم يتم اختيار صورة بعد.</div><div class="source-actions"><label id="add-images" class="button secondary add-images" for="image-file">إضافة صور</label><button id="remove-selected" class="button secondary remove-selected" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5" /></svg><span>حذف الصورة</span></button></div></div>
-<div id="batch-panel" class="batch-panel" hidden><div class="batch-heading"><strong id="batch-count">0 ملفات محددة</strong><button id="batch-convert" class="button batch-convert-action" type="button" disabled hidden>تحويل جميع الملفات</button></div><ul id="batch-file-list" class="batch-file-list"></ul><p id="batch-status" class="muted" role="status" aria-live="polite"></p><button id="download-all" class="button premium-download" type="button" hidden aria-label="تحميل كل الصور المحولة"><span class="bulk-download-label">تحميل الكل</span><small id="bulk-download-note">المتبقي <strong id="bulk-download-count">10</strong> من 10</small></button><div id="batch-results" class="batch-results"></div></div>
+<div id="batch-panel" class="batch-panel" hidden><div class="batch-heading"><strong id="batch-count">0 ملفات محددة</strong><button id="batch-convert" class="button batch-convert-action" type="button" disabled hidden>تحويل جميع الملفات</button></div><ul id="batch-file-list" class="batch-file-list"></ul><p id="batch-status" class="muted" role="status" aria-live="polite"></p><button id="download-all" class="button premium-download" type="button" hidden aria-label="تحميل كل الصور المحولة"><span class="bulk-download-label">تحميل الكل</span><small id="bulk-download-note"><span id="bulk-download-prefix">المتبقي </span><strong id="bulk-download-count">10</strong><span id="bulk-download-suffix"> من 10</span></small></button><div id="batch-results" class="batch-results"></div></div>
 
 
 
@@ -238,6 +238,8 @@ const batchConvertButton = document.querySelector("#batch-convert");
 const downloadAllButton = document.querySelector("#download-all");
 const bulkDownloadCount = document.querySelector("#bulk-download-count");
 const bulkDownloadNote = document.querySelector("#bulk-download-note");
+const bulkDownloadPrefix = document.querySelector("#bulk-download-prefix");
+const bulkDownloadSuffix = document.querySelector("#bulk-download-suffix");
 const BULK_DOWNLOAD_LIMIT = 10;
 const BULK_DOWNLOAD_KEY = "file-conversion-bulk-downloads-left";
 const readBulkDownloadsLeft = () => {
@@ -247,7 +249,8 @@ const readBulkDownloadsLeft = () => {
 let bulkDownloadsLeft = readBulkDownloadsLeft();
 const renderBulkDownloadCount = () => {
   if (bulkDownloadCount) bulkDownloadCount.textContent = String(bulkDownloadsLeft);
-  if (bulkDownloadNote) bulkDownloadNote.textContent = bulkDownloadsLeft > 0 ? "المتبقي " + bulkDownloadsLeft + " من " + BULK_DOWNLOAD_LIMIT : "انتهت المرات المجانية · انتقل للاشتراك";
+  if (bulkDownloadPrefix) bulkDownloadPrefix.textContent = "المتبقي ";
+  if (bulkDownloadSuffix) bulkDownloadSuffix.textContent = bulkDownloadsLeft > 0 ? " من " + BULK_DOWNLOAD_LIMIT : " من " + BULK_DOWNLOAD_LIMIT + " · انتهت المرات المجانية، اضغط للاشتراك";
 };
 renderBulkDownloadCount();
 const batchFileList = document.querySelector("#batch-file-list");
