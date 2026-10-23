@@ -46,7 +46,7 @@ test("keeps the home directory limited to current tools and links to collections
   await expect(page.locator(".tool-card")).toHaveCount(5);
   await expect(page.getByText("قريبًا", { exact: true })).toHaveCount(0);
   await expect(page.getByText("نسخة تجريبية", { exact: false })).toHaveCount(0);
-  await expect(page.getByRole("navigation", { name: "التنقل الرئيسي" }).getByRole("link", { name: "تحويل الصور" })).toHaveAttribute("href", "/image-converter/");
+  await expect(page.getByRole("navigation", { name: "التنقل الرئيسي" }).getByRole("link", { name: "أدوات الصور" })).toHaveAttribute("href", "/convert/");
   await expect(page.getByRole("navigation", { name: "التنقل الرئيسي" }).getByRole("link", { name: "أدوات PDF" })).toHaveAttribute("href", "/pdf-tools/");
 });
 
