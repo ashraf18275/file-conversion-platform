@@ -719,7 +719,7 @@ test("mobile navigation stays compact, scrollable, and free of page overflow", a
       right: link.getBoundingClientRect().right
     }))
   }));
-  expect(measurements.links).toHaveLength(4);
+  expect(measurements.links).toHaveLength(5);
   expect(measurements.scrollWidth).toBeGreaterThanOrEqual(measurements.clientWidth);
   expect(measurements.pageWidth).toBeLessThanOrEqual(measurements.viewportWidth + 1);
   await nav.evaluate(element => { element.scrollLeft = -element.scrollWidth; });
