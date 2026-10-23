@@ -868,31 +868,42 @@ window.addEventListener("pagehide", () => { if (sourceUrl !== originalSourceUrl)
 @media(max-width:720px){.editor-hero{padding-bottom:10px}.upload-zone{padding:15px;gap:10px}.preview-stage{height:260px;min-height:220px;padding:10px}.preview-stage #preview{max-height:220px}.editor-tabs{gap:6px;margin:12px 0 8px}.editor-tab{min-height:44px;padding:9px 6px;font-size:.9rem}.tool-panel{padding:13px}.button-row .button{flex:1 1 44%}}
 @media(max-width:420px){.editor-hero h1{font-size:1.75rem}.upload-copy{flex-basis:140px}.upload-button{width:100%}.preview-stage{height:230px;min-height:200px}.editor-tab{font-size:.84rem}.result{padding:13px}}
 
-/* Calm Green visual identity: styling only; preserve editor content and behavior */
-.editor-hero h1 span{color:#187653}
-.upload-zone{border-color:#b9d9c4;background:linear-gradient(120deg,#f0f7f1,#fffefa)}
-.upload-zone.drag-over{border-color:#187653;background:#eaf5ed}
-.upload-symbol{background:#dff2e5;color:#187653}
-.preview-stage{background:#f0f5f0;border-color:#dce8df}
-.crop-selection{box-shadow:0 0 0 9999px #18352b40,inset 0 0 0 1px #187653}
-.crop-handle{border-color:#187653}
-.editor-tab{border-color:#dce8df;background:#fffefa;color:#496455}
-.editor-tab.active{background:#187653;border-color:#187653;color:#fff;box-shadow:0 7px 16px #1876532b}
-.result{border-color:#cfe4d5;background:#f0f7f1}
-.help-details{border-color:#dce8df;background:#f9fcf9}
-.help-details summary{color:#365b48}
-.batch-panel{border-color:#dce8df;background:#f0f7f1}
-.batch-file-item[data-state="running"] .queue-status{color:#187653}
-.queue-action:focus-visible,.category-filter:focus-visible{outline-color:#4ba87c}
-.batch-result-link{background:#dff2e5;color:#125e41}
-.batch-result-link:hover{background:#cce9d7}
-.preview-stage.crop-mode .crop-overlay .crop-selection{border-color:#fff}
-.editor-tabs .editor-tab:hover:not(.active){background:#edf5ef;border-color:#b9d9c4}
-.upload-zone:focus-within{border-color:#187653}
-.button,.button.primary,#convert{background-color:#187653;border-color:#187653}
-.button:hover,.button.primary:hover,#convert:hover{background-color:#105c40;border-color:#105c40}
-.button.secondary,.button-row .button.secondary{background:#fffefa;border-color:#dce8df;color:#315b47}
-:focus-visible{outline-color:#d98b32}
+
+/* Calm-green reference tokens applied consistently; no content or behavior changes */
+.editor-hero h1 span{color:#167a54}
+.privacy-notice{background:#edf6ef;border-color:#cfe5d5}
+.privacy-notice>span:first-child{background:#e0f1e5;color:#167a54}
+.privacy-notice strong{color:#285c40}
+.upload-zone{border-color:#c2dcc9;background:#f7faf7}
+.upload-zone.drag-over{border-color:#167a54;background:#edf6ef}
+.upload-symbol{background:#e0f1e5;color:#167a54}
+.preview-stage{background:#f1f6f1;border-color:#d8e7dc}
+.crop-selection{box-shadow:0 0 0 9999px #183b2d40,inset 0 0 0 1px #167a54}
+.crop-handle{border-color:#167a54}
+.editor-tab{border-color:#d8e7dc;background:#fffefa;color:#42634f;border-radius:9px}
+.editor-tab.active{background:#167a54;border-color:#167a54;color:#fff;box-shadow:0 5px 12px #167a5420}
+.editor-tab:hover:not(.active){background:#edf5ef;border-color:#b8d8c2}
+.result{border-color:#cfe4d5;background:#f1f7f1}
+.help-details{border-color:#d8e7dc;background:#f9fcf9}
+.help-details summary{color:#315a45}
+.batch-panel{border-color:#d8e7dc;background:#f1f7f1}
+.batch-file-item[data-state="running"] .queue-status{color:#167a54}
+.batch-file-item[data-state="completed"] .queue-status{color:#167a54}
+.queue-action:focus-visible,.category-filter:focus-visible{outline-color:#6eaa86}
+.batch-result-link{background:#e0f1e5;color:#166a49}
+.batch-result-link:hover{background:#cfe8d6}
+.upload-zone:focus-within{border-color:#167a54}
+.button,.button.primary,#convert{background:#167a54;border-color:#167a54;color:#fff}
+.button:hover,.button.primary:hover,#convert:hover{background:#116442;border-color:#116442}
+.button.secondary,.button-row .button.secondary{background:#fffefa;border-color:#d8e7dc;color:#315a45}
+.button.secondary:hover,.button-row .button.secondary:hover{background:#edf5ef}
+input,select,textarea{border-color:#d8e7dc}
+input:hover,select:hover,textarea:hover{border-color:#b8d8c2}
+input:focus,select:focus,textarea:focus{border-color:#6eaa86;box-shadow:0 0 0 3px #167a5417}
+input[type=checkbox],input[type=radio],input[type=range]{accent-color:#167a54}
+:focus-visible{outline-color:#6eaa86}
+.result h2,.tool-panel summary{color:#315a45}
+.background-summary{background:#f7faf7;border-color:#d8e7dc}
 
 </style>
 <script src="../scripts/background-removal.js"></script>
