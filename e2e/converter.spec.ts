@@ -807,67 +807,78 @@ test("loads the site without requesting remote web fonts", async ({ page }) => {
 });
 
 
-test("conversion mode keeps full-resolution source images in its grid and attaches downloads per image", async ({ page }) => {
+test("conversion mode keeps the full-resolution source and displays selected images as a list", async ({ page }) => {
   await page.goto("/convert/?tool=convert");
   await expect(page.locator(".editor-tabs")).toBeHidden();
   await expect(page.locator("#convert")).toBeHidden();
 
   await page.evaluate(async () => {
     const source = document.createElement("canvas");
-    source.width = 1836;
-    source.height = 3264;
+    source.width = 1836; source.height = 3264;
     const context = source.getContext("2d");
     if (!context) throw new Error("Canvas context unavailable");
-    context.fillStyle = "#315a45";
-    context.fillRect(0, 0, source.width, source.height);
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create preview test image")), "image/png");
-    });
+    context.fillStyle = "#315a45"; context.fillRect(0, 0, source.width, source.height);
+    const blob = await new Promise<Blob>((resolve, reject) => source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create preview test image")), "image/png"));
     const input = document.querySelector<HTMLInputElement>("#image-file");
     if (!input) throw new Error("Image input was not found");
-    const transfer = new DataTransfer();
-    transfer.items.add(new File([blob], "full-resolution.png", { type: "image/png" }));
-    input.files = transfer.files;
-    input.dispatchEvent(new Event("change", { bubbles: true }));
+    const transfer = new DataTransfer(); transfer.items.add(new File([blob], "full-resolution.png", { type: "image/png" }));
+    input.files = transfer.files; input.dispatchEvent(new Event("change", { bubbles: true }));
   });
 
-  const tile = page.locator(".convert-preview-tile");
-  const image = tile.locator(".convert-preview-image");
-  await expect(tile).toHaveCount(1);
-  await expect(image).toHaveJSProperty("naturalWidth", 1836);
-  await expect(image).toHaveJSProperty("naturalHeight", 3264);
+  const row = page.locator("#batch-file-list .batch-file-item");
+  await expect(row).toHaveCount(1);
+  await expect(row).toContainText("full-resolution.png");
+  await expect(row.locator(".batch-thumb")).toHaveJSProperty("naturalWidth", 1836);
+  await expect(page.locator("#preview")).toBeHidden();
+  await expect(page.locator("#preview")).toHaveJSProperty("naturalWidth", 1836);
+  await expect(page.locator("#preview")).toHaveJSProperty("naturalHeight", 3264);
   await expect(page.locator("#batch-convert")).toBeEnabled();
   await expect(page.locator("#batch-convert")).toHaveText("تحويل الصورة");
-  const frameBox = await page.locator("#preview-wrap").boundingBox();
-  const imageBox = await image.boundingBox();
-  expect(frameBox).not.toBeNull();
-  expect(imageBox).not.toBeNull();
-  expect(frameBox!.width).toBeLessThanOrEqual(800);
-  expect(frameBox!.height).toBeLessThanOrEqual(450);
-  expect(imageBox!.width).toBeLessThanOrEqual(800);
-  expect(imageBox!.height).toBeLessThanOrEqual(450);
 
   await page.locator("#batch-convert").click();
-  await expect(tile.locator(".image-download")).toBeVisible();
-  await expect(tile.locator(".image-download")).toHaveText("تحميل");
+  await expect(row.locator(".image-download")).toBeVisible();
+  await expect(row.locator(".image-download")).toHaveText("تحميل");
   await expect(page.locator("#result")).toBeHidden();
-  expect(await tile.locator(".image-download").getAttribute("href")).toMatch(/^blob:/);
+  expect(await row.locator(".image-download").getAttribute("href")).toMatch(/^blob:/);
   await expect(page.locator("#download-all")).toBeHidden();
 });
 
-test("conversion mode converts every selected image in the preview area", async ({ page }) => {
+test("conversion mode converts every image, downloads a ZIP, and decrements the free counter", async ({ page }) => {
   await page.goto("/convert/?tool=convert");
   await page.locator("#image-file").setInputFiles([
     { name: "first.png", mimeType: "image/png", buffer: pixel },
     { name: "second.png", mimeType: "image/png", buffer: pixel }
   ]);
-  await expect(page.locator(".convert-preview-tile")).toHaveCount(2);
+  await expect(page.locator("#batch-file-list li")).toHaveCount(2);
   await expect(page.locator("#batch-convert")).toBeEnabled();
   await expect(page.locator("#batch-convert")).toHaveText("تحويل جميع الملفات");
   await page.locator("#batch-convert").click();
   await expect(page.locator("#batch-status")).toContainText("اكتمل تحويل 2 صور", { timeout: 30000 });
-  await expect(page.locator(".convert-preview-tile .image-download")).toHaveCount(2);
+  await expect(page.locator("#batch-file-list .image-download")).toHaveCount(2);
   await expect(page.locator("#result")).toBeHidden();
   await expect(page.locator("#download-all")).toBeVisible();
-  await expect(page.locator("#download-all")).toBeDisabled();
+  await expect(page.locator("#download-all")).toBeEnabled();
+  await expect(page.locator("#bulk-download-count")).toHaveText("10");
+  const downloadPromise = page.waitForEvent("download");
+  await page.locator("#download-all").click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("converted-images.zip");
+  await expect(page.locator("#bulk-download-count")).toHaveText("9");
+  expect(await page.evaluate(() => localStorage.getItem("file-conversion-bulk-downloads-left"))).toBe("9");
+});
+
+test("bulk download sends users to the subscription page after free uses are exhausted", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("file-conversion-bulk-downloads-left", "0"));
+  await page.goto("/convert/?tool=convert");
+  await page.locator("#image-file").setInputFiles([
+    { name: "first.png", mimeType: "image/png", buffer: pixel },
+    { name: "second.png", mimeType: "image/png", buffer: pixel }
+  ]);
+  await page.locator("#batch-convert").click();
+  await expect(page.locator("#batch-status")).toContainText("اكتمل تحويل 2 صور", { timeout: 30000 });
+  await expect(page.locator("#download-all")).toBeVisible();
+  await expect(page.locator("#bulk-download-count")).toHaveText("0");
+  await page.locator("#download-all").click();
+  await expect(page).toHaveURL(/\/subscribe\/$/);
+  await expect(page.getByRole("heading", { name: "الاشتراك المدفوع" })).toBeVisible();
 });
