@@ -500,7 +500,7 @@ const updateBatchQueue = () => {
   batchPanel.hidden = queuedFiles.length === 0;
   batchConvertButton.hidden = isConvertWindow ? queuedFiles.length === 0 : queuedFiles.length < 2;
   batchConvertButton.disabled = queuedFiles.length === 0 || isBatchProcessing;
-  batchConvertButton.textContent = queuedFiles.length === 1 ? "تحويل الصورة" : "تحويل جميع الصور";
+  batchConvertButton.textContent = queuedFiles.length === 1 ? "تحويل الصورة" : "تحويل جميع الملفات";
   downloadAllButton.hidden = true;
   if (isConvertWindow) renderConvertPreviewGrid();
   batchCount.textContent = queuedFiles.length + " " + (queuedFiles.length === 1 ? "ملف محدد" : "ملفات محددة");
