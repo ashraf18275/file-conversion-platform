@@ -760,3 +760,52 @@ test("loads the site without requesting remote web fonts", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "الاتصالات الخارجية" })).toBeVisible();
   await expect(page.locator("body")).toContainText("خطوط النظام");
 });
+
+
+test("contains a full-resolution preview and its queue thumbnail without altering image dimensions", async ({ page }) => {
+  await page.goto("/convert/");
+  await page.evaluate(async () => {
+    const source = document.createElement("canvas");
+    source.width = 1836;
+    source.height = 3264;
+    const context = source.getContext("2d");
+    if (!context) throw new Error("Canvas context unavailable");
+    context.fillStyle = "#315a45";
+    context.fillRect(0, 0, source.width, source.height);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      source.toBlob(value => value ? resolve(value) : reject(new Error("Could not create preview test image")), "image/png");
+    });
+    const input = document.querySelector<HTMLInputElement>("#image-file");
+    if (!input) throw new Error("Image input was not found");
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "full-resolution.png", { type: "image/png" }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+
+  const preview = page.locator("#preview");
+  const thumbnail = page.locator("#batch-file-list .batch-thumb");
+  await expect(preview).toBeVisible();
+  await expect(preview).toHaveJSProperty("naturalWidth", 1836);
+  await expect(preview).toHaveJSProperty("naturalHeight", 3264);
+  await expect(thumbnail).toBeVisible();
+  await expect(thumbnail).toHaveCSS("width", "54px");
+  await expect(thumbnail).toHaveCSS("height", "54px");
+
+  const frameBox = await page.locator("#preview-wrap").boundingBox();
+  const imageBox = await preview.boundingBox();
+  expect(frameBox).not.toBeNull();
+  expect(imageBox).not.toBeNull();
+  expect(frameBox!.width).toBeLessThanOrEqual(800);
+  expect(frameBox!.height).toBeLessThanOrEqual(450);
+  expect(imageBox!.width).toBeLessThanOrEqual(800);
+  expect(imageBox!.height).toBeLessThanOrEqual(450);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+    await page.evaluate(() => window.innerWidth) + 1
+  );
+
+  await page.locator("#convert").click();
+  await expect(page.locator("#result")).toBeVisible();
+  await expect(page.locator("#result-info")).toContainText("الأبعاد النهائية: 1836 × 3264 بكسل");
+  expect(await page.locator("#download").getAttribute("href")).toMatch(/^blob:/);
+});
