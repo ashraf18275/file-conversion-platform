@@ -5,6 +5,8 @@ const base = import.meta.env.BASE_URL;
 <BaseLayout title="تحويل الصور وضغطها وتغيير حجمها مجانًا أونلاين" description="أدوات صور مجانية أونلاين: تحويل JPG إلى PNG وWebP، ضغط الصور، تغيير حجم الصورة واقتصاصها وتدويرها مباشرة من المتصفح.">
 
 
+<main id="main-content" class="wrap">
+<h1 class="page-title">أدوات تحويل الصور</h1>
 <aside class="ad-slot ad-slot-top" aria-label="مساحة إعلانية"><span class="ad-label">إعلان</span><span class="ad-placeholder">مساحة إعلانية متاحة مستقبلًا</span></aside>
 <div class="tool-filters" aria-label="البحث وتصنيف الأدوات">
   <label class="tool-search"><span aria-hidden="true">⌕</span><input id="tool-search" type="search" placeholder="ابحث باسم الأداة أو الصيغة…" aria-label="ابحث باسم الأداة أو الصيغة" /></label>
@@ -18,6 +20,7 @@ const base = import.meta.env.BASE_URL;
   </div>
 
 </div>
+<p id="tool-results" class="tool-results" aria-live="polite">5 أدوات في الدليل</p>
 <section class="tool-grid" id="tool-grid" aria-label="أدوات المنصة">
   <a class="tool-card featured" data-category="convert" data-search="تحويل صيغ الصور png jpeg jpg webp bmp تحويل صيغة" href={`${base}convert/#format-panel`}><span class="tool-icon icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"/></svg></span><span class="tool-card-title">تحويل صيغ الصور</span><span class="tool-card-description">حوّل إلى PNG أو JPEG أو WebP أو BMP، مع توضيح خصائص كل صيغة.</span><span class="tool-card-action">ابدأ التحويل <span aria-hidden="true">←</span></span><span class="tool-tag">الأداة الأساسية</span></a>
   <a class="tool-card" data-category="advanced" data-search="اقتصاص قص تغيير الأبعاد المقاس الحجم crop resize" href={`${base}convert/#crop-panel`}><span class="tool-icon icon-violet" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M8 8h8v8H8z"/></svg></span><span class="tool-card-title">اقتصاص وتغيير الأبعاد</span><span class="tool-card-description">حدّد الجزء المطلوب، واضبط مقاس الصورة قبل التصدير.</span><span class="tool-card-action">فتح المحرر <span aria-hidden="true">←</span></span></a>
@@ -57,6 +60,7 @@ for (const button of categoryButtons) button.addEventListener("click", () => {
   filterTools();
 });
 </script>
+</main>
 </BaseLayout>
 
 <style>
