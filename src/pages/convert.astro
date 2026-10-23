@@ -961,6 +961,45 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:#167a54}
   object-fit: contain;
   flex: 0 1 auto;
 }
+
+/* JavaScript-created batch rows need global styles in Astro. Without :global(),
+   thumbnail IMG elements keep their intrinsic pixel size and overflow the page. */
+:global(.batch-file-list > .batch-file-item) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e4eaf3;
+  border-radius: 12px;
+  overflow: hidden;
+}
+:global(.batch-file-item .batch-thumb) {
+  display: block;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  min-height: 54px;
+  max-width: 54px;
+  max-height: 54px;
+  object-fit: contain;
+}
+:global(.batch-file-item .batch-file-details) {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+:global(.batch-file-item .batch-file-details strong) {
+  overflow-wrap: anywhere;
+}
+:global(.batch-file-item .queue-controls) {
+  display: flex;
+  gap: 5px;
+  flex: 0 0 auto;
+}
 </style>
 <script src="../scripts/background-removal.js"></script>
 </BaseLayout>
