@@ -807,8 +807,10 @@ test("loads the site without requesting remote web fonts", async ({ page }) => {
 });
 
 
-test("contains a full-resolution preview and its queue thumbnail without altering image dimensions", async ({ page }) => {
-  await page.goto("/convert/");
+test("contains full-resolution previews while presenting focused conversion controls", async ({ page }) => {
+  await page.goto("/convert/?tool=convert");
+  await expect(page.locator(".editor-tabs")).toBeHidden();
+  await expect(page.locator("#convert")).toHaveText("تحويل");
   await page.evaluate(async () => {
     const source = document.createElement("canvas");
     source.width = 1836;
@@ -834,6 +836,7 @@ test("contains a full-resolution preview and its queue thumbnail without alterin
   await expect(preview).toHaveJSProperty("naturalWidth", 1836);
   await expect(preview).toHaveJSProperty("naturalHeight", 3264);
   await expect(thumbnail).toBeVisible();
+  await expect(page.locator("#batch-convert")).toBeHidden();
   await expect(thumbnail).toHaveCSS("width", "54px");
   await expect(thumbnail).toHaveCSS("height", "54px");
 
@@ -852,5 +855,11 @@ test("contains a full-resolution preview and its queue thumbnail without alterin
   await page.locator("#convert").click();
   await expect(page.locator("#result")).toBeVisible();
   await expect(page.locator("#result-info")).toContainText("الأبعاد النهائية: 1836 × 3264 بكسل");
+  await expect(page.locator("#download")).toBeVisible();
+  await expect(page.locator("#download")).toContainText("تحميل");
   expect(await page.locator("#download").getAttribute("href")).toMatch(/^blob:/);
+  const resultBox = await page.locator("#result-preview").boundingBox();
+  expect(resultBox).not.toBeNull();
+  expect(resultBox!.width).toBeLessThanOrEqual(800);
+  expect(resultBox!.height).toBeLessThanOrEqual(450);
 });
