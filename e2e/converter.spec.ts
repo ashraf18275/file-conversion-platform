@@ -662,7 +662,9 @@ test("clears the selected image and resets the preview safely", async ({ page })
   await expect(page.locator("#remove-selected")).toBeEnabled();
   await page.locator("#remove-selected").click();
   await expect(page.locator("#image-file")).toHaveValue("");
-  await expect(page.locator("#preview-wrap")).toBeHidden();
+  await expect(page.locator("#preview-wrap")).toBeVisible();
+  await expect(page.locator("#preview")).toBeHidden();
+  await expect(page.locator("#upload-placeholder")).toBeVisible();
   await expect(page.locator("#convert")).toBeDisabled();
   await expect(page.locator("#remove-selected")).toBeDisabled();
   await expect(page.locator("#source-info")).toContainText("لم يتم اختيار صورة");
@@ -678,6 +680,18 @@ test("shows all selected files in the multi-image queue", async ({ page }) => {
   await expect(page.locator("#batch-count")).toContainText("2 ملفات محددة");
   await expect(page.locator("#batch-file-list li")).toHaveCount(2);
   await expect(page.locator("#batch-convert")).toBeEnabled();
+
+  await page.locator("#add-images").evaluate(element =>
+    element.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+  );
+  await page.locator("#image-file").setInputFiles({
+    name: "third.png",
+    mimeType: "image/png",
+    buffer: pixel
+  });
+  await expect(page.locator("#batch-count")).toContainText("3 ملفات محددة");
+  await expect(page.locator("#batch-file-list li")).toHaveCount(3);
+  await expect(page.locator("#preview")).toBeVisible();
 });
 
 test("keeps the image editor usable on a narrow mobile viewport", async ({ page }) => {
@@ -687,7 +701,7 @@ test("keeps the image editor usable on a narrow mobile viewport", async ({ page 
   await expect(page.locator("#image-file")).toBeAttached();
   const layout = await page.evaluate(() => {
     const previewWrap = document.querySelector<HTMLElement>("#preview-wrap");
-    const upload = document.querySelector<HTMLElement>("#upload-zone");
+    const upload = document.querySelector<HTMLElement>("#preview-wrap");
     const remove = document.querySelector<HTMLElement>("#remove-selected");
     return {
       viewportWidth: document.documentElement.clientWidth,
@@ -700,6 +714,7 @@ test("keeps the image editor usable on a narrow mobile viewport", async ({ page 
   expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth + 1);
   expect(layout.previewWidth).toBeLessThanOrEqual(layout.viewportWidth);
   expect(layout.uploadWidth).toBeGreaterThan(280);
+  expect(layout.uploadWidth).toBe(layout.previewWidth);
   expect(layout.removeHeight).toBeGreaterThanOrEqual(40);
 });
 
