@@ -653,6 +653,7 @@ test("image enhancement controls update preview and are applied to exported pixe
 
 test("clears the selected image and resets the preview safely", async ({ page }) => {
   await page.goto("/convert/");
+  await expect(page.locator(".upload-button")).toHaveText("تحميل");
   await page.locator("#image-file").setInputFiles({
     name: "selected.png",
     mimeType: "image/png",
@@ -692,6 +693,35 @@ test("shows all selected files in the multi-image queue", async ({ page }) => {
   await expect(page.locator("#batch-count")).toContainText("3 ملفات محددة");
   await expect(page.locator("#batch-file-list li")).toHaveCount(3);
   await expect(page.locator("#preview")).toBeVisible();
+  await expect(page.locator("#remove-selected")).toHaveText("حذف الصورة");
+
+  await page.locator("#remove-selected").click();
+  await expect(page.locator("#batch-count")).toContainText("2 ملفات محددة");
+  await expect(page.locator("#batch-file-list li")).toHaveCount(2);
+  await expect(page.locator("#preview")).toBeVisible();
+  const remainingImages = await page.locator("#image-file").evaluate(input => input.files?.length ?? 0);
+  expect(remainingImages).toBe(2);
+});
+
+const focusedTools = [
+  { tool: "convert", title: "تحويل صيغ الصور", visible: "#format-panel", hidden: ["#resize-panel", "#crop-panel", "#transform-panel", "#panel-enhance", "#panel-background"] },
+  { tool: "compress", title: "ضغط الصور", visible: "#format-panel", hidden: ["#resize-panel", "#crop-panel", "#transform-panel", "#panel-enhance", "#panel-background"] },
+  { tool: "resize", title: "تغيير أبعاد الصور", visible: "#resize-panel", hidden: ["#format-panel", "#crop-panel", "#transform-panel", "#panel-enhance", "#panel-background"] },
+  { tool: "crop", title: "اقتصاص الصور", visible: "#crop-panel", hidden: ["#format-panel", "#resize-panel", "#transform-panel", "#panel-enhance", "#panel-background"] },
+  { tool: "transform", title: "التدوير والقلب", visible: "#transform-panel", hidden: ["#format-panel", "#resize-panel", "#crop-panel", "#panel-enhance", "#panel-background"] },
+  { tool: "enhance", title: "تحسين الصور", visible: "#panel-enhance", hidden: ["#format-panel", "#resize-panel", "#crop-panel", "#transform-panel", "#panel-background"] },
+  { tool: "background", title: "إزالة خلفية الصور", visible: "#panel-background", hidden: ["#format-panel", "#resize-panel", "#crop-panel", "#transform-panel", "#panel-enhance"] }
+];
+
+test("each directory tool opens with only its own settings", async ({ page }) => {
+  for (const tool of focusedTools) {
+    await page.goto(`/convert/?tool=${tool.tool}`);
+    await expect(page.locator("h1.editor-page-title")).toHaveText(tool.title);
+    await expect(page.locator(tool.visible)).toBeVisible();
+    for (const selector of tool.hidden) {
+      await expect(page.locator(selector)).toBeHidden();
+    }
+  }
 });
 
 test("keeps the image editor usable on a narrow mobile viewport", async ({ page }) => {
