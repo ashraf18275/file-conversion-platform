@@ -702,20 +702,20 @@ test("keeps the image editor usable on a narrow mobile viewport", async ({ page 
   const layout = await page.evaluate(() => {
     const previewWrap = document.querySelector<HTMLElement>("#preview-wrap");
     const upload = document.querySelector<HTMLElement>("#preview-wrap");
-    const remove = document.querySelector<HTMLElement>("#remove-selected");
+    const placeholder = document.querySelector<HTMLElement>("#upload-placeholder");
     return {
       viewportWidth: document.documentElement.clientWidth,
       documentWidth: document.documentElement.scrollWidth,
       previewWidth: previewWrap?.getBoundingClientRect().width ?? 0,
       uploadWidth: upload?.getBoundingClientRect().width ?? 0,
-      removeHeight: remove?.getBoundingClientRect().height ?? 0
+      placeholderHeight: placeholder?.getBoundingClientRect().height ?? 0
     };
   });
   expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth + 1);
   expect(layout.previewWidth).toBeLessThanOrEqual(layout.viewportWidth);
   expect(layout.uploadWidth).toBeGreaterThan(280);
   expect(layout.uploadWidth).toBe(layout.previewWidth);
-  expect(layout.removeHeight).toBeGreaterThanOrEqual(40);
+  expect(layout.placeholderHeight).toBeGreaterThanOrEqual(40);
 });
 
 test("mobile navigation stays compact, scrollable, and free of page overflow", async ({ page }) => {
