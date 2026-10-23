@@ -699,7 +699,7 @@ test("shows all selected files in the multi-image queue", async ({ page }) => {
   await expect(page.locator("#batch-count")).toContainText("2 ملفات محددة");
   await expect(page.locator("#batch-file-list li")).toHaveCount(2);
   await expect(page.locator("#preview")).toBeVisible();
-  const remainingImages = await page.locator("#image-file").evaluate(input => input.files?.length ?? 0);
+  const remainingImages = await page.locator("#image-file").evaluate(input => (input as HTMLInputElement).files?.length ?? 0);
   expect(remainingImages).toBe(2);
 });
 
