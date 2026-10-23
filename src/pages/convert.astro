@@ -144,7 +144,8 @@ const toolModes = {
   resize: { title: "تغيير أبعاد الصور", tab: "size", details: ["resize-panel"] },
   crop: { title: "اقتصاص الصور", tab: "size", details: ["crop-panel"] },
   transform: { title: "التدوير والقلب", tab: "transform", details: ["transform-panel"] },
-  enhance: { title: "تحسين الصور", tab: "enhance", details: [] }
+  enhance: { title: "تحسين الصور", tab: "enhance", details: [] },
+  background: { title: "إزالة خلفية الصور", tab: "background", details: [] }
 };
 const requestedTool = new URLSearchParams(location.search).get("tool");
 const selectedTool = toolModes[requestedTool];
